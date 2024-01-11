@@ -137,7 +137,7 @@ In the future, we will be expanding the number of language models used in the ma
 
 ## Acknowledgments
 We thank [ Beniamino Green](https://beniamino.org/about/), [Kosuke Imai](https://imai.fas.harvard.edu/),
-[Gary King](https://garyking.org/), [Xiang Zhou](https://scholar.harvard.edu/xzhou/home),  members of the Imai Research Workshop for valuable feedback on this research project. We also would like to thank Gil Tamir and [Xiaolong Yang](https://xiaolong-yang.com/) for excellent research assistance. 
+[Gary King](https://garyking.org/), [Xiang Zhou](https://scholar.harvard.edu/xzhou/home),  members of the Imai Research Workshop for valuable feedback. We also would like to thank Gil Tamir and [Xiaolong Yang](https://xiaolong-yang.com/) for excellent research assistance. 
 
 ## License
 
