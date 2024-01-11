@@ -1,15 +1,11 @@
 # `LinkOrgs`: An R package for linking linking records on organizations using large language models (LLMs) and half a billion open-collaborated records from LinkedIn 
 
-<<<<<<< HEAD
-*April 2023 update: We're made live a new version of the software integrating large-language models (LLMs) such as GPT-2+ or BERT, after calibrating them for organizational record linkage using the trillions of name match pairs in the LinkedIn Corpus. Still in beta release. We're working on a full re-train of an LLM using Delta weights (current implementation takes fixed LLM representations as output and then performs a transfer learning step). Let us know how you find the package!*
-=======
 [**What is LinkOrgs?**](#description)
 | [**Installation**](#installation)
 | [**Tutorial**](#tutorial)
 | [**Comparison with Ground Truth**](#truth)
 | [**References**](#references)
 | [**Documentation**](https://github.com/cjerzak/LinkOrgs-software/blob/master/LinkOrgs.pdf)
->>>>>>> 7ee10ad (docs)
 
 ## Installation
 
