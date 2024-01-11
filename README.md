@@ -136,7 +136,8 @@ We're always looking to improve the software in terms of ease-of-use and its cap
 In the future, we will be expanding the number of language models used in the machine learning arm of the main matching function. We will also be expanding the merge capabilities (currently, we only allow inner joins [equivalent to setting `all = F` in the base `R` `merge` function]; future releases will allow more complex inner, left, right, and outer joins).
 
 ## Acknowledgments
-We thank [Gary King](https://garyking.org/), [Kosuke Imai](https://imai.fas.harvard.edu/), [Xiang Zhou](https://scholar.harvard.edu/xzhou/home), and members of the Imai Research Workshop for valuable feedback on this research project. We also would like to thank Gil Tamir and [Xiaolong Yang](https://xiaolong-yang.com/) for excellent research assistance. 
+We thank [ Beniamino Green](https://beniamino.org/about/),
+[Gary King](https://garyking.org/), [Kosuke Imai](https://imai.fas.harvard.edu/), [Xiang Zhou](https://scholar.harvard.edu/xzhou/home),  members of the Imai Research Workshop for valuable feedback on this research project. We also would like to thank Gil Tamir and [Xiaolong Yang](https://xiaolong-yang.com/) for excellent research assistance. 
 
 ## License
 
