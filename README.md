@@ -136,7 +136,7 @@ We're always looking to improve the software in terms of ease-of-use and its cap
 In the future, we will be expanding the number of language models used in the machine learning arm of the main matching function. We will also be expanding the merge capabilities (currently, we only allow inner joins [equivalent to setting `all = F` in the base `R` `merge` function]; future releases will allow more complex inner, left, right, and outer joins).
 
 ## Acknowledgments
-We thank [ Beniamino Green](https://beniamino.org/about/), [Kosuke Imai](https://imai.fas.harvard.edu/),
+We thank [Beniamino Green](https://beniamino.org/about/), [Kosuke Imai](https://imai.fas.harvard.edu/),
 [Gary King](https://garyking.org/), [Xiang Zhou](https://scholar.harvard.edu/xzhou/home),  members of the Imai Research Workshop for valuable feedback. We also would like to thank [Gil Tamir](https://www.linkedin.com/in/gil-tamir-4176161b7/) and [Xiaolong Yang](https://xiaolong-yang.com/) for excellent research assistance. 
 
 ## License
@@ -144,8 +144,8 @@ MIT License.
 
 ## References 
 
-Brian Libgober, Connor T. Jerzak. "Linking Datasets on Organizations Using Half A Billion Open Collaborated Records." *ArXiv Preprint*, 2023.
-[arxiv.org/pdf/2302.02533.pdf](https://arxiv.org/pdf/2302.02533.pdf)
+Brian Libgober, Connor T. Jerzak. "Linking Datasets on Organizations Using Half A Billion Open Collaborated Records." *ArXiv Preprint* 2302.02533, 2023.
+[[PDF]](https://arxiv.org/pdf/2302.02533.pdf) [[Data]](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/EHRQQL&faces-redirect=true)
 
 <!-- 
 <table style="width:100%;">
