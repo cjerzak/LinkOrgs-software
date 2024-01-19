@@ -32,11 +32,13 @@ LinkOrgs(
 
 \item{by, by.x, by.y}{character vector(s) that specify the column names used for merging data frames \code{x} and \code{y}. The merging variables should be organizational names. See \code{?base::merge} for more details regarding syntax.}
 
-\item{algorithm}{character; specifies which algorithm described in Libgober and Jerzak (2023+) should be used. Options are "\code{markov}", "\code{bipartite}", "\code{ml}", and "\code{transfer}". Default is "\code{transfer}", which uses a transfer-learning approach to predicting the match probability using half a billion open-collaborated recoreds along with a large fraction of the content of the Internet.}
+\item{algorithm}{character; specifies which algorithm described in Libgober and Jerzak (2023+) should be used. Options are "\code{markov}", "\code{bipartite}", "\code{ml}", and "\code{transfer}". Default is "\code{ ml}", which uses a machine-learning approach using Transformer netes and 9 million parameters to predict match probabilities using half a billion open-collaborated recoreds as training data.}
 
 \item{conda_env}{character string; specifies a conda environment where tensorflow and related packages have been installed. Used only when \code{algorithm='ml'} or \code{DistanceMeasure='ml'}.}
 
 \item{ReturnDiagnostics}{logical; specifies whether various match-level diagnostics should be returned in the merged data frame.}
+
+\item{ml_version}{character; specifies which ML algorithm described in Libgober and Jerzak (2023+) should be used. Options are of the form \code{"v1"}, \code{"v2"}, \code{"v3"}.... Highest version currently supported is \code{"v2"}.}
 
 \item{...}{For additional specification options, see
 ``Details''.}
