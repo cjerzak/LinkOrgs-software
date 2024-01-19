@@ -131,7 +131,7 @@ PerformanceMatrix <- AssessMatchPerformance(x  = x,
 ``` 
 
 ## Improvements & Future Development Plan
-We're always looking to improve the software in terms of ease-of-use and its capabilities. If you have any suggestions/feedback, or need further assistance in getting the package working for your analysis, please don't hesitate to email Connor Jerzak at <connor.jerzak@gmail.com>. 
+We're always looking to improve the software in terms of ease-of-use and its capabilities. If you have any suggestions/feedback, or need further assistance in getting the package working for your analysis, please don't hesitate to send an email to <connor.jerzak@gmail.com>. 
 
 In the future, we will be expanding the number of language models used in the machine learning arm of the main matching function. We will also be expanding the merge capabilities (currently, we only allow inner joins [equivalent to setting `all = F` in the base `R` `merge` function]; future releases will allow more complex inner, left, right, and outer joins).
 
