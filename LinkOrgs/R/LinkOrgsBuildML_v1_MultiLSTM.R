@@ -1,10 +1,6 @@
 #'
 #' A primarily internal function which builds the organizational record linkage models used in Libgober and Jerzak (2023+).
 #'
-#' @usage
-#'
-#' BuildML(...)
-#'
 #' @export
 #'
 #' @md

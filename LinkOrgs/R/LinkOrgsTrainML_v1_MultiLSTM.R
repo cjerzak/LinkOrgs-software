@@ -3,11 +3,6 @@
 #'
 #' Internal function that performs the training of the machine learning models used for organizational record linkage algorithms of Libgober and Jerzak.
 #'
-#' @usage
-#'
-#' TrainML(...)
-#'
-#'
 #' @export
 #'
 #' @md

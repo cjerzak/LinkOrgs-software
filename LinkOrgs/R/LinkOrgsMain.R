@@ -1,22 +1,13 @@
 #!/usr/bin/env Rscript
 #' LinkOrgs
 #'
-#' Implements the organizational record linkage algorithms of Libgober and Jerzak (2023+).
-#'
-#' @usage
-#'
-#' LinkOrgs(x, y, by ...)
+#' Implements the organizational record linkage algorithms of Libgober and Jerzak (2023+) using half-a-billion open-collaborated records.
 #'
 #' @param x,y data frames to be merged
-#'
 #' @param by,by.x,by.y character vector(s) that specify the column names used for merging data frames `x` and `y`. The merging variables should be organizational names. See `?base::merge` for more details regarding syntax.
-#'
-#' @param algorithm character; specifies which algorithm described in Libgober and Jerzak (2023+) should be used. Options are "`markov`", "`bipartite`", "`ml`", and "`transfer`". Default is "`transfer`", which uses a transfer-learning approach to predicting the match probability using half a billion open-collaborated recoreds along with a large fraction of the content of the Internet.
-#'
+#' @param algorithm character; specifies which algorithm described in Libgober and Jerzak (2023+) should be used. Options are "`markov`", "`bipartite`", "`ml`", and "`transfer`". Default is "` ml`", which uses a machine-learning approach using Transformer netes and 9 million parameters to predict match probabilities using half a billion open-collaborated recoreds as training data.
 #' @param conda_env character string; specifies a conda environment where tensorflow and related packages have been installed. Used only when `algorithm='ml'` or `DistanceMeasure='ml'`.
-#'
 #' @param ReturnDiagnostics logical; specifies whether various match-level diagnostics should be returned in the merged data frame.
-#'
 #' @param ... For additional specification options, see
 #'   ``Details''.
 #'
@@ -24,26 +15,16 @@
 #' @export
 #'
 #' @details `LinkOrgs` automatically processes the name text for each dataset (specified by `by` or `by.x`, and `by.y`. Users may specify the following options:
-#'
 #' - Set `DistanceMeasure` to control algorithm for computing pairwise string distances. Options include "`osa`", "`jaccard`", "`jw`". See `?stringdist::stringdist` for all options. Default is `"jaccard"`. To use the combined machine learning and network  methods, set `algorithm` to `"bipartite"` or `"markov"`, and `DistanceMeasure` to `"ml"`.
-#'
 #' - Set `MaxDist` to control the maximum allowed distance between two matched strings
-#'
 #' - Set `MaxDist_network` to control the maximum allowed distance between two matched strings in the integration with the LinkedIn network representation.
-#'
 #' - Set `AveMatchNumberPerAlias` to control the maximum allowed distance between two matched strings. Takes priority over `MaxDist` if both specified.
-#'
 #' - Set `AveMatchNumberPerAlias_network` to control the maximum allowed distance between two matched strings in the integration with the LinkedIn network representation. Takes priority over `MaxDist_network` if both specified.
-#'
 #' - Set `qgram` to control the character-level q-grams used in the distance measure. Default is `2`.
-#'
 #' - Set `RemoveCommonWords` to `TRUE` to remove common words (those appearing in >
 #' 10% of aliases). Default is `FALSE`.
-#'
 #' - Set `NormalizeSpaces` to `TRUE` to remove hanging whitespaces. Default is `TRUE`.
-#'
 #' - Set `RemovePunctuation` to `TRUE` to remove punctuation. Default is `TRUE`.
-#'
 #' - Set `ToLower` to `TRUE` to ignore case. Default is `TRUE`.
 #'
 #' @examples
@@ -699,11 +680,6 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 #'
 #' Performs fast fuzzy matching of strings based on the string distance measure specified in `DistanceMeasure`. Matching is parallelized using all available CPU cores to increase execution speed.
 #'
-#'
-#' @usage
-#'
-#' FastFuzzyMatch(x,y,by,...)
-#'
 #' @param x,y data frames to be merged
 #'
 #' @param by,by.x,by.y specifications of the columns used for merging. We follow the general syntax of `base::merge`; see `?base::merge` for more details.
@@ -890,10 +866,6 @@ FastFuzzyMatch <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, return_str
 #' AssessMatchPerformance
 #'
 #'  Computes the true/false positive and true/false negative rates of a candidate matching based on a ground-truth (preferably human-generated) matched dataset.
-#'
-#' @usage
-#'
-#' AssessMatchPerformance(x,y,by,...)
 #'
 #' @param x,y data frames to be merged
 #'

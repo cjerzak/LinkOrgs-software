@@ -4,7 +4,7 @@
 \alias{url2dt}
 \title{url2dt}
 \usage{
-url2dt(url, target_extension)
+url2dt(url, target_extension = ".csv")
 }
 \arguments{
 \item{url}{character string with the URL housing the data object.}

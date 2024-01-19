@@ -4,7 +4,28 @@
 \alias{LinkOrgs}
 \title{LinkOrgs}
 \usage{
-LinkOrgs(x, y, by ...)
+LinkOrgs(
+  x,
+  y,
+  by = NULL,
+  by.x = NULL,
+  by.y = NULL,
+  algorithm = "bipartite",
+  conda_env = NULL,
+  ReturnDiagnostics = F,
+  ReturnProgress = T,
+  ToLower = T,
+  NormalizeSpaces = T,
+  RemovePunctuation = T,
+  MaxDist = NULL,
+  MaxDist_network = NULL,
+  AveMatchNumberPerAlias = 10,
+  AveMatchNumberPerAlias_network = 2,
+  DistanceMeasure = "jaccard",
+  qgram = 2,
+  openBrowser = F,
+  ReturnDecomposition = F
+)
 }
 \arguments{
 \item{x, y}{data frames to be merged}
@@ -24,7 +45,7 @@ LinkOrgs(x, y, by ...)
 \code{z} The merged data frame.
 }
 \description{
-Implements the organizational record linkage algorithms of Libgober and Jerzak (2023+).
+Implements the organizational record linkage algorithms of Libgober and Jerzak (2023+) using half-a-billion open-collaborated records.
 }
 \details{
 \code{LinkOrgs} automatically processes the name text for each dataset (specified by \code{by} or \code{by.x}, and \code{by.y}. Users may specify the following options:

@@ -4,7 +4,16 @@
 \alias{AssessMatchPerformance}
 \title{AssessMatchPerformance}
 \usage{
-AssessMatchPerformance(x,y,by,...)
+AssessMatchPerformance(
+  x,
+  y,
+  z,
+  z_true,
+  by,
+  by.x = by,
+  by.y = by,
+  openBrowser = F
+)
 }
 \arguments{
 \item{x, y}{data frames to be merged}

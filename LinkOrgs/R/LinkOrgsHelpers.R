@@ -3,10 +3,6 @@
 #'
 #' Downloads a .zip file from a URL as a data.table from a URL.
 #'
-#' @usage
-#'
-#' url2dt(url, target_extension)
-#'
 #' @param url character string with the URL housing the data object.
 #'
 #' @param target_extension (default = `".csv"`) character string describing

@@ -4,7 +4,7 @@
 \alias{RestoreML}
 \title{RestoreML}
 \usage{
-RestoreML(...)
+RestoreML()
 }
 \description{
 A function, primarily for internal used, used to initialize the machine learning models used in the record linkage algorithms of Libgober and Jerzak.

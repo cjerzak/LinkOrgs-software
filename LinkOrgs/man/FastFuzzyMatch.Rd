@@ -4,7 +4,23 @@
 \alias{FastFuzzyMatch}
 \title{FastFuzzyMatch}
 \usage{
-FastFuzzyMatch(x,y,by,...)
+FastFuzzyMatch(
+  x,
+  y,
+  by = NULL,
+  by.x = NULL,
+  by.y = NULL,
+  return_stringdist = T,
+  onlyUFT = T,
+  qgram = 2,
+  DistanceMeasure = "jaccard",
+  MaxDist = 0.2,
+  AverageReference = NULL,
+  AveMatchNumberPerAlias = NULL,
+  openBrowser = F,
+  ReturnProgress = T,
+  ReturnMaxDistThreshold = F
+)
 }
 \arguments{
 \item{x, y}{data frames to be merged}
