@@ -7,7 +7,8 @@
 #' @param by,by.x,by.y character vector(s) that specify the column names used for merging data frames `x` and `y`. The merging variables should be organizational names. See `?base::merge` for more details regarding syntax.
 #' @param algorithm character; specifies which algorithm described in Libgober and Jerzak (2023+) should be used. Options are "`markov`", "`bipartite`", "`ml`", and "`transfer`". Default is "` ml`", which uses a machine-learning approach using Transformer netes and 9 million parameters to predict match probabilities using half a billion open-collaborated recoreds as training data.
 #' @param ml_version character; specifies which version of the ML algorithm should be used. Options are of the form `"v1"`, `"v2"`, `"v3"`.... Highest version currently supported is `"v1"` (11M parameters).
-#' @param conda_env character string; specifies a conda environment where tensorflow and related packages have been installed. Used only when `algorithm='ml'` or `DistanceMeasure='ml'`.
+#' @param conda_env character string; specifies a conda environment where JAX and related packages have been installed (see `?LinkOrgs::BuildBackend`). Used only when `algorithm='ml'` or `DistanceMeasure='ml'`.
+#' @param conda_env_required Boolean; specifies whether conda environment is required.
 #' @param ReturnDiagnostics logical; specifies whether various match-level diagnostics should be returned in the merged data frame.
 #' @param ... For additional specification options, see
 #'   ``Details''.
@@ -51,12 +52,12 @@
 #' @import Rfast
 #' @import fastmatch
 #' @import doMC
-#' @import tensorflow
-#' @import keras
+#' @import reticulate
 #' @md
 
 LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
-                    algorithm = "bipartite", conda_env = NULL,
+                    algorithm = "bipartite",
+                    conda_env = NULL, conda_env_required = F,
                     ReturnDiagnostics = F, ReturnProgress = T,
                     ToLower = T,
                     NormalizeSpaces = T,
@@ -118,7 +119,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   if(algorithm == "transfer" | DistanceMeasure == "transfer"){
     transferCoefs_url <- "https://www.dropbox.com/s/b2lvc4illml68w5/TransferLCoefs_tokenizer_parallelism_FALSE_model_bert-base-multilingual-uncased_layers_-1_device_cpu_logging_level_error_FullTRUE.csv.zip?dl=0"
     transferCoefs <- try(t(as.matrix(url2dt( transferCoefs_url )[-1,2])),T)
-    if(class(transferCoefs)=="try-error"){
+    if("try-error" %in% class(transferCoefs)){
       transferCoefs <- t(as.matrix(data.table::fread("./Data/TransferLCoefs_tokenizer_parallelism_FALSE_model_bert-base-multilingual-uncased_layers_-1_device_cpu_logging_level_error_FullTRUE.csv")[-1,2]))
     }
 
@@ -276,7 +277,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 
         # negative here comes from fact that we compute the distances only, not the probabilities
         MIN_MATCH_PROB_ml <- try(mean(abs(quantile(-MATCH_PROBS_ml$matchprob,  probs = min(1,ImpliedQuantile) ))),T)
-        if(class(MIN_MATCH_PROB_ml) == 'try-error'){
+        if('try-error' %in% class(MIN_MATCH_PROB_ml)){
           MIN_MATCH_PROB_ml <- try(mean(abs(quantile(-MATCH_PROBS_ml$matchprob,  probs = min(1,ImpliedQuantile) ))),T)
         }
         MIN_MATCH_PROB_ml <- f2n(  MIN_MATCH_PROB_ml  )
@@ -347,7 +348,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 
         # no neg sign here since we really do compute the probabilities
         MIN_MATCH_PROB_transfer <- try(mean( (quantile(MATCH_PROBS_ml$matchprob,  probs = min(1,ImpliedQuantile) ))),T)
-        if(class(MIN_MATCH_PROB_ml) == 'try-error'){
+        if('try-error' %in% class(MIN_MATCH_PROB_ml)){
           MIN_MATCH_PROB_transfer <- try(mean( (quantile(MATCH_PROBS_ml$matchprob,  probs = min(1,ImpliedQuantile) ))),T)
         }
         MIN_MATCH_PROB_transfer <- f2n(  MIN_MATCH_PROB_transfer  )
@@ -392,7 +393,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                                        MaxDist = MaxDist,
                                        AverageReference = "x",
                                        AveMatchNumberPerAlias = AveMatchNumberPerAlias) ,T)
-      if(class( z_fuzzy ) == "try-error"){ browser() }
+      if("try-error" %in% class( z_fuzzy )){ browser() }
     }
     if(!DistanceMeasure %in% c("ml","transfer") ){
       z_fuzzy <- try(as.data.frame(FastFuzzyMatch(
@@ -406,7 +407,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                                               q = qgram)) ,T)
     }
     z_fuzzy <- try(z_fuzzy[,!colnames(z_fuzzy) %in% c("stringdist.x","stringdist.y")],T)
-    if(class(z_fuzzy) == "try-error"){browser()}
+    if("try-error" %in% class(z_fuzzy)){browser()}
     colnames(z_fuzzy)[colnames(z_fuzzy) == "stringdist"] <- "stringdist_fuzzy"
   }
 
@@ -434,7 +435,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                 MaxDist = MaxDist_network,
                 AverageReference = "x",
                 AveMatchNumberPerAlias = AveMatchNumberPerAlias_network), T)
-        if(class(my_matched) == "try-error"){browser()}
+        if("try-error" %in% class(my_matched)){browser()}
         colnames(my_matched)[colnames(my_matched) == key_by_ref] <- "my_entry"
         my_matched <- my_matched[,c("my_entry","alias_name","stringdist","canonical_id")]
         # head(my_matched[order(my_matched$stringdist),])
@@ -555,7 +556,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                                           by.y = by.y,
                                           MaxDist = MaxDist,
                                           AveMatchNumberPerAlias = AveMatchNumberPerAlias) ,T)
-        if(class(z_linkIt)=="try-error"){browser()}
+        if("try-error" %in% class(z_linkIt)){browser()}
       }
       if(algorithm == "transfer"){
         print("Getting name representations from a LLM...")
@@ -570,7 +571,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                                                MaxDist = MaxDist,
                                                AverageReference = "x",
                                                AveMatchNumberPerAlias = AveMatchNumberPerAlias) ,T)
-        if(class(z_linkIt) == "try-error"){ browser() }
+        if("try-error" %in% class(z_linkIt)){ browser() }
       }
       }
     }
@@ -658,7 +659,6 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     # check to confirim code correct
     # head(names(minDist_vec)[ fastmatch::fmatch(z$XYref__ID,names(minDist_vec)) ]) == head(z$XYref__ID)
   }
-  if(class(z) == "try-error"){browser()}
   z  = z[,!colnames(z) %fin% c("ID_MATCH.x", "ID_MATCH.y")]
 
   if(ReturnDiagnostics == F){
@@ -784,7 +784,7 @@ FastFuzzyMatch <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, return_str
     #MIN_MATCH_DIST_fuzzy <- mean(extremeStat::distLquantile(MATCH_DIST_fuzzy, probs = ImpliedQuantile )[1:3,1])
     MIN_MATCH_DIST_fuzzy <- quantile(MATCH_DIST_fuzzy,
                                      probs = min(1,ImpliedQuantile))
-    if(class(MIN_MATCH_DIST_fuzzy) == 'try-error' | is.na(MIN_MATCH_DIST_fuzzy)){
+    if('try-error' %in% class(MIN_MATCH_DIST_fuzzy) | is.na(MIN_MATCH_DIST_fuzzy)){
       MIN_MATCH_DIST_fuzzy <- quantile(MATCH_DIST_fuzzy,  probs = ImpliedQuantile)
     }
     MIN_MATCH_DIST_fuzzy <- f2n(  MIN_MATCH_DIST_fuzzy )

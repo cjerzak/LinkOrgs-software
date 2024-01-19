@@ -12,6 +12,7 @@ LinkOrgs(
   by.y = NULL,
   algorithm = "bipartite",
   conda_env = NULL,
+  conda_env_required = F,
   ReturnDiagnostics = F,
   ReturnProgress = T,
   ToLower = T,
@@ -34,7 +35,9 @@ LinkOrgs(
 
 \item{algorithm}{character; specifies which algorithm described in Libgober and Jerzak (2023+) should be used. Options are "\code{markov}", "\code{bipartite}", "\code{ml}", and "\code{transfer}". Default is "\code{ ml}", which uses a machine-learning approach using Transformer netes and 9 million parameters to predict match probabilities using half a billion open-collaborated recoreds as training data.}
 
-\item{conda_env}{character string; specifies a conda environment where tensorflow and related packages have been installed. Used only when \code{algorithm='ml'} or \code{DistanceMeasure='ml'}.}
+\item{conda_env}{character string; specifies a conda environment where JAX and related packages have been installed (see \code{?LinkOrgs::BuildBackend}). Used only when \code{algorithm='ml'} or \code{DistanceMeasure='ml'}.}
+
+\item{conda_env_required}{Boolean; specifies whether conda environment is required.}
 
 \item{ReturnDiagnostics}{logical; specifies whether various match-level diagnostics should be returned in the merged data frame.}
 
