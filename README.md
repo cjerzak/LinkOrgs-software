@@ -144,7 +144,7 @@ MIT License.
 
 ## References 
 
-Brian Libgober, Connor T. Jerzak. "Linking Datasets on Organizations Using Half A Billion Open Collaborated Records." *ArXiv Preprint* 2302.02533, 2023.
+Brian Libgober, Connor T. Jerzak. "Linking Datasets on Organizations Using Half A Billion Open Collaborated Records." *ArXiv Preprint*, 2023.
 [[PDF]](https://arxiv.org/pdf/2302.02533.pdf) [[Data]](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/EHRQQL&faces-redirect=true)
 
 <!-- 
