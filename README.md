@@ -8,7 +8,6 @@
 | [**Documentation**](https://github.com/cjerzak/LinkOrgs-software/blob/master/LinkOrgs.pdf)
 
 ## Installation
-
 The most recent version of `LinkOrgs` can be installed directly from the repository using the `devtools` package
 
 ```
@@ -133,7 +132,7 @@ PerformanceMatrix <- AssessMatchPerformance(x  = x,
 ## Improvements & Future Development Plan
 We're always looking to improve the software in terms of ease-of-use and its capabilities. If you have any suggestions/feedback, or need further assistance in getting the package working for your analysis, please email <connor.jerzak@gmail.com>. 
 
-In the future, we will be expanding the number of language models used in the machine learning arm of the main matching function. We will also be expanding the merge capabilities (currently, we only allow inner joins [equivalent to setting `all = F` in the `merge` function from base `R`]; future releases will allow more complex inner, left, right, and outer joins).
+In future releases, we will be expanding the merge capabilities (currently, we only allow inner joins [equivalent to setting `all = F` in the `merge` function from base `R`]; future releases will allow more complex inner, left, right, and outer joins).
 
 ## Acknowledgments
 We thank [Beniamino Green](https://beniamino.org/about/), [Kosuke Imai](https://imai.fas.harvard.edu/),
@@ -146,14 +145,5 @@ MIT License.
 
 Brian Libgober, Connor T. Jerzak. "Linking Datasets on Organizations Using Half A Billion Open Collaborated Records." *ArXiv Preprint*, 2023.
 [[PDF]](https://arxiv.org/pdf/2302.02533.pdf) [[Data]](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/EHRQQL&faces-redirect=true)
-
-<!-- 
-<table style="width:100%;">
-  <tr>
-    <td style="width:50%; text-align:center;"><img src="https://i0.wp.com/connorjerzak.com/wp-content/uploads/2023/07/f1.png?w=738&ssl=1" /></td>
-    <td style="width:50%; text-align:center;">Figure: <i>Name match probabilities from LinkedIn-trained model. Findings: <br> [a.] The model successfully distinguishes most matches from non-matches. <br> [b.] A few name matches remain difficult to determine even with massive training data.</i></td>
-  </tr>
-</table>
--->
 
 [<img src="https://i0.wp.com/connorjerzak.com/wp-content/uploads/2023/07/f1.png?w=738&ssl=1" width="400" height="400">](https://connorjerzak.com/linkorgs-summary/)

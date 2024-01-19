@@ -6,6 +6,7 @@
 #' @param x,y data frames to be merged
 #' @param by,by.x,by.y character vector(s) that specify the column names used for merging data frames `x` and `y`. The merging variables should be organizational names. See `?base::merge` for more details regarding syntax.
 #' @param algorithm character; specifies which algorithm described in Libgober and Jerzak (2023+) should be used. Options are "`markov`", "`bipartite`", "`ml`", and "`transfer`". Default is "` ml`", which uses a machine-learning approach using Transformer netes and 9 million parameters to predict match probabilities using half a billion open-collaborated recoreds as training data.
+#' @param ml_version character; specifies which ML algorithm described in Libgober and Jerzak (2023+) should be used. Options are of the form `"v1"`, `"v2"`, `"v3"`.... Highest version currently supported is `"v2"`.
 #' @param conda_env character string; specifies a conda environment where tensorflow and related packages have been installed. Used only when `algorithm='ml'` or `DistanceMeasure='ml'`.
 #' @param ReturnDiagnostics logical; specifies whether various match-level diagnostics should be returned in the merged data frame.
 #' @param ... For additional specification options, see
