@@ -140,8 +140,7 @@ We thank [ Beniamino Green](https://beniamino.org/about/), [Kosuke Imai](https:/
 [Gary King](https://garyking.org/), [Xiang Zhou](https://scholar.harvard.edu/xzhou/home),  members of the Imai Research Workshop for valuable feedback. We also would like to thank [Gil Tamir](https://www.linkedin.com/in/gil-tamir-4176161b7/) and [Xiaolong Yang](https://xiaolong-yang.com/) for excellent research assistance. 
 
 ## License
-
-Creative Commons Attribution-Noncommercial-No Derivative Works 4.0, for academic use only.
+MIT License.
 
 ## References 
 
