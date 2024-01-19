@@ -7,6 +7,8 @@
 | [**References**](#references)
 | [**Documentation**](https://github.com/cjerzak/LinkOrgs-software/blob/master/LinkOrgs.pdf)
 
+*Note (Jan. 19, 2024):* `LinkOrgs` is down, as it is currently being re-built with a JAX backend. It will be back up shortly! 
+
 ## Installation
 The most recent version of `LinkOrgs` can be installed directly from the repository using the `devtools` package
 
