@@ -1,7 +1,10 @@
 # Instructions for package installation + use
 {
-  # Download package via github
-  devtools::install_github("cjerzak/LinkOrgs-software/LinkOrgs")
+  # Download package via github if needed
+  # devtools::install_github("cjerzak/LinkOrgs-software/LinkOrgs")
+
+  # local install for development team
+  # install.packages("~/Documents/LinkOrgs-software/LinkOrgs",repos = NULL, type = "source",force = F)
 
   # See package documentation for help
   # ?LinkOrgs::FastFuzzyMatch
@@ -9,7 +12,7 @@
   # ?LinkOrgs::LinkOrgs
 
   # Load package
-  library(LinkOrgs)
+  library( LinkOrgs )
 
   # Create synthetic data to try everything out
   x_orgnames <- c("apple","oracle","enron inc.","mcdonalds corporation")
@@ -18,11 +21,10 @@
   y <- data.frame("orgnames_y"=y_orgnames)
 
   # Perform a simple merge with package using default (machine-learning model)
-  LinkedOrgs_ML <- LinkOrgs(x = x,
-                                   y = y,
-                                   by.x = "orgnames_x",
-                                   by.y = "orgnames_y",
-                                   openBrowser= F)
+  LinkedOrgs_ML <- LinkOrgs::LinkOrgs(x = x,
+                                      y = y,
+                                      by.x = "orgnames_x",
+                                      by.y = "orgnames_y")
 
   # Perform a simple merge with package using bipartite network representation
   LinkedOrgs_Bipartite <- LinkOrgs(x = x,

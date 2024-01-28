@@ -56,7 +56,7 @@
 #' @md
 
 LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
-                    algorithm = "bipartite",
+                    algorithm = "ml",
                     conda_env = NULL, conda_env_required = F,
                     ReturnDiagnostics = F, ReturnProgress = T,
                     ToLower = T,
@@ -68,6 +68,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                     AveMatchNumberPerAlias_network = 2,
                     DistanceMeasure = "jaccard",
                     qgram = 2,
+                    ml_version = "v0",
                    openBrowser = F,ReturnDecomposition = F){
   suppressPackageStartupMessages({
     library(plyr); library(dplyr)
@@ -88,17 +89,37 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 
   redownload <- T
   if(algorithm == "ml" | DistanceMeasure == "ml"){
+      # build model
+      if(ml_version == "v0"){
+        ModelURL <- "https://www.dropbox.com/scl/fi/au0zwc0kmfnzittzx9xso/AnalysisR_LinkOrgsBase_10PT8M_2024-01-27.zip?rlkey=0eex7mu51ggkfw00mqyzeraip&dl=0"
+        WeightsURL <- "https://www.dropbox.com/scl/fi/shwdv8vp49yxuf3oixtwa/LinkOrgsBase_10PT8M_2024-01-27_ilast.eqx?rlkey=azr3jg3m01iawgx8wdatqcb4j&dl=0"
+      }
+
+      # process URLs
+      ModelURL <- dropboxURL2downloadURL(ModelURL); WeightsURL <- dropboxURL2downloadURL(WeightsURL)
+
+      # create temporary folders from hashess
+      options(timeout = max(60*5, getOption("timeout")))
+      DownloadFolder <- tempdir()
+      download.file( ModelURL, destfile = (ModelZipLoc <- sprintf('%s/Model.zip', DownloadFolder)), timeout = L)
+      download.file( WeightsURL, destfile = (WeightsLoc <- sprintf('%s/ModelWeights.eqx', DownloadFolder)))
+
+      # unzip model
+      ModelLoc <- gsub(ModelZipLoc, pattern = "\\.zip", replace = "")
+      unzip(ModelZipLoc, junkpaths = T, exdir = ModelLoc)
+
+      backend <- "METAL"
+      trainModel <- F; AnalysisName <- "LinkOrgs"
+      source(sprintf('./%s/LinkOrgs_Helpers.R',ModelLoc), local = T)
+      source(sprintf('./%s/JaxTransformer_Imports.R',ModelLoc), local = T)
+      source(sprintf('./%s/JaxTransformer_BuildML.R',ModelLoc), local = T)
+      source(sprintf('./%s/JaxTransformer_TrainDefine.R',ModelLoc), local = T)
+
+      ModelList <- eq$tree_deserialise_leaves( WeightsLoc, list(ModelList, StateList, opt_state) )
+      StateList <- ModelList[[2]];
+      ModelList <- ModelList[[1]]
       browser()
 
-      # BUILD
-      BuildText <- deparse1(BuildML,collapse="\n")
-      BuildText <- gsub(BuildText, pattern="function \\(\\)",replace="")
-      retrain <- F; eval(parse(text = BuildText))
-
-      # RESTORE
-      RestoreML <- deparse1(RestoreML,collapse="\n")
-      RestoreML <- gsub(RestoreML,pattern="function \\(\\)",replace="")
-      eval(parse(text = RestoreML))
 
       if(!algorithm %in% c("ml", "transfer") & DistanceMeasure %in% c("ml","transfer") ){
         if("Directory_LinkIt_markov_Embeddings.csv" %in% list.files("./") & !redownload){
@@ -155,7 +176,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
         network_url <- "https://dl.dropboxusercontent.com/s/ftt6ts6zrlnjqxp/directory_data_markov.zip?dl=0"
       }
       temp1 <- tempfile(pattern = "tmp14323512321423231960")
-      download.file( network_url,destfile = temp1 )
+      download.file( network_url, destfile = temp1 )
       temp = unzip(temp1,junkpaths=T,exdir = "tmp14323512321423231960")
       load(temp[which(grepl(temp,pattern=sprintf("LinkIt_directory_%s_trigrams.Rdata",algorithm) ))[1]])
       load(temp[which(grepl(temp,pattern=sprintf("LinkIt_directory_%s.Rdata",algorithm) ))[1]])
