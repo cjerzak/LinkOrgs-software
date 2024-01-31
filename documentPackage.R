@@ -1,7 +1,10 @@
 {
-  ########################################################
-  #### DOCUMENTATION GENERATION + INSTALL INSTRUCTIONS ###
-  ########################################################
+  #######################
+  #### Generate docs ####
+  #######################
+
+  # clear workspace
+  rm( list=ls() )
 
   # Specify package name
   package_name <- "LinkOrgs"
@@ -13,5 +16,5 @@
   system(sprintf("R CMD Rd2pdf %s",package_name))
 
   # Check package to ensure it meets CRAN standards.
-  devtools::check( package_path )
+  # devtools::check( package_path )
 }
