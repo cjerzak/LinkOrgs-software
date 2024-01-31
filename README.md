@@ -7,7 +7,7 @@
 | [**References**](#references)
 | [**Documentation**](https://github.com/cjerzak/LinkOrgs-software/blob/master/LinkOrgs.pdf)
 
-*Jan. 19, 2024:* `LinkOrgs` is down, as it is currently being re-built with a JAX backend. It will be back up shortly! 
+*Jan. 19, 2024:* `LinkOrgs` is down, as it is currently being re-built with a [JAX](https://en.wikipedia.org/wiki/Google_JAX) machine learning backend for improved computational efficiency and with locality sensitive hashing from [zoomerjoin](http://beniamino.org/zoomerjoin/) for better handling of massive merge tasks (> 1 million observations in each data corpus). It will be back up shortly! 
 
 ## Installation
 The most recent version of `LinkOrgs` can be installed directly from the repository using the `devtools` package
