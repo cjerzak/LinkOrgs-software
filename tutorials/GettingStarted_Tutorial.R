@@ -7,9 +7,11 @@
   # devtools::install_github("cjerzak/LinkOrgs-software/LinkOrgs")
 
   # local install for development team
-  # install.packages("~/Documents/LinkOrgs-software/LinkOrgs",repos = NULL, type = "source",force = F)
+  # install.packages("~/Documents/LinkOrgs-software/LinkOrgs",repos = NULL, type = "source", force = F)
   library( LinkOrgs )
 
+  # install.packages( 'zoomerjoin', repos = c('https://beniaminogreen.r-universe.dev', getOption("repos")) )
+  # development branch on github / runiverse / cran
   # See package documentation for help
   # ?LinkOrgs::FastFuzzyMatch
   # ?LinkOrgs::AssessMatchPerformance
@@ -34,18 +36,24 @@
   AveMatchNumberPerAlias <- 5L
   CalibratedThres <- LinkOrgs::GetCalibratedDistThres(x, y, AveMatchNumberPerAlias = AveMatchNumberPerAlias)
   joined_xy_hashed <- zoomerjoin::euclidean_inner_join(x, y,
-                                                threshold = CalibratedThres,
-                                                #band_width = 10000,
-                                                n_bands = 400,
-                                                r = .01,
+                                                threshold = CalibratedThres, # distribution of projection weights depend on task
+                                                # band_width = 10000, #  makes it more difficult for things to match
+                                                n_bands = 400, # main thing to tweak;increases sensitivity (better chance at finding pair)
+                                                # r = .01, # alters collision probability, higher is more collisions
                                                 progress = T)
-  joined_xy_exact <- LinkOrgs::pDistMatch(x, y, AcceptThreshold = CalibratedThres)
+  # theory to guide n_bands? -> use zoomerjoin::euclidean_probability?
+  zoomerjoin::jaccard_curve(40,5)
+  # euclidean inner produces candidates, then run pDistMatch
+  # we want high recall
+  # zoomerjoin::euclidean_probability -> normality assumption; computes chance two things are compared
+  joined_xy_exact <- LinkOrgs::pDistMatch_euclidean(x, y, AcceptThreshold = CalibratedThres)
+  # index 1, index 2, distance # LinkOrgs::pDistMatch
   dim( joined_xy_exact )
   dim( x ) * AveMatchNumberPerAlias
   dim( joined_xy_hashed )
 
   # checks
-  check1 <- LinkOrgs::pDistMatch(x,y); hist( check1$dist ); abline(v=CalibratedThres, lwd = 3)
+  check1 <- LinkOrgs::pDistMatch_euclidean(x,y); hist( check1$dist ); abline(v=CalibratedThres, lwd = 3)
   check2 <- as.matrix(dist(rbind(x,y)))[1:nrow(x), c((1+nrow(x)):(nrow(x)+nrow(y)))]
 
   # confirm equivalence
@@ -58,42 +66,43 @@
   library( LinkOrgs )
 
   # Create synthetic data to try everything out
-  x_orgnames <- c("apple","oracle","enron inc.","mcdonalds corporation")
-  y_orgnames <- c("apple corp","oracle inc","enron","mcdonalds co")
+  x_orgnames <- c("apple","oracle",
+                  "enron inc.","mcdonalds corporation")
+  y_orgnames <- c("apple corp","oracle inc",
+                  "enron","mcdonalds co")
   x <- data.frame("orgnames_x"=x_orgnames)
   y <- data.frame("orgnames_y"=y_orgnames)
 
   # Perform a simple merge with package using default (machine-learning model)
-  LinkedOrgs_ML <- LinkOrgs::LinkOrgs(x = x,
-                                      y = y,
-                                      by.x = "orgnames_x",
-                                      by.y = "orgnames_y")
+  if(T == F){
+  LinkedOrgs_ML <- LinkOrgs::LinkOrgs(x = x, by.x = "orgnames_x",
+                                      y = y, by.y = "orgnames_y",
+                                      algorithm = "ml")
+  LinkedOrgs_transfer <- LinkOrgs::LinkOrgs(
+                                      x = x, by.x = "orgnames_x",
+                                      y = y, by.y = "orgnames_y",
+                                      algorithm = "transfer")
+  }
 
   # Perform a simple merge with package using bipartite network representation
-  LinkedOrgs_Bipartite <- LinkOrgs(x = x,
-                         y = y,
-                         by.x = "orgnames_x",
-                         by.y = "orgnames_y",
+  LinkedOrgs_Bipartite <- LinkOrgs(
+                         x = x, by.x = "orgnames_x",
+                         y = y, by.y = "orgnames_y",
                          algorithm = "bipartite",
                          openBrowser= F)
 
   # Perform a simple merge with package using Markov network representation
-  LinkedOrgs_Markov <- LinkOrgs(x = x,
-                                   y = y,
-                                   by.x = "orgnames_x",
-                                   by.y = "orgnames_y",
-                                   algorithm = "markov",
-                                   openBrowser= F)
+  LinkedOrgs_Markov <- LinkOrgs(
+                          x = x, by.x = "orgnames_x",
+                          y = y, by.y = "orgnames_y",
+                          algorithm = "markov",
+                          openBrowser= F)
 
   # Perform a simple merge with package using bipartite network representation and ML-based distance metric for names
-  LinkedOrgs_BipartiteWithML <- LinkOrgs(x = x,
-                                y = y,
-                                by.x = "orgnames_x",
-                                by.y = "orgnames_y",
+  LinkedOrgs_BipartiteWithML <- LinkOrgs(
+                                x = x, by.x = "orgnames_x",
+                                y = y, by.y = "orgnames_y",
                                 algorithm = "bipartite",
                                 DistanceMeasure = "ml",
                                 openBrowser= F)
-
-  # Print results
-  print( linkedOrgs )
 }

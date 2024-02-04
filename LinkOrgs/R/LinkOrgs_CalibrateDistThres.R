@@ -53,14 +53,16 @@
 #' @export
 #' @md
 
-GetCalibratedDistThres <- function(x, y, AveMatchNumberPerAlias = 5L){
+GetCalibratedDistThres <- function(x, y, AveMatchNumberPerAlias = 5L,
+                                   mode = "euclidean"){
   print2("Calibrating via AveMatchNumberPerAlias...")
 
   # first, calculate all pairwise distances between x and y for a random subsample
   cal_x_indices <- sample(1:nrow(x), min(nrow(x),3000), replace = F)
   cal_y_indices <- sample(1:nrow(y), min(nrow(y),3000), replace = F)
-  DistMat <- pDistMatch(x[cal_x_indices,],
-                        y[cal_y_indices,])
+  DistMat <- ifelse(mode == "euclidean", yes = pDistMatch_euclidean,
+                    no = pDistMatch_euclidean)(x[cal_x_indices,],
+                                               y[cal_y_indices,])
 
   # then,calculate the implied quantile needed to generate a specific # of matches,
   # for the full inner-joined dataset
