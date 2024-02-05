@@ -46,20 +46,20 @@
   # euclidean inner produces candidates, then run pDistMatch
   # we want high recall
   # zoomerjoin::euclidean_probability -> normality assumption; computes chance two things are compared
-  joined_xy_exact <- LinkOrgs::pDistMatch_euclidean(x, y, AcceptThreshold = CalibratedThres)
+  joined_xy_exact <- LinkOrgs::pDistMatch_euclidean(x, y, MaxDist = CalibratedThres)
   # index 1, index 2, distance # LinkOrgs::pDistMatch
   dim( joined_xy_exact )
   dim( x ) * AveMatchNumberPerAlias
   dim( joined_xy_hashed )
 
   # checks
-  check1 <- LinkOrgs::pDistMatch_euclidean(x,y); hist( check1$dist ); abline(v=CalibratedThres, lwd = 3)
+  check1 <- LinkOrgs::pDistMatch_euclidean(x,y); hist( check1$stringdist ); abline(v=CalibratedThres, lwd = 3)
   check2 <- as.matrix(dist(rbind(x,y)))[1:nrow(x), c((1+nrow(x)):(nrow(x)+nrow(y)))]
 
   # confirm equivalence
-  hist( check1$dist )
+  hist( check1$stringdist )
   hist(check2)
-  sum(check1$dist <= CalibratedThres)
+  sum(check1$stringdist <= CalibratedThres)
   sum(check2 <= CalibratedThres)
 
   # Load package
@@ -73,30 +73,32 @@
   x <- data.frame("orgnames_x"=x_orgnames)
   y <- data.frame("orgnames_y"=y_orgnames)
 
-  # Perform a simple merge with package using default (machine-learning model)
   if(T == F){
+  # Perform a merge with a end-to-end meachine learning backend
   LinkedOrgs_ML <- LinkOrgs::LinkOrgs(x = x, by.x = "orgnames_x",
                                       y = y, by.y = "orgnames_y",
                                       algorithm = "ml")
+
+  # Perform a merge with a transfer learning backend
   LinkedOrgs_transfer <- LinkOrgs::LinkOrgs(
                                       x = x, by.x = "orgnames_x",
                                       y = y, by.y = "orgnames_y",
                                       algorithm = "transfer")
-  }
 
-  # Perform a simple merge with package using bipartite network representation
+  # Perform a merge with package using bipartite network representation
   LinkedOrgs_Bipartite <- LinkOrgs(
                          x = x, by.x = "orgnames_x",
                          y = y, by.y = "orgnames_y",
-                         algorithm = "bipartite",
-                         openBrowser= F)
+                         algorithm = "bipartite")
 
-  # Perform a simple merge with package using Markov network representation
+  # Perform a merge with package using Markov network representation
   LinkedOrgs_Markov <- LinkOrgs(
                           x = x, by.x = "orgnames_x",
                           y = y, by.y = "orgnames_y",
                           algorithm = "markov",
                           openBrowser= F)
+  }
+
 
   # Perform a simple merge with package using bipartite network representation and ML-based distance metric for names
   LinkedOrgs_BipartiteWithML <- LinkOrgs(

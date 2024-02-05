@@ -75,6 +75,9 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 } )
   `%fin%` <- function(x, table) {fmatch(x, table, nomatch = 0L) > 0L}
 
+  # change timeout for long download of large-scale data objects
+  options(timeout = max(60*5, getOption("timeout")))
+
   # type checks
   z_Network <- linkedIn_embeddings <- embedy <- embedy <- NULL
   DistanceMeasure <- tolower( as.character( DistanceMeasure ) )
@@ -89,25 +92,21 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
       WeightsLoc <- sprintf('%s/ModelWeights_%s.eqx', DownloadFolder, ml_version)
       CharIndicatorsLoc <- sprintf('%s/CharIndicatorsLoc.csv', DownloadFolder)
 
-      if( !file.exists(sprintf('%s/Model_%s.zip', DownloadFolder, ml_version )) |
-          !file.exists(sprintf('%s/ModelWeights_%s.eqx', DownloadFolder, ml_version )) ){
+      if( !file.exists( ModelZipLoc ) | !file.exists( WeightsLoc) ){
         if(ml_version == "v0"){
-          ModelURL <- "https://www.dropbox.com/scl/fi/e6a80y1ehi1b0i4lxd9ut/AnalysisR_LinkOrgsBase_30PT4M_2024-01-31.zip?rlkey=fjgxv95tq19mj9lh8qjh8wggu&dl=0"
-          WeightsURL <- "https://www.dropbox.com/scl/fi/ovq0bejg5ym6f5z65r7ra/LinkOrgsBase_30PT4M_2024-01-31_ilast.eqx?rlkey=ai79dz7wntyfhdtf19qpag6p1&dl=0"
+          ModelURL <- "https://www.dropbox.com/scl/fi/1uz9pmw466kfnwwdrinpz/Archive.zip?rlkey=ia7d0nu8syixav8qlnug8gwpt&dl=0"
+          WeightsURL <- "https://www.dropbox.com/scl/fi/7w0fc4vdw372a4jkkwpfp/ModelWeights_v0.eqx?rlkey=5rjppey7i4ymllne5gitxt80x&dl=0"
         }
 
         # process URLs
         ModelURL <- dropboxURL2downloadURL(ModelURL); WeightsURL <- dropboxURL2downloadURL(WeightsURL)
-
-        # change timeout for long download of large-scale weight matrices
-        options(timeout = max(60*5, getOption("timeout")))
 
         # download weights
         download.file( WeightsURL, destfile = WeightsLoc )
 
         # download and unzip model
         download.file( ModelURL, destfile = ModelZipLoc )
-        unzip(ModelZipLoc, junkpaths = T, exdir = ModelLoc)
+        unzip(ModelZipLoc, exdir = ModelLoc)
 
         # download characters & save
         charIndicators <- LinkOrgs::url2dt("https://www.dropbox.com/scl/fi/1jh8nrwsucfzj2gy9rydy/charIndicators.csv.zip?rlkey=wkhqk9x3550l364xbvnvnkoem&dl=0")
@@ -118,10 +117,10 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
       print2("Re-building ML model...")
       backend <- "METAL"; trainModel <- F; AnalysisName <- "LinkOrgs"
       charIndicators <- as.matrix(data.table::fread(file = CharIndicatorsLoc))
-      source(sprintf('%s/LinkOrgs_Helpers.R', ModelLoc), local = T)
-      source(sprintf('%s/JaxTransformer_Imports.R', ModelLoc), local = T)
-      source(sprintf('%s/JaxTransformer_BuildML.R', ModelLoc), local = T)
-      source(sprintf('%s/JaxTransformer_TrainDefine.R', ModelLoc), local = T)
+      source( sprintf('%s/LinkOrgs_Helpers.R', ModelLoc), local = T )
+      source( sprintf('%s/JaxTransformer_Imports.R', ModelLoc), local = T )
+      source( sprintf('%s/JaxTransformer_BuildML.R', ModelLoc), local = T )
+      source( sprintf('%s/JaxTransformer_TrainDefine.R', ModelLoc), local = T )
 
       # obtain trained weights
       print2("Applying trained weights...")
@@ -145,16 +144,15 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
      }
   }
   if(algorithm == "transfer" | DistanceMeasure == "transfer"){
-    if( !file.exists(sprintf("%s/TransferLCoefs_tokenizer_parallelism_FALSE_model_bert-base-multilingual-uncased_layers_-1_device_cpu_logging_level_error_FullTRUE.csv", DownloadFolder)) ){
+    TransferModelLoc <- sprintf("%s/TransferLCoefs_tokenizer_parallelism_FALSE_model_bert-base-multilingual-uncased_layers_-1_device_cpu_logging_level_error_FullTRUE.csv", DownloadFolder)
+    if( !file.exists(TransferModelLoc) ){
       transferCoefs_url <- "https://www.dropbox.com/s/b2lvc4illml68w5/TransferLCoefs_tokenizer_parallelism_FALSE_model_bert-base-multilingual-uncased_layers_-1_device_cpu_logging_level_error_FullTRUE.csv.zip?dl=0"
       transferCoefs <- try(t(as.matrix(url2dt( transferCoefs_url )[-1,2])),T)
-      data.table::fwrite(transferCoefs,
-              file = sprintf("%s/TransferLCoefs_tokenizer_parallelism_FALSE_model_bert-base-multilingual-uncased_layers_-1_device_cpu_logging_level_error_FullTRUE.csv", DownloadFolder) )
+      data.table::fwrite(transferCoefs, file = TransferModelLoc )
     }
 
     # load in transfer learning coefficients
-    transferCoefs <- data.table::fread(
-      sprintf("%s/TransferLCoefs_tokenizer_parallelism_FALSE_model_bert-base-multilingual-uncased_layers_-1_device_cpu_logging_level_error_FullTRUE.csv", DownloadFolder))
+    transferCoefs <- data.table::fread( TransferModelLoc )
 
     # build transfer learning platform
     BuildTransferText <- gsub(deparse1(BuildTransfer,collapse="\n"), pattern="function \\(\\)",replace="")
@@ -166,18 +164,24 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     if( algorithm == "transfer" | DistanceMeasure == "transfer" ){ pFuzzyMatchNetworkFxn_touse <- pFuzzyMatchRawFxn_touse <- pFuzzyMatch_euclidean }
   }
 
-  if(algorithm %in% c("bipartite","network")){
+  if(algorithm %in% c("bipartite", "markov")){
       # see https://techapple.net/2014/04/trick-obtain-direct-download-links-dropbox-files-dropbox-direct-link-maker-tool-cloudlinker/
       if(algorithm == "bipartite"){ NetworkURL <- "https://dl.dropboxusercontent.com/s/tq675xfnnxjea4d/directory_data_bipartite_thresh40.zip?dl=0" }
       if(algorithm == "markov"){ NetworkURL <- "https://dl.dropboxusercontent.com/s/ftt6ts6zrlnjqxp/directory_data_markov.zip?dl=0" }
-      if(!file.exists(sprintf("%s/LinkIt_directory_%s.Rdata", DownloadFolder, algorithm) ) ){
-          DirectoryLoc <- gsub(DirectoryZipLoc <- sprintf('%s/DirectoryType%s.zip',
+      DirectoryLoc <- gsub(DirectoryZipLoc <- sprintf('%s/Directory_%s.zip',
                                 DownloadFolder, algorithm ), pattern = "\\.zip", replace = "")
+      if(!dir.exists(sprintf("%s/Directory_%s/", DownloadFolder, algorithm) ) ){
           download.file( NetworkURL, destfile = DirectoryZipLoc )
-          unzip(DirectoryZipLoc, junkpaths = T, exdir = DirectoryLoc)
+          unzip(DirectoryZipLoc, exdir = DirectoryLoc)
       }
-      load(sprintf("%s/LinkIt_directory_%s_trigrams.Rdata", DirectoryLoc, algorithm))
-      load(sprintf("%s/LinkIt_directory_%s.Rdata", DirectoryLoc, algorithm) )
+      load(sprintf("%s/%s/LinkIt_directory_%s_trigrams.Rdata",
+                   DirectoryLoc,
+                   ifelse(algorithm == "bipartite", yes = "directory_data_bipartite_thresh40", no = "directory_data_markov"),
+                   algorithm))
+      load(sprintf("%s/%s/LinkIt_directory_%s.Rdata",
+                   DirectoryLoc,
+                   ifelse(algorithm == "bipartite", yes = "directory_data_bipartite_thresh40", no = "directory_data_markov"),
+                   algorithm) )
 
       assign("directory_trigrams", as.data.table(directory_trigrams), envir=globalenv())
       if(ToLower == T){ directory_trigrams$trigram <- tolower(directory_trigrams$trigram) }
@@ -256,14 +260,13 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   print2("Searching for matches in the raw name space...")
 
   # fuzzy match
-  browser()
-  z_RawNames <- try(as.data.frame(pFuzzyMatchRawFxn_touse(
+  z_RawNames <- as.data.frame(DeconflictNames(pFuzzyMatchRawFxn_touse(
                                   x = x, by.x = by.x, embedx = embedx,
                                   y = y, by.y = by.y, embedy = embedy,
                                   DistanceMeasure = DistanceMeasure,
                                   MaxDist = MaxDist,
                                   AveMatchNumberPerAlias = AveMatchNumberPerAlias,
-                                  q = qgram)) ,T)
+                                  q = qgram)))
 
   # network match
   if(!algorithm %in% c("ml","transfer")){
@@ -279,14 +282,15 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                   y = directory_LinkIt_red, by.y = "alias_name", embedy = linkedIn_embeddings,
                   MaxDist = MaxDist_network,
                   AveMatchNumberPerAlias = AveMatchNumberPerAlias_network), T)
-      colnames(MatchedIntoNetwork)[colnames(MatchedIntoNetwork) == key_by_ref] <- "my_entry"
-      MatchedIntoNetwork <- MatchedIntoNetwork[,c("my_entry","alias_name","stringdist","canonical_id")]
+      #MatchedIntoNetwork <- MatchedIntoNetwork[,c(paste0(key_by_ref,".x"),"alias_name.y","stringdist","canonical_id.y")]
+      MatchedIntoNetwork <- DeconflictNames(MatchedIntoNetwork)
 
       print2("De-duplicating merge among duplicates to canonical_id [keeping closest match]...")
-      MatchedIntoNetwork$duplication_check <- paste(MatchedIntoNetwork[["my_entry"]], MatchedIntoNetwork[["canonical_id"]], sep = "_")
-      minDist_vec <- tapply(MatchedIntoNetwork$stringdist,MatchedIntoNetwork$duplication_check,min)
+      MatchedIntoNetwork$duplication_check <- paste(MatchedIntoNetwork[[key_by_ref]],
+                                                    MatchedIntoNetwork[["canonical_id"]], sep = "_")
+      minDist_vec <- tapply(MatchedIntoNetwork$stringdist, MatchedIntoNetwork$duplication_check, min)
       MatchedIntoNetwork <- MatchedIntoNetwork[!duplicated(MatchedIntoNetwork$duplication_check),]
-      MatchedIntoNetwork[["stringdist"]] <- minDist_vec[ fastmatch::fmatch(MatchedIntoNetwork$duplication_check,names(minDist_vec)) ]
+      MatchedIntoNetwork$stringdist <- minDist_vec[ fastmatch::fmatch(MatchedIntoNetwork$duplication_check,names(minDist_vec)) ]
 
       print2(sprintf("Done deduplicating; final dimensions: %s...", nrow(MatchedIntoNetwork)))
       gc(); return( MatchedIntoNetwork )
@@ -296,79 +300,61 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     x2Network <- pFuzzyMatch_internal(key_ = 'x')
     y2Network <- pFuzzyMatch_internal(key_ = 'y')
 
-    print2("Joining network merged DFs...")
-    x2Network = merge(as.matrix(x), as.matrix(x2Network), by.x = by.x, by.y = "my_entry", all = F)
-    y2Network = merge(as.matrix(y), as.matrix(y2Network), by.x = by.y, by.y = "my_entry", all = F)
-    x2Network$canonical_id <- f2n(x2Network$canonical_id); y2Network$canonical_id <- f2n(y2Network$canonical_id)
+    # merge into network
+    x2Network <- DeconflictNames( merge(x = as.matrix(x), by.x = by.x,
+                       y = as.matrix(x2Network), by.y = by.x, all = F) )
+    colnames(x2Network)[colnames(x2Network) %in% 'stringdist'] <- "stringdist.x2network"
+
+    y2Network <- DeconflictNames( merge(x = as.matrix(y), by.x = by.y,
+                      y = as.matrix(y2Network), by.y = by.y, all = F) )
+    colnames(y2Network)[colnames(y2Network) %in% 'stringdist'] <- "stringdist.y2network"
+
+    x2Network$canonical_id <- f2n(x2Network$canonical_id);
+    y2Network$canonical_id <- f2n(y2Network$canonical_id)
+
+    # merge network into network
     z_Network <- as.data.frame(merge(x2Network, y2Network, by="canonical_id", all=F))
     colnames(z_Network)[colnames(z_Network) == "canonical_id"] <- "ID_MATCH"
   }
 
   # bring in fuzzy matches
   {
-  z_RawNames$XYref__ID <- paste( z_RawNames[[paste0(by.x,".x")]],
-                                 z_RawNames[[paste0(by.y,".y")]],
+  z_RawNames$XYref__ID <- paste( z_RawNames$Xref__ID, z_RawNames$Yref__ID,
                                  sep="__LINKED__" )
-  z = rbind.fill(z_RawNames, z_Network)
+  z_Network$XYref__ID <- paste( f2n(z_Network$Xref__ID), f2n(z_Network$Yref__ID),
+                                 sep="__LINKED__" )
+  z = rbind.fill(as.data.frame( z_RawNames ), as.data.frame( z_Network ) )
   if(!ReturnDecomposition){ suppressWarnings( rm(z_RawNames, z_Network) ) }
 
   #drop duplicates
   if( nrow(z)>1 ){
     print2("Dropping duplicates...")
 
-    if(!"stringdist.x" %in% colnames(z)){
-      z$stringdist.x <- z$stringdist.y <- z$stringdist
+    if(!"stringdist.y2network" %in% colnames(z)){
+      z$stringdist.y2network <- z$stringdist.x2network <- z$stringdist
     }
-    z$stringdist.x <- f2n(z$stringdist.x)
-    z$stringdist.y <- f2n(z$stringdist.y)
+    z$stringdist <- f2n( z$stringdist )
+    z$stringdist.y2network <- f2n( z$stringdist.y2network )
+    z$stringdist.x2network <- f2n( z$stringdist.x2network )
 
-    # x bigger - set minDist to x
-    x_bigger <- which( z$stringdist.x - z$stringdist.y >= 0);
-    z$minDist <- NA; z$minDist[x_bigger] <- z$stringdist.x[x_bigger]
+    # x bigger - set maxDist2Network to x
+    z$maxDist2Network <- apply(cbind(z[,c("stringdist.y2network","stringdist.x2network")]),1,max)
 
-    # y bigger - set minDist to y
-    z$minDist[-x_bigger] <- z$stringdist.y[-x_bigger]
+    # NAs cast to 0, add to get full profile of min distances
+    z$minDist <- na20(z$maxDist2Network) + na20(z$stringdist)
 
-    # these obs are non-overlapping, which is why it works
-    z$minDist <- na20(z$minDist) + na20(z$stringdist.x)
-
-    # get match with smallest match dist
+    # take min{  max{network}, string }
     minDist_vec <- tapply(z$minDist, z$XYref__ID, min)
-    z <-z[!duplicated(z$XYref__ID),]
-    z$minDist <- minDist_vec[ fastmatch::fmatch(z$XYref__ID,names(minDist_vec)) ]
+    z <- z[!duplicated(z$XYref__ID),]
+    z$minDist <- minDist_vec[ z$XYref__ID[fastmatch::fmatch(z$XYref__ID,names(minDist_vec))] ]
   }
 
   # Checking for redundant name matches
-  {
-    names_clean <- gsub( gsub(names_raw <- colnames(z),pattern="\\.x",replace=""),
-                         pattern="\\.y",replace="")
-    FracMatchAmongSharedCols <- tapply(1:ncol(z), names_clean, function(col_){
-      if(length(col_) == 1){
-        value_ <- NA
-      }
-      if(length(col_) == 2){
-        value_ <- mean(z[,col_[1]] == z[,col_[2]], na.rm=T)
-      }
-      if(length(col_) == 3){
-        value_ <- mean((z[,col_[1]] == z[,col_[2]]) & (z[,col_[1]] == z[,col_[3]]), na.rm=T)
-      }
-      return( value_ )
-    })
-    DropOneCopy <- na.omit(as.character(names(FracMatchAmongSharedCols[which(FracMatchAmongSharedCols  == 1)])))
-    DropFlags <- na.omit(as.character(names(FracMatchAmongSharedCols[which( is.na(FracMatchAmongSharedCols) )])))
-    KeepBothCopies <- na.omit(as.character(names(FracMatchAmongSharedCols[which(FracMatchAmongSharedCols  < 1)])))
-
-    # drop flags if no collisions
-    colnames(z)[colnames(z) %in% names_raw[names_clean %in% DropFlags] ] <- names_clean[names_clean %in% DropFlags]
-
-    # drop flags if colliding with same output
-    colnames(z)[colnames(z) %in% names_raw[names_clean %in% DropOneCopy] ] <- names_clean[names_clean %in% DropOneCopy]
-    z <- z[,!duplicated(colnames(z))]
-  }
+  z <- DeconflictNames(z)
 
   if( ReturnDiagnostics == F ){
     z  = z[,colnames(z)[colnames(z) %fin% c(colnames(x ),colnames(y ),
-                            "stringdist", "stringdist.x", "stringdist.y")]]
+                          grep(colnames(z),pattern="stringdist",value=T), "minDist")]]
     z = z[,!colnames(z) %fin% "UniversalMatchCol"]
   }
 

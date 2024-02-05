@@ -54,15 +54,23 @@
 #' @md
 
 GetCalibratedDistThres <- function(x, y, AveMatchNumberPerAlias = 5L,
+                                   qgram = 2L, DistanceMeasure = "jaccard",
+                                   by.x = NULL, by.y = NULL,
                                    mode = "euclidean"){
   print2("Calibrating via AveMatchNumberPerAlias...")
 
   # first, calculate all pairwise distances between x and y for a random subsample
   cal_x_indices <- sample(1:nrow(x), min(nrow(x),3000), replace = F)
   cal_y_indices <- sample(1:nrow(y), min(nrow(y),3000), replace = F)
-  DistMat <- ifelse(mode == "euclidean", yes = pDistMatch_euclidean,
-                    no = pDistMatch_euclidean)(x[cal_x_indices,],
-                                               y[cal_y_indices,])
+
+  if(mode == "euclidean"){
+    DistMat <- pDistMatch_euclidean(x[cal_x_indices,], y[cal_y_indices,])
+  }
+  if(mode == "discrete"){
+    DistMat <- pDistMatch_discrete(x[cal_x_indices,], by.x = by.x,
+                                   y[cal_y_indices,], by.y = by.y,
+                                   qgram = qgram, DistanceMeasure = DistanceMeasure, MaxDist = Inf)
+  }
 
   # then,calculate the implied quantile needed to generate a specific # of matches,
   # for the full inner-joined dataset
@@ -74,7 +82,7 @@ GetCalibratedDistThres <- function(x, y, AveMatchNumberPerAlias = 5L,
   ImpliedQuantile <- exp(log_AveMatchesPerObs_times_NObs - log_NPossibleMatches)
 
   #get implied distance thres from random sample of distances
-  IMPLIED_MATCH_DIST_THRES <- try(mean(abs(quantile(DistMat$dist,  probs = min(1,ImpliedQuantile) ))),T)
-  print2(sprintf("Calibrated accept match dist threshold: %.6f",IMPLIED_MATCH_DIST_THRES))
+  IMPLIED_MATCH_DIST_THRES <- try(mean(abs(quantile(DistMat$stringdist, probs = min(1,ImpliedQuantile) ))),T)
+  print2( sprintf("Calibrated accept match dist threshold: %.6f", IMPLIED_MATCH_DIST_THRES) )
   return( IMPLIED_MATCH_DIST_THRES )
 }

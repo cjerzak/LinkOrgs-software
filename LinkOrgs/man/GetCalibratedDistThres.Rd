@@ -4,7 +4,14 @@
 \alias{GetCalibratedDistThres}
 \title{GetCalibratedDistThres}
 \usage{
-GetCalibratedDistThres(x, y, AveMatchNumberPerAlias = 5L, mode = "euclidean")
+GetCalibratedDistThres(
+  x,
+  y,
+  AveMatchNumberPerAlias = 5L,
+  qgram = 2L,
+  DistanceMeasure = "jaccard",
+  mode = "euclidean"
+)
 }
 \arguments{
 \item{x, y}{data frames to be merged}

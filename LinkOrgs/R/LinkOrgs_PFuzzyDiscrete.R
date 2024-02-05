@@ -53,22 +53,24 @@
 #' @export
 #' @md
 
-pFuzzyMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, return_stringdist = T, onlyUFT = T,
+pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL,
+                           return_stringdist = T, onlyUFT = T,
                            qgram =2, DistanceMeasure = "jaccard", MaxDist = 0.20,
-                           AverageReference = NULL,
-                           AveMatchNumberPerAlias=NULL,openBrowser=F,ReturnProgress=T,
+                           ReturnProgress=T,
                            ReturnMaxDistThreshold = F){
   library(stringdist)
-  f2n <- function(.){as.numeric(as.character(.))}
-  if(openBrowser == T){browser()}
 
   #WARNING: X SHOULD ALWAYS BE THE LARGER SET
   if(is.null(by.x) & is.null(by.y)){by.x <- by.y <- by}
-  if(nrow(y)>nrow(x)){
-    x_old = x; y_old = y;by.y_old = by.y;by.x_old =by.x
-    x <- y_old;by.x = by.y_old
-    y <- x_old;by.y = by.x_old
-    rm(x_old,y_old)
+
+  swappedXY <- F; if(nrow(y) < nrow(x)){
+    swappedXY <- T
+    # y should be larger than x for efficient vectorization potential
+    x_old <- x; y_old <- y;
+    by.y_old <- by.y;
+    by.x_old <- by.x
+    x <- y_old; by.x = by.y_old; rm(y_old)
+    y <- x_old; by.y = by.x_old; rm(x_old)
   }
   if(by.x == by.y){
     colnames(x)[colnames(x) == by.x] <- paste(by.x, ".x", sep = "")
@@ -79,53 +81,26 @@ pFuzzyMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, retu
   x = as.data.table(x)
   x$by.x_ORIG <- x[[by.x]]
   y$by.y_ORIG <- y[[by.y]]
-  x[[by.x]] <- tolower(x[[by.x]] )
-  y[[by.y]] <- tolower(y[[by.y]] )
   x_tri_index = trigram_index(x[[by.x]],"the.row")
   y_tri_index = trigram_index(y[[by.y]],"the.row")
-  n_iters = max(nrow(x), nrow(y))
 
-  MIN_MATCH_DIST_fuzzy <- MaxDist
-  if(!is.null(AveMatchNumberPerAlias)){
-    MATCH_DIST_fuzzy <- replicate(nFuzzySamp <- 20000,
-                            {  stringdist(sample(x[[by.x]],1), sample(y[[by.y]],1), method = DistanceMeasure, q = qgram) })
-
-    log_NPossibleMatches <- log(f2n(length(y[[by.y]]))) + log(f2n(length(x[[by.x]])))
-    ReferenceNumb2 <- max(c(length(x[[by.x]]),length(y[[by.y]])))
-    if(!is.null(AverageReference)){
-      ReferenceNumb2 <- ifelse(AverageReference == "x",
-                               yes = length(x[[by.x]]),
-                               no = length(y[[by.y]]))
-    }
-    log_NObsTimesMatchesPerObs <- log(AveMatchNumberPerAlias) + log( ReferenceNumb2  )
-    ImpliedQuantile <- exp(log_NObsTimesMatchesPerObs - log_NPossibleMatches)
-
-    #MIN_MATCH_DIST_fuzzy <- mean(extremeStat::distLquantile(MATCH_DIST_fuzzy, probs = ImpliedQuantile )[1:3,1])
-    MIN_MATCH_DIST_fuzzy <- quantile(MATCH_DIST_fuzzy,
-                                     probs = min(1,ImpliedQuantile))
-    if('try-error' %in% class(MIN_MATCH_DIST_fuzzy) | is.na(MIN_MATCH_DIST_fuzzy)){
-      MIN_MATCH_DIST_fuzzy <- quantile(MATCH_DIST_fuzzy,  probs = ImpliedQuantile)
-    }
-    MIN_MATCH_DIST_fuzzy <- f2n(  MIN_MATCH_DIST_fuzzy )
-  }
-  if(ReturnMaxDistThreshold){return( MIN_MATCH_DIST_fuzzy )}
-
+  # start pdist calc
   {
+    n_iters <- nrow(x) # x is arbitrary reference (y is larger base)
     library("foreach",quietly=T); library("doMC",quietly=T)
     ncl <- 1; split_list <- list(1:n_iters)
     if(n_iters>50){
-      ncl = parallel::detectCores()
-      split_list = round(seq(0.5,n_iters,length.out = ncl+1))
+      split_list = round(seq(0.5,n_iters,length.out = (ncl <- parallel::detectCores()) + 1))
       split_list = as.numeric(cut(1:n_iters,breaks=split_list))
       split_list = sapply(1:ncl, function(as){ list(which(split_list ==as))})
     }
-    f2n = function(.){as.numeric(as.character(.))}
-    cl<-doMC::registerDoMC(ncl);
+
+    cl <- doMC::registerDoMC(ncl)
     loop_ <- foreach(outer_i = 1:ncl) %dopar% {
       counter_ <- 0
-      my_matched_inner = matrix(NA,nrow = 0,ncol=3)
-      colnames(my_matched_inner) <- c("my_entry",by.y,"stringdist")
-      for(i in split_list[[outer_i]]){
+      my_matched_inner = matrix(NA,nrow = 0,ncol=3,
+                                dimnames = list(NULL,c("my_entry",by.y,"stringdist")))
+      for(i in split_list[[outer_i]]){ # i is indexed to x
         counter_ = counter_ + 1
         if(i %% 100==0 & ReturnProgress){write.csv(data.frame("Current Split"=outer_i,
                                                    "Total Splits"=ncl,
@@ -133,52 +108,65 @@ pFuzzyMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, retu
                                                    "Total Iters in Split"=length(split_list[[outer_i]])),
                                                    file='./PROGRESS_FUZZY.csv')}
 
-
         #get the name we want to fuzzy match against
         my_entry = x[i,][[by.x]]
+
         #get the trigrams of this name
-        my_entry_trigrams = x_tri_index[the.row==i,trigram]
+        my_entry_trigrams <- x_tri_index[the.row==i,trigram]
 
         #find the set of entries in directory_LinkIt_red that have some common trigram
         #LT_entries = unique(x_tri_index[trigram %fin% my_entry_trigrams,the.row])
-        if(nrow(y)<1e5){
-          LT_entries = 1:nrow(y)
-        }
-        if(nrow(y)>=1e5){
-          MinNumSharedTriGrams = ceiling(length(my_entry_trigrams)*0.1)
-          LT_entries = table(y_tri_index[trigram %fin% my_entry_trigrams,the.row])
-          LT_entries = f2n(names(LT_entries[LT_entries>=MinNumSharedTriGrams]))
-        }
+        MinNumSharedTriGrams = ceiling(length(my_entry_trigrams)*0.1)
+        LT_entries = table(y_tri_index[trigram %fin% my_entry_trigrams,the.row])
+        if( length(LT_entries) > 0){
+          LT_entries = f2n(names(LT_entries[LT_entries >= MinNumSharedTriGrams]))
 
-        #calculate the nearest match accordfng to string distance
-        match_ = sprintf("y[LT_entries,.(
-                         my_entry=my_entry,%s,
-                         stringdist = stringdist(my_entry,%s,method=DistanceMeasure,q = qgram))]",by.y,by.y)
-        match_ = eval(parse(text=match_))
-        if(nrow(match_)>0){
-          #match_ = match_[,.(which(stringdist<=MaxDist)) ]
-          match_ = as.data.frame(match_)
-          match_ = match_[which(match_$stringdist <= MIN_MATCH_DIST_fuzzy ),]
-          my_matched_inner = rbind(my_matched_inner,match_)
+          #calculate the nearest match accordfng to string distance
+          if(T == F){
+          eval(parse(text= sprintf("match_ <- y[LT_entries,.(
+                           my_entry=my_entry, %s,
+                           stringdist = stringdist(my_entry,%s,method=DistanceMeasure,q = qgram))]", by.y, by.y) ))
+          match_ <- match_[which(match_[["stringdist"]] <= MaxDist ),]
+          }
+
+          xyDistRed <- stringdist(my_entry,
+                               y[LT_entries,][[by.y]], method = DistanceMeasure,q = qgram)
+          iy <- LT_entries[ belowThres_ <- which(xyDistRed <= MaxDist) ]
+        if(length(iy) > 0){
+          my_matched_inner = rbind(my_matched_inner,
+                                   data.frame("ix" = i,"iy"=iy,
+                                              "stringdist"=xyDistRed[belowThres_]))
+        }
         }
       }
       return( my_matched_inner )
     }
-    my_matched = do.call(rbind,loop_)
-}
-  colnames(my_matched)[1] <- by.x
-  myMatched = merge(as.data.frame(x), as.data.frame(my_matched),
-                    by.x=by.x,by.y=by.x,all.x = F,all.y=T)
-  myMatched = merge(as.data.frame(y), as.data.frame(myMatched),
-                    by.x=by.y,by.y=by.y,all.x = F,all.y=T)
-  myMatched = as.data.frame( myMatched )
+    myMatched = do.call(rbind, loop_)
+  }
 
-  myMatched = myMatched[!duplicated(paste(myMatched[[by.x]],
-                                          myMatched[[by.y]],sep="__")),]
+  if(T == F){
+  colnames(my_matched)[1] <- by.x
+  myMatched <- merge(x = as.data.frame(x), by.x = by.x,
+                    y = as.data.frame(my_matched), by.y = by.x,
+                    all.x = F,all.y=T)
+  myMatched <- merge(x = as.data.frame(y), by.x = by.y,
+                    y = as.data.frame(myMatched), by.y = by.y,
+                    all.x = F,all.y=T)
+
+  myMatched <- as.data.frame( myMatched[!duplicated(paste(myMatched[[by.x]],
+                                          myMatched[[by.y]],sep="__")),] )
 
   # revert back to original names
   myMatched[[by.x]] <- myMatched[["by.x_ORIG"]]
   myMatched[[by.y]] <- myMatched[["by.y_ORIG"]]
+  }
+
+  if(swappedXY){
+    myMatched <- cbind("ix" = myMatched$iy,
+                       "ix" = myMatched$ix,
+                       "stringdist" = myMatched$stringdist)
+  }
+
   return( myMatched )
   }
 

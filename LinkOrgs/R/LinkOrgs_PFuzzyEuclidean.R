@@ -39,29 +39,47 @@
 #' @export
 #' @md
 #'
-pDistMatch_euclidean <- function(embed1, embed2, AcceptThreshold = NULL){
+pDistMatch_euclidean <- function(embedx, embedy, MaxDist = NULL){
   # parallelized distance matching
 
+  # broadcast across larger matrix for fast vectorization
+  swappedXY <- F; if( nrow(embedx) > nrow(embedy) ){
+    swappedXY <- T
+    embedy_old <- embedy
+    embedx_old <- embedx
+    embedy <- embedx_old
+    embedx <- embedy_old
+    rm(embedx_old, embedy_old)
+  }
+
   # cast to matrix
-  embed1 <- as.matrix(embed1); embed2 <- t(as.matrix(embed2))
+  embedx <- as.matrix(embedx); embedy <- t(as.matrix(embedy))
 
   # parallelized dist calc
   library(foreach);cl <- doMC::registerDoMC(ncl<-parallel::detectCores());
-  distMat <- foreach(ier = 1:nrow(embed1)) %dopar% {
-    dist_vec <- colSums( (embed1[ier,] - embed2)^2 )^0.5  # embed2 is transposed for row broadcasting
+  distMat <- foreach(ier = 1:nrow(embedx)) %dopar% {
+    dist_vec <- colSums( (embedx[ier,] - embedy)^2 )^0.5  # embed2 is transposed for row broadcasting
 
     match_ <- NULL
-    match_indices <- ifelse(is.null(AcceptThreshold),
+    match_indices <- ifelse(is.null(MaxDist),
                             yes = list(1:length( dist_vec )),
-                            no = list(which(dist_vec <= AcceptThreshold)))[[1]]
+                            no = list(which(dist_vec <= MaxDist)))[[1]]
 
     if(length(match_indices) > 0){
       match_ <- data.frame( "ix" = ier,
                             "iy" = match_indices,
-                            "dist" = dist_vec[match_indices] )
+                            "stringdist" = dist_vec[match_indices] )
     }
     return( list( match_ ))
   }
   distMat <- unlist(distMat,recursive=F)
   distMat <- as.data.frame( do.call(rbind,distMat) )
+
+  if(swappedXY){
+    distMat <- data.frame("ix" = distMat$iy,
+                          "iy" = distMat$ix,
+                          "stringdist" = distMat$stringdist)
+  }
+
+  return( distMat )
 }

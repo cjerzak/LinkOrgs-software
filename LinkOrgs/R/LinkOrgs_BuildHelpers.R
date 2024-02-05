@@ -89,3 +89,30 @@ trigram_index <- function(phrase,phrasename='phrase.no',openBrowser=F){
 
 inf20 <- function(ze){ if(is.infinite(ze)){ze<-0};ze}
 na20 <- function(ze){ ze[is.na(ze)] <- 0;ze}
+
+
+DeconflictNames <- function(z){
+  names_clean <- gsub( gsub(names_raw <- colnames(z),pattern="\\.x",replace=""),
+                       pattern="\\.y",replace="")
+  FracMatchAmongSharedCols <- tapply(1:ncol(z), names_clean, function(col_){
+    value_ <- NA
+    if(length(col_) == 2){
+      value_ <- mean(z[,col_[1]] == z[,col_[2]], na.rm=T)
+    }
+    if(length(col_) == 3){
+      value_ <- mean((z[,col_[1]] == z[,col_[2]]) & (z[,col_[1]] == z[,col_[3]]), na.rm=T)
+    }
+    return( value_ )
+  })
+  DropOneCopy <- na.omit(as.character(names(FracMatchAmongSharedCols[which(FracMatchAmongSharedCols  == 1)])))
+  DropFlags <- na.omit(as.character(names(FracMatchAmongSharedCols[which( is.na(FracMatchAmongSharedCols) )])))
+  KeepBothCopies <- na.omit(as.character(names(FracMatchAmongSharedCols[which(FracMatchAmongSharedCols  < 1)])))
+
+  # drop flags if no collisions
+  colnames(z)[colnames(z) %in% names_raw[names_clean %in% DropFlags] ] <- names_clean[names_clean %in% DropFlags]
+
+  # drop flags if colliding with same output
+  colnames(z)[colnames(z) %in% names_raw[names_clean %in% DropOneCopy] ] <- names_clean[names_clean %in% DropOneCopy]
+  z <- z[,!duplicated(colnames(z))]
+  return( z )
+}

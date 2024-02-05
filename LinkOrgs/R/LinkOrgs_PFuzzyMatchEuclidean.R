@@ -11,12 +11,11 @@ pFuzzyMatch_euclidean <- function(
                                       AveMatchNumberPerAlias = AveMatchNumberPerAlias)
   }
 
-  z_ml_indices <- pDistMatch_euclidean(embedx, embedy,
-                                       AcceptThreshold = MaxDist)
+  z_indices <- pDistMatch_euclidean(embedx, embedy,
+                                    MaxDist = MaxDist)
   colnames(y) <- paste(colnames(y), '.y', sep = "")
   colnames(x) <- paste(colnames(x), '.x', sep = "")
-  z_ml <- cbind( x[z_ml_indices$ix,],
-                 y[z_ml_indices$iy,] )
-  z_ml$stringdist.y <- z_ml$stringdist.x <- z_ml_indices$dist
-  gc(); return( as.data.frame( z_ml ) )
+  z <- cbind( x[z_indices$ix,], y[z_indices$iy,] )
+  z$stringdist <- z_indices$stringdist
+  gc(); return( as.data.frame( z ) )
 }
