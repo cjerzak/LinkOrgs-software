@@ -131,17 +131,6 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
       embedx <- GetAliasRep_BigBatch( tolower(x[[by.x]]), nBatch_BigBatch = 50)
       embedy <- GetAliasRep_BigBatch( tolower(y[[by.y]]), nBatch_BigBatch = 50)
       if( algorithm == "ml" | DistanceMeasure == "ml" ){ pFuzzyMatchNetworkFxn_touse <- pFuzzyMatchRawFxn_touse <- pFuzzyMatch_euclidean }
-
-      if(!algorithm %in% c("ml", "transfer") & DistanceMeasure %in% c("ml","transfer") ){
-        if(algorithm == "markov"){ EmbeddingsURL <- "https://www.dropbox.com/s/yo7t5vzkrzf91m6/Directory_LinkIt_markov_Embeddings.csv.zip?dl=0" }
-        if(algorithm == "bipartite"){ EmbeddingsURL <- "https://www.dropbox.com/s/iqf9ids77dckopf/Directory_LinkIt_bipartite_Embeddings.csv.zip?dl=0" }
-
-        if(!file.exists(sprintf("%s/Directory_LinkIt_%s_Embeddings.csv", DownloadFolder, algorithm))){
-          linkedIn_embeddings <- as.matrix(url2dt( EmbeddingsURL ))
-          data.table::fwrite(linkedIn_embeddings, file = sprintf("%s/Directory_LinkIt_%s_Embeddings.csv", DownloadFolder, algorithm))
-        }
-        linkedIn_embeddings <- as.matrix(fread(sprintf("%s/Directory_LinkIt_%s_Embeddings.csv", DownloadFolder, algorithm)))
-     }
   }
   if(algorithm == "transfer" | DistanceMeasure == "transfer"){
     TransferModelLoc <- sprintf("%s/TransferLCoefs_tokenizer_parallelism_FALSE_model_bert-base-multilingual-uncased_layers_-1_device_cpu_logging_level_error_FullTRUE.csv", DownloadFolder)
@@ -159,10 +148,22 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     eval(parse(text = BuildTransferText))
 
     print2("Matching via name representations from a LLM...")
-    embedx <-  getRepresentation_transfer( x[[by.x]] )
-    embedy <-  getRepresentation_transfer( y[[by.y]] )
+    embedx <- getRepresentation_transfer( x[[by.x]] )
+    embedy <- getRepresentation_transfer( y[[by.y]] )
     if( algorithm == "transfer" | DistanceMeasure == "transfer" ){ pFuzzyMatchNetworkFxn_touse <- pFuzzyMatchRawFxn_touse <- pFuzzyMatch_euclidean }
   }
+
+  if(!(algorithm %in% c("ml", "transfer"))){
+      if(DistanceMeasure %in% c("ml","transfer")){
+        if(algorithm == "markov"){ EmbeddingsURL <- "https://www.dropbox.com/s/yo7t5vzkrzf91m6/Directory_LinkIt_markov_Embeddings.csv.zip?dl=0" }
+        if(algorithm == "bipartite"){ EmbeddingsURL <- "https://www.dropbox.com/s/iqf9ids77dckopf/Directory_LinkIt_bipartite_Embeddings.csv.zip?dl=0" }
+
+        if(!file.exists(sprintf("%s/Directory_LinkIt_%s_Embeddings.csv", DownloadFolder, algorithm))){
+          linkedIn_embeddings <- as.matrix(url2dt( EmbeddingsURL ))
+          data.table::fwrite(linkedIn_embeddings, file = sprintf("%s/Directory_LinkIt_%s_Embeddings.csv", DownloadFolder, algorithm))
+        }
+        linkedIn_embeddings <- as.matrix(fread(sprintf("%s/Directory_LinkIt_%s_Embeddings.csv", DownloadFolder, algorithm)))
+  } }
 
   if(algorithm %in% c("bipartite", "markov")){
       # see https://techapple.net/2014/04/trick-obtain-direct-download-links-dropbox-files-dropbox-direct-link-maker-tool-cloudlinker/
@@ -363,6 +364,10 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   z[[by.x]] <- by_x_orig[f2n(z$Xref__ID)]
   z  = z[,!colnames(z) %fin% c("ID_MATCH.x", "ID_MATCH.y",
                                'Yref__ID', 'Xref__ID')]
+  if(algorithm %in% c("ml", "transfer")){
+    z <- z[,!colnames(z) %in% c("stringdist2network",
+                                "stringdist.y2network", "stringdist.x2network")]
+  }
   }
 
   print2("Returning matched dataset!")

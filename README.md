@@ -1,4 +1,4 @@
-# `LinkOrgs`: An R package for linking linking records on organizations using large language models (LLMs) and half-a-billion open-collaborated records from LinkedIn 
+# `LinkOrgs`: An R package for linking linking records on organizations using half-a-billion open-collaborated records from LinkedIn 
 
 [**What is LinkOrgs?**](#description)
 | [**Installation**](#installation)

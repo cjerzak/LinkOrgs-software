@@ -4,7 +4,7 @@
 \alias{pDistMatch_euclidean}
 \title{pDistMatch_euclidean}
 \usage{
-pDistMatch_euclidean(embed1, embed2, MaxDist = NULL)
+pDistMatch_euclidean(embedx, embedy, MaxDist = NULL)
 }
 \arguments{
 \item{x, y}{data frames to be merged}

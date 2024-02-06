@@ -51,6 +51,30 @@ url2dt <- function(url,
   return( returned_dt )
 }
 
+
+#!/usr/bin/env Rscript
+#' dropboxURL2downloadURL
+#'
+#' Downloads
+#'
+#' @param url character string with the URL housing the data object.
+#'
+#' @param target_extension (default = `".csv"`) character string describing
+#' the target extension of the file in the downloaded .zip folder.
+#'
+#' @return `z` The
+#' @export
+#'
+#' @details `dropboxURL2downloadURL`
+#'
+#' @examples
+#'
+#' # Example download
+#' my_dt <- dropboxURL2downloadURL(url="https://www.dropbox.com/s/iqf9ids77dckopf/Directory_LinkIt_bipartite_Embeddings.csv.zip?dl=0")
+#'
+#' @export
+#'
+#' @md
 dropboxURL2downloadURL <- function( url ){
   # clean URL if from dropbox
   url <- gsub(url, pattern="https://www.dropbox.com",
@@ -89,7 +113,6 @@ trigram_index <- function(phrase,phrasename='phrase.no',openBrowser=F){
 
 inf20 <- function(ze){ if(is.infinite(ze)){ze<-0};ze}
 na20 <- function(ze){ ze[is.na(ze)] <- 0;ze}
-
 
 DeconflictNames <- function(z){
   names_clean <- gsub( gsub(names_raw <- colnames(z),pattern="\\.x",replace=""),

@@ -66,24 +66,20 @@
   library( LinkOrgs )
 
   # Create synthetic data to try everything out
-  x_orgnames <- c("apple","oracle",
-                  "enron inc.","mcdonalds corporation")
-  y_orgnames <- c("apple corp","oracle inc",
-                  "enron","mcdonalds co")
-  x <- data.frame("orgnames_x"=x_orgnames)
-  y <- data.frame("orgnames_y"=y_orgnames)
+  x <- data.frame("orgnames_x" = x_orgnames <- c("apple","oracle",
+                                                 "enron inc.","mcdonalds corporation"))
+  y <- data.frame("orgnames_y"= y_orgnames <- c("apple corp","oracle inc",
+                                                "enron","mcdonalds co"))
 
-  if(T == F){
   # Perform a merge with a end-to-end meachine learning backend
   LinkedOrgs_ML <- LinkOrgs::LinkOrgs(x = x, by.x = "orgnames_x",
                                       y = y, by.y = "orgnames_y",
                                       algorithm = "ml")
 
   # Perform a merge with a transfer learning backend
-  LinkedOrgs_transfer <- LinkOrgs::LinkOrgs(
-                                      x = x, by.x = "orgnames_x",
-                                      y = y, by.y = "orgnames_y",
-                                      algorithm = "transfer")
+  # LinkedOrgs_transfer <- LinkOrgs::LinkOrgs( x = x, by.x = "orgnames_x",
+                                      # y = y, by.y = "orgnames_y",
+                                      # algorithm = "transfer")
 
   # Perform a merge with package using bipartite network representation
   LinkedOrgs_Bipartite <- LinkOrgs(
@@ -97,8 +93,6 @@
                           y = y, by.y = "orgnames_y",
                           algorithm = "markov",
                           openBrowser= F)
-  }
-
 
   # Perform a simple merge with package using bipartite network representation and ML-based distance metric for names
   LinkedOrgs_BipartiteWithML <- LinkOrgs(
