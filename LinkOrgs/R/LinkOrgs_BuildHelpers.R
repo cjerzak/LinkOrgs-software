@@ -22,8 +22,7 @@
 #'
 #' @md
 
-url2dt <- function(url,
-                   target_extension = ".csv"){
+url2dt <- function(url){
   # clean URL if from dropbox
   url <- dropboxURL2downloadURL(url)
 
@@ -31,12 +30,15 @@ url2dt <- function(url,
   temp_folder <- tempdir()
 
   # download
-  download.file( url, destfile =  (destfile_zip <- sprintf("%s/%s.zip",
+  theExtension <- ifelse(grepl(url,pattern = "\\.csv\\.gz"),
+                         yes = "gz", no = "zip")
+  download.file( url, destfile =  (destfile_zip <- sprintf("%s/%s.%s",
                                                            temp_folder,
-                                                           digest::digest(url))))
+                                                           digest::digest(url),
+                                                           theExtension)))
 
   # unzip into folder
-  destfolder_unzip <- gsub(destfile_zip, pattern="\\.zip", replace="")
+  destfolder_unzip <- gsub(destfile_zip, pattern=sprintf("\\.%s",theExtension), replace="")
   unzip(destfile_zip, junkpaths = T, exdir = destfolder_unzip)
 
   # load unzipped file into memory as a data.table
@@ -86,6 +88,26 @@ dropboxURL2downloadURL <- function( url ){
   return( url )
 }
 
+#!/usr/bin/env Rscript
+#' url2dt
+#'
+#' print2
+#'
+#' @param text Text
+#'
+#' @return `...` Prints...
+#' @export
+#'
+#' @details ...
+#'
+#' @examples
+#'
+#' # Example download
+#' print2("Hello world!")
+#'
+#' @export
+#'
+#' @md
 print2 <- function(text, quiet = F){
   if(!quiet){ print( sprintf("[%s] %s" ,format(Sys.time(), "%Y-%m-%d %H:%M:%S"),text) ) }
 }

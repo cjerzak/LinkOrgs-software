@@ -1,3 +1,26 @@
+#!/usr/bin/env Rscript
+#' pFuzzyMatch_euclidean
+#'
+#' Implements
+#'
+#' @param x,y data frames to be merged
+#'
+#' @return ...
+#' @export
+#'
+#' @details ...
+#'
+#' @examples
+#'#' #Create synthetic data
+#' x_orgnames <- c("apple","oracle","enron inc.","mcdonalds corporation")
+#' y_orgnames <- c("apple corp","oracle inc","enron","mcdonalds co")
+#' x <- data.frame("orgnames_x"=x_orgnames)
+#' y <- data.frame("orgnames_y"=y_orgnames)
+#'
+#' @export
+#'
+#' @md
+
 pFuzzyMatch_euclidean <- function(
     x, by.x, embedx = NULL,
     y, by.y, embedy = NULL,

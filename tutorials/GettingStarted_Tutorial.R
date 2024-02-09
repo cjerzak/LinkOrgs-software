@@ -71,6 +71,10 @@
   y <- data.frame("orgnames_y"= y_orgnames <- c("apple corp","oracle inc",
                                                 "enron","mcdonalds co"))
 
+  #############################################
+  # getting started with various merge types
+  #############################################
+
   # Perform a merge with a end-to-end meachine learning backend
   LinkedOrgs_ML <- LinkOrgs::LinkOrgs(x = x, by.x = "orgnames_x",
                                       y = y, by.y = "orgnames_y",
@@ -94,6 +98,14 @@
                           algorithm = "markov",
                           openBrowser= F)
 
+  # Perform a merge with package using markov network representation and ML-based distance metric for names
+  LinkedOrgs_MarkovWithML <- LinkOrgs(
+                                x = x, by.x = "orgnames_x",
+                                y = y, by.y = "orgnames_y",
+                                algorithm = "markov",
+                                DistanceMeasure = "ml",
+                                openBrowser= F)
+
   # Perform a simple merge with package using bipartite network representation and ML-based distance metric for names
   LinkedOrgs_BipartiteWithML <- LinkOrgs(
                                 x = x, by.x = "orgnames_x",
@@ -101,4 +113,8 @@
                                 algorithm = "bipartite",
                                 DistanceMeasure = "ml",
                                 openBrowser= F)
+
+  # note:
+  # algorithm %in% c("bipartite", "markov") and DistanceMeasure = "transfer"
+  # are not supported currently due to the time-complexity of the transfer learning backend
 }

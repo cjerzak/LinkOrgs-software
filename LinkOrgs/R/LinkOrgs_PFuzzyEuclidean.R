@@ -43,8 +43,8 @@ pDistMatch_euclidean <- function(embedx, embedy, MaxDist = NULL){
   # parallelized distance matching
 
   # broadcast across larger matrix for fast vectorization
-  swappedXY <- F; if( nrow(embedx) > nrow(embedy) ){
-    swappedXY <- T
+  if(swappedXY <- (nrow(y) < nrow(x))){
+    # reason for condition: y should be larger than x for efficient vectorization potential
     embedy_old <- embedy
     embedx_old <- embedx
     embedy <- embedx_old
@@ -57,23 +57,23 @@ pDistMatch_euclidean <- function(embedx, embedy, MaxDist = NULL){
 
   # parallelized dist calc
   library(foreach);cl <- doMC::registerDoMC(ncl<-parallel::detectCores());
-  distMat <- foreach(ier = 1:nrow(embedx)) %dopar% {
-    dist_vec <- colSums( (embedx[ier,] - embedy)^2 )^0.5  # embed2 is transposed for row broadcasting
+  distMat <- foreach(ix = 1:nrow(embedx)) %dopar% {
+    # calculate distances
+    dist_vec <- colSums( (embedx[ix,] - embedy)^2 )^0.5  # embed2 is already transposed for row broadcasting
 
-    match_ <- NULL
-    match_indices <- ifelse(is.null(MaxDist),
-                            yes = list(1:length( dist_vec )),
-                            no = list(which(dist_vec <= MaxDist)))[[1]]
+    # select iy matches to ix
+    iy <- ifelse(is.null(MaxDist),
+                 yes = list(1:length( dist_vec )),
+                 no = list(which(dist_vec <= MaxDist)))[[1]]
 
-    if(length(match_indices) > 0){
-      match_ <- data.frame( "ix" = ier,
-                            "iy" = match_indices,
+    match_ <- NULL; if(length(iy) > 0){
+      match_ <- data.frame( "ix" = ix,
+                            "iy" = iy,
                             "stringdist" = dist_vec[match_indices] )
     }
     return( list( match_ ))
   }
-  distMat <- unlist(distMat,recursive=F)
-  distMat <- as.data.frame( do.call(rbind,distMat) )
+  distMat <- as.data.frame( do.call(rbind, unlist(distMat,recursive=F) ))
 
   if(swappedXY){
     distMat <- data.frame("ix" = distMat$iy,

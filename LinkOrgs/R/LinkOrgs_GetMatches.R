@@ -153,16 +153,17 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     if( algorithm == "transfer" | DistanceMeasure == "transfer" ){ pFuzzyMatchNetworkFxn_touse <- pFuzzyMatchRawFxn_touse <- pFuzzyMatch_euclidean }
   }
 
-  if(!(algorithm %in% c("ml", "transfer"))){
-      if(DistanceMeasure %in% c("ml","transfer")){
-        if(algorithm == "markov"){ EmbeddingsURL <- "https://www.dropbox.com/s/yo7t5vzkrzf91m6/Directory_LinkIt_markov_Embeddings.csv.zip?dl=0" }
-        if(algorithm == "bipartite"){ EmbeddingsURL <- "https://www.dropbox.com/s/iqf9ids77dckopf/Directory_LinkIt_bipartite_Embeddings.csv.zip?dl=0" }
+  if(algorithm %in% c("markov", "bipartite")){
+      if(DistanceMeasure %in% c("ml")){
+        if(algorithm == "bipartite"){ EmbeddingsURL <- "https://www.dropbox.com/scl/fi/bnp5yxy7pgr6lqk5hd54n/Directory_LinkIt_bipartite_Embeddings_v0.csv.gz?rlkey=bvdzkkg544ujogzy82eyceezn&dl=0" }
+        if(algorithm == "markov"){ EmbeddingsURL <- "https://www.dropbox.com/scl/fi/i8f5n93sxqw7jfyg6u8h5/Directory_LinkIt_markov_Embeddings_v0.csv.gz?rlkey=qxslvzxz0kn4n57mvoodadxif&dl=0" }
 
-        if(!file.exists(sprintf("%s/Directory_LinkIt_%s_Embeddings.csv", DownloadFolder, algorithm))){
-          linkedIn_embeddings <- as.matrix(url2dt( EmbeddingsURL ))
-          data.table::fwrite(linkedIn_embeddings, file = sprintf("%s/Directory_LinkIt_%s_Embeddings.csv", DownloadFolder, algorithm))
+        if(!file.exists(sprintf("%s/Directory_LinkIt_%s_Embeddings.csv.gz", DownloadFolder, algorithm))){
+          download.file(LinkOrgs::dropboxURL2downloadURL(EmbeddingsURL) ,
+                        destfile = sprintf("%s/Directory_LinkIt_%s_Embeddings_%s.csv.gz", DownloadFolder, algorithm, ml_version))
+
         }
-        linkedIn_embeddings <- as.matrix(fread(sprintf("%s/Directory_LinkIt_%s_Embeddings.csv", DownloadFolder, algorithm)))
+        linkedIn_embeddings <- as.matrix(fread(sprintf("%s/Directory_LinkIt_%s_Embeddings_%s.csv.gz", DownloadFolder, algorithm, ml_version)))
   } }
 
   if(algorithm %in% c("bipartite", "markov")){
@@ -188,9 +189,11 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
       if(ToLower == T){ directory_trigrams$trigram <- tolower(directory_trigrams$trigram) }
       directory_trigrams = directory_trigrams[!duplicated(paste(directory_trigrams$trigram,
                                   directory_trigrams$alias_id,collapse="_")),]
-      print( sprintf("Directory size: %i aliases",nrow( directory )  ))
+      print2( sprintf("Directory size: %i aliases",nrow( directory )  ))
       assign( "directory_LinkIt", as.data.table(directory), envir = globalenv())
-      if( !DistanceMeasure %in% c("ml", "transfer" )){ pFuzzyMatchNetworkFxn_touse <- pFuzzyMatchRawFxn_touse <- pFuzzyMatch_discrete }
+      if( !DistanceMeasure %in% c("ml", "transfer" ) ){
+        pFuzzyMatchNetworkFxn_touse <- pFuzzyMatchRawFxn_touse <- pFuzzyMatch_discrete
+      }
       rm( directory )
   }
 
@@ -200,6 +203,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   by_x_orig = x[[by.x]]; by_y_orig = y[[by.y]]
 
   # process unique IDs
+  if(!is.null(by)){ by.x <- by.y <- by }
   x = cbind(1:nrow(x),x);colnames(x)[1] <- 'Xref__ID'
   y = cbind(1:nrow(y),y);colnames(y)[1] <- 'Yref__ID'
   names(by_x_orig) <- x$Xref__ID;names(by_y_orig) <- y$Yref__ID
@@ -208,7 +212,6 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 
   # preprocessing
   x = as.data.table(x); y = as.data.table(y)
-  if(!is.null(by)){ by.x <- by.y <- by }
   if(ToLower == T){
     for(it_ in c("x","y")){
       eval(parse(text = sprintf('set(%s,NULL,by.%s,tolower(%s[[by.%s]]))', it_, it_, it_, it_)))
@@ -257,11 +260,10 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   #specify ID_match for the exact/fuzzy matching
   x$UniversalMatchCol <- as.character(x[[by.x]]); y$UniversalMatchCol = as.character( y[[by.y]] )
 
-  # define ml-based fuzzy match
   print2("Searching for matches in the raw name space...")
-
-  # fuzzy match
-  z_RawNames <- as.data.frame(DeconflictNames(pFuzzyMatchRawFxn_touse(
+  z_RawNames <- as.data.frame(
+                          DeconflictNames(
+                                pFuzzyMatchRawFxn_touse(
                                   x = x, by.x = by.x, embedx = embedx,
                                   y = y, by.y = by.y, embedy = embedy,
                                   DistanceMeasure = DistanceMeasure,
