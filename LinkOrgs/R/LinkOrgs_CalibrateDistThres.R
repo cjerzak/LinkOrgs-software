@@ -53,24 +53,25 @@
 #' @export
 #' @md
 
-GetCalibratedDistThres <- function(x, by.x = NULL,
-                                   y, by.y = NULL,
+GetCalibratedDistThres <- function(x = NULL, by.x = NULL,
+                                   y = NULL, by.y = NULL,
                                    AveMatchNumberPerAlias = 5L,
                                    qgram = 2L, DistanceMeasure = "jaccard",
                                    mode = "euclidean"){
   print2("Calibrating via AveMatchNumberPerAlias...")
 
   # first, calculate all pairwise distances between x and y for a random subsample
-  cal_x_indices <- sample(1:nrow(x), min(nrow(x),3000), replace = F)
-  cal_y_indices <- sample(1:nrow(y), min(nrow(y),3000), replace = F)
+  cal_x_indices <- sample(1:nrow(x), min(nrow(x),500), replace = F)
+  cal_y_indices <- sample(1:nrow(y), min(nrow(y),500), replace = F)
 
   if(mode == "euclidean"){
-    DistMat <- pDistMatch_euclidean(x[cal_x_indices,], y[cal_y_indices,])
+    DistMat <- pDistMatch_euclidean(embedx = x[cal_x_indices,],
+                                    embedy = y[cal_y_indices,])
   }
 
   if(mode == "discrete"){
-    DistMat <- pDistMatch_discrete(x[cal_x_indices,], by.x = by.x,
-                                   y[cal_y_indices,], by.y = by.y,
+    DistMat <- pDistMatch_discrete(x = x[cal_x_indices,], by.x = by.x,
+                                   y = y[cal_y_indices,], by.y = by.y,
                                    qgram = qgram, DistanceMeasure = DistanceMeasure, MaxDist = Inf)
   }
 
@@ -78,14 +79,15 @@ GetCalibratedDistThres <- function(x, by.x = NULL,
     # then,calculate the implied quantile needed to generate a specific # of matches,
     # for the full inner-joined dataset
     log_NPossibleMatches <- log(nrow(y)) + log(nrow(x))
-    NObs_GeometricMean <- (nrow(x)*nrow(y))^0.5
-    log_AveMatchesPerObs_times_NObs <- log(AveMatchNumberPerAlias) + log( NObs_GeometricMean  )
+    log_NObs_GeometricMean <-  0.5* (log(nrow(x))+log(nrow(y))) # performs: log((nx*ny)^0.5)
+    log_AveMatchesPerObs_times_NObs <- log(AveMatchNumberPerAlias) + log_NObs_GeometricMean
 
     # log(AveMatchesPerObs*nObs / NPossibleMatches)
     ImpliedQuantile <- exp(log_AveMatchesPerObs_times_NObs - log_NPossibleMatches)
 
     #get implied distance thres from random sample of distances
-    IMPLIED_MATCH_DIST_THRES <- mean(abs(quantile(DistMat$stringdist, probs = min(1,ImpliedQuantile) )))
+    IMPLIED_MATCH_DIST_THRES <- mean(abs(quantile(DistMat[,"stringdist"], probs = min(1,ImpliedQuantile) )))
+    if(IMPLIED_MATCH_DIST_THRES < 1e-6){IMPLIED_MATCH_DIST_THRES <- 1e-6}
   }
   print2( sprintf("Calibrated accept match dist threshold: %.6f", IMPLIED_MATCH_DIST_THRES) )
 

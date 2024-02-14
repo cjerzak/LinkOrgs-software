@@ -161,3 +161,9 @@ DeconflictNames <- function(z){
   z <- z[,!duplicated(colnames(z))]
   return( z )
 }
+
+
+NA2ColMean <- function(data_){
+  for(i in 1:ncol(data_)) { data_[is.na(data_[,i]), i] <- mean(data_[,i], na.rm = TRUE) }
+  return(data_)
+}
