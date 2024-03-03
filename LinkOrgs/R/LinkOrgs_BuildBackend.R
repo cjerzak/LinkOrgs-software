@@ -17,34 +17,29 @@
 BuildBackend <- function(conda_env = "LinkOrgsEnv", conda = "auto"){
   # Create a new conda environment
   reticulate::conda_create(envname = conda_env,
-                           conda = conda, python_version = "3.11")
+                           conda = conda,
+                           python_version = "3.11")
 
   # Install Python packages within the environment
-  reticulate::py_install(c("optax", "equinox", "jmp"),
-                           conda = conda, pip = TRUE,
-                           envname = conda_env)
+  Packages2Install <- c("jax","optax","tensorflow","equinox","numpy",
+                          "tensorflow_probability","jmp")
   if(Sys.info()["sysname"] == "Darwin"){
-    try_ <- try(reticulate::py_install("jax-metal", conda = conda, pip = TRUE,
-                                       envname = conda_env), T)
     if("try-error" %in% class(try_)){
-      print("Failed to establish connection with jax-metal, falling back to jax...")
-      try_ <- try(reticulate::py_install("jax", conda = conda, pip = TRUE,
-                                         envname = conda_env), T)
+      for(Pack_ in Packages2Install){
+        try_ <- try(reticulate::py_install(Pack_, conda = conda, pip = TRUE, envname = conda_env), T)
+      }
     }
+
   }
   if(Sys.info()["sysname"] == "Windows"){
-    reticulate::py_install("jax", conda = conda, pip = TRUE,
-                           envname = conda_env)
+    for(Pack_ in Packages2Install){
+      reticulate::py_install(Pack_, conda = conda, pip = TRUE, envname = conda_env)
+    }
   }
   if(Sys.info()["sysname"] == "Linux"){
     # pip install --upgrade jax jaxlib==0.1.69+cuda111 -f https://storage.googleapis.com/jax-releases/jax_releases.html
-    try_ <- try(system(sprintf("'%s' -m pip install --upgrade --no-user %s",
-           gsub(conda, pattern = "bin/python", replacement = sprintf("envs/%s/bin/python",conda_env)),
-           "'jax[cuda12_pip]' -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html" )), T)
-    if("try-error" %in% class(try_)){
-      print("Failed to establish connection with jax[cuda12_pip], falling back to jax...")
-      try_ <- try(reticulate::py_install("jax", conda = conda, pip = TRUE,
-                                         envname = conda_env), T)
+    for(Pack_ in Packages2Install){
+      reticulate::py_install(Pack_, conda = conda, pip = TRUE, envname = conda_env)
     }
   }
   print("Done building LinkOrgs backend!")

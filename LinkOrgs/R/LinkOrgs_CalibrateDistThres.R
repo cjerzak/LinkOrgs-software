@@ -61,8 +61,8 @@ GetCalibratedDistThres <- function(x = NULL, by.x = NULL,
   print2("Calibrating via AveMatchNumberPerAlias...")
 
   # first, calculate all pairwise distances between x and y for a random subsample
-  cal_x_indices <- sample(1:nrow(x), min(nrow(x),500), replace = F)
-  cal_y_indices <- sample(1:nrow(y), min(nrow(y),500), replace = F)
+  cal_x_indices <- sample(1:nrow(x), min(nrow(x),1000), replace = F)
+  cal_y_indices <- sample(1:nrow(y), min(nrow(y),1000), replace = F)
 
   if(mode == "euclidean"){
     DistMat <- pDistMatch_euclidean(embedx = x[cal_x_indices,],

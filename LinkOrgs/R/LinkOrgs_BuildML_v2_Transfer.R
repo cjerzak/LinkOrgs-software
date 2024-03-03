@@ -16,6 +16,7 @@ BuildTransfer <- function(){
     transferRep = readme::undergrad(
       documentText = names,
       numericization_method = "transformer_based",
+      python_executable = python_executable,
       textEmbed_control = text_options)
     return( transferRep )
   }

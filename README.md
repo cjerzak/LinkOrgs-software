@@ -7,18 +7,24 @@
 | [**References**](#references)
 | [**Documentation**](https://github.com/cjerzak/LinkOrgs-software/blob/master/LinkOrgs.pdf)
 
-*Jan. 19, 2024:* `LinkOrgs` is down, as it is currently being re-built with a [JAX](https://en.wikipedia.org/wiki/Google_JAX) machine learning backend for improved computational efficiency and with locality sensitive hashing from [zoomerjoin](http://beniamino.org/zoomerjoin/) for better handling of massive merge tasks (> 1 million observations in each data corpus). It will be back up shortly! 
+*Jan. 19, 2024:* `LinkOrgs` has been rebuilt with a [JAX](https://en.wikipedia.org/wiki/Google_JAX) machine learning backend for improved computational efficiency and we're currently adding locality sensitive hashing from [zoomerjoin](http://beniamino.org/zoomerjoin/) for better handling of massive merge tasks (> 1 million observations in each data corpus). The re-build is experimental, so let us know if you come across any issues. 
 
 ## Installation
 The most recent version of `LinkOrgs` can be installed directly from the repository using the `devtools` package
 
 ```
+# install package 
 devtools::install_github("cjerzak/LinkOrgs-software/LinkOrgs")
 ```
 
-The machine-learning based algorithm accessible via the `algorithm="ml"` option relies on `tensorflow` and `Rtensorflow`. For details about downloading, see `https://tensorflow.rstudio.com/installation/`. The network-based linkage approaches (`algorithm="bipartite"` and `algorithm = "markov"`) do not require these packages. 
+The machine-learning based algorithm accessible via the `algorithm="ml"` option relies on `tensorflow` and `Rtensorflow`. For details about downloading, see `https://tensorflow.rstudio.com/installation/`. The network-based linkage approaches (`algorithm="bipartite"` and `algorithm = "markov"`) do not require these packages. To setup the machine learning backend, you can call 
 
-Note that all options require Internet access in order to download the saved machine learning model parameters and LinkedIn-based network information. 
+```
+# install ML backend  
+LinkOrs::BuildBackend(conda_env = "LinkOrgsEnv", conda = "auto")
+```
+
+Note that most package options require Internet access in order to download the saved machine learning model parameters and LinkedIn-based network information. 
 
 ## Tutorial
 After installing the package, let's get some experience with it in an example. 
@@ -35,14 +41,17 @@ y <- data.frame("orgnames_y"=y_orgnames)
 ```
 After creating these synthetic datasets, we're now ready to merge them. We can do this in a number of ways. See the paper listed in the reference for information about which may be most useful for your merge task.  
 
-First, we'll try a merge using parallelized fast fuzzy matching via `LinkOrgs::FastFuzzyMatch`. A key hyperparameter is `AveMatchNumberPerAlias`, which controls the number of matches per alias (in practice, we calibrate this with an initial random sampling step, the exact matched dataset size won't be a perfect multiple of `AveMatchNumberPerAlias`). Here, we set `AveMatchNumberPerAlias = 10` so that all observations in this small dataset are potentially matched against all others for  illustration purposes. 
+First, we'll try a merge using parallelized fast fuzzy matching via `LinkOrgs::LinkOrgs`. A key hyperparameter is `AveMatchNumberPerAlias`, which controls the number of matches per alias (in practice, we calibrate this with an initial random sampling step, the exact matched dataset size won't be a perfect multiple of `AveMatchNumberPerAlias`). Here, we set `AveMatchNumberPerAlias = 10` so that all observations in this small dataset are potentially matched against all others for illustration purposes. 
 ``` 
 # perform merge using (parallelized) fast fuzzy matching
-# LinkOrgs::FastFuzzyMatch can be readily used for non-organizational name matches 
-z_linked_fuzzy <- LinkOrgs::FastFuzzyMatch(x  = x,
+# LinkOrgs::LinkOrgs can be readily used for non-organizational name matches 
+# when doing pure parallelized fuzzy matching 
+z_linked_fuzzy <- LinkOrgs::LinkOrgs(x  = x,
                         y =  y,
                         by.x = "orgnames_x",
                         by.y = "orgnames_y",
+                        algorithm = "fuzzy", 
+                        DistanceMeasure = "jaccard", 
                         AveMatchNumberPerAlias = 4)
 ```
 Next, we'll try using some of the LinkedIn-calibrated approaches using `LinkOrgs::LinkOrgs`: 

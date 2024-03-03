@@ -41,5 +41,5 @@ pFuzzyMatch_euclidean <- function(
   z <- cbind( x[z_indices$ix,], y[z_indices$iy,] )
   z <- as.data.frame( cbind( x[z_indices[,"ix"],], y[z_indices[,"iy"],] ) )
   z$stringdist <- z_indices[,"stringdist"]
-  gc(); return( as.data.frame( z ) )
+  gc(); return( DeconflictNames( z ) )
 }

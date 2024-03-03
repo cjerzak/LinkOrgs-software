@@ -68,15 +68,18 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                     AveMatchNumberPerAlias_network = 2,
                     DistanceMeasure = "jaccard",
                     qgram = 2,
-                    ml_version = "v1",
-                   openBrowser = F,ReturnDecomposition = F){
+                    RelThresNetwork = 1.5,
+                    ml_version = "v4",
+                    openBrowser = F,
+                    ReturnDecomposition = F,
+                    python_executable){
   suppressPackageStartupMessages({
     library(plyr); library(dplyr);  library(data.table); library(fastmatch); library(stringdist); library(stringr)
 } )
   `%fin%` <- function(x, table) {fmatch(x, table, nomatch = 0L) > 0L}
 
   # change timeout for long download of large-scale data objects
-  options(timeout = max(60*10, getOption("timeout")))
+  options(timeout = max(60*20, getOption("timeout")))
 
   # type checks
   z_Network <- linkedIn_embeddings <- embedx <- embedy <- NULL
@@ -84,9 +87,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   algorithm <- tolower( as.character( algorithm ) )
   DownloadFolder <- paste0(find.package("LinkOrgs"),"/data")
   if(algorithm == "ml"){ DistanceMeasure <- "ml" }
-  if(algorithm == "transfer"){ DistanceMeasure <- "transfer" }
   if(algorithm == "ml" | DistanceMeasure == "ml"){
-      # find.package("LinkOrgs")
       ModelLoc <- gsub(ModelZipLoc <- sprintf('%s/Model_%s.zip', DownloadFolder, ml_version ),
                        pattern = "\\.zip", replace = "")
       WeightsLoc <- sprintf('%s/ModelWeights_%s.eqx', DownloadFolder, ml_version)
@@ -98,8 +99,20 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
           WeightsURL <- "https://www.dropbox.com/scl/fi/7w0fc4vdw372a4jkkwpfp/ModelWeights_v0.eqx?rlkey=5rjppey7i4ymllne5gitxt80x&dl=0"
         }
         if(ml_version == "v1"){
-          ModelURL <- "https://www.dropbox.com/scl/fi/4evf6d6t2804hpx4i4al3/AnalysisR_LinkOrgsBase_29PT9M_2024-02-12.zip?rlkey=08tet5hd1v178j9r6mvv447f8&dl=0"
-          WeightsURL <- "https://www.dropbox.com/scl/fi/b07rk4gjnqmows5rwsgkd/LinkOrgsBase_29PT9M_2024-02-12_ilast.eqx?rlkey=t16hqkv2wwpivd28blak5opcz&dl=0"
+          ModelURL <- "https://www.dropbox.com/scl/fi/zf40e7is48qgvq3t2xqpf/AnalysisR_LinkOrgsBase_29PT9M_2024-02-13.zip?rlkey=g4q5kgko1q1umszbz34awsvic&dl=0"
+          WeightsURL <- "https://www.dropbox.com/scl/fi/5klzz36zjyhto4eef3vdi/LinkOrgsBase_29PT9M_2024-02-13_ilast.eqx?rlkey=icirb63feja9nv3kq6t5yow8p&dl=0"
+        }
+        if(ml_version == "v2"){ # 2^8 word, 2^8.75 for alias, 10k iters
+          ModelURL <- "https://www.dropbox.com/scl/fi/3rc7u27k1mszc6j9qehqq/AnalysisR_LinkOrgsBase_22PT9M_2024-02-25.zip?rlkey=qp2qclwpcypb43vq43h3wujzs&dl=0"
+          WeightsURL <- "https://www.dropbox.com/scl/fi/467ccsay1cos3baqiyy0k/LinkOrgsBase_22PT9M_2024-02-25_ilast.eqx?rlkey=5nyc0hovvmfj06srmc43mw2w6&dl=0"
+        }
+        if(ml_version == "v3"){ # 2^8 word, 2^9 for alias, 7k iters
+          ModelURL <- "https://www.dropbox.com/scl/fi/0lzgl5nyqyuebi94n13gy/AnalysisR_LinkOrgsBase_31PT3M_2024-02-26.zip?rlkey=svcuc8z02fg0hh2tn00s1jn9m&dl=0"
+          WeightsURL <- "https://www.dropbox.com/scl/fi/br8qs5w6nhl1ujgsot4wk/LinkOrgsBase_31PT3M_2024-02-26_ilast.eqx?rlkey=cdc8ao6zfkte4tk0dl0z5pnaw&dl=0"
+        }
+        if(ml_version == "v4"){ # 2^8 word, 2^9 for alias, 14k iters
+          ModelURL <- "https://www.dropbox.com/scl/fi/w2rqhoja730ey8udfv344/AnalysisR_LinkOrgsBase_17PT3M_2024-02-29.zip.zip?rlkey=e9d2nnago8ng0vc9sguvd7rsu&dl=0"
+          WeightsURL <- "https://www.dropbox.com/scl/fi/zr4bziggj3nugrpovkxrm/LinkOrgsBase_17PT3M_2024-02-29_ilast.eqx?rlkey=b6f7i8dhuro62hlszm365vofi&dl=0"
         }
 
         # process URLs
@@ -138,7 +151,98 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
       embedy <- NA2ColMean(
                     GetAliasRep_BigBatch(gsub(tolower(y[[by.y]]), pattern = "\\s+", replace =" "),
                                      nBatch_BigBatch = 50))
-      if( algorithm == "ml" | DistanceMeasure == "ml" ){ pFuzzyMatchNetworkFxn_touse <- pFuzzyMatchRawFxn_touse <- pFuzzyMatch_euclidean }
+      pFuzzyMatchFxn_touse <- pFuzzyMatch_euclidean
+      jax <<- jax; jnp <<- jnp; np <<- np
+  }
+  if(algorithm == "deezymatch"){
+    library(reticulate)
+    reticulate::use_condaenv("py39deezy")
+    DeezyMatch <- import("DeezyMatch")
+    pd <- import("pandas")
+    torch <- import("torch")
+    np <- import("numpy")
+    jax <- import("jax")
+    jnp <- import("jax.numpy")
+    pickle <- import("pickle")
+
+    orig_wd <- getwd()
+    for(val_ in c("x","y")){
+      setwd("~/Downloads/DeezyMatch-master")
+      DatasetPath <- c( "./dataset/dataset-candidates_LINKORGS.txt")
+      input_ <- eval(parse(text =
+                sprintf('enc2utf8(gsub(tolower(%s[[by.%s]]),
+                        pattern = "\\\\s+", replace =" "))', # [ir_]
+                        val_, val_)))
+      tmp <- strsplit(input_,split="")
+      input_ <- sapply(1:length(input_), function(s_){
+          # append to input with no letters to avoid problems in DeezyMatch
+          if(!any(letters %in% tmp[[s_]])){
+            input_[s_] <- paste0(input_[s_], " - inc")
+          }
+          input_[s_]
+      } )
+      writeLines(input_, con = DatasetPath)
+      file.remove( sprintf("./candidates/test2/embeddings/%s",
+                          list.files("./candidates/test2/embeddings")) )
+      DeezyMatch$inference(input_file_path="./inputs/input_dfm.yaml",
+                         dataset_path = DatasetPath,
+                         pretrained_model_path="./models/test001/test001.model",
+                         pretrained_vocab_path="./models/test001/test001.vocab",
+                         inference_mode="vect",
+                         scenario="./candidates/test2")
+      nBatches <- length(list.files("./candidates/test2/embeddings/")) / 3
+      embed <- sapply(0L:(nBatches-1L),function(b_){
+        list(cbind(
+              np$array( torch$load(sprintf("./candidates/test2/embeddings/rnn_indxs_%s",b_)) ),
+              np$array( torch$load(sprintf("./candidates/test2/embeddings/rnn_fwd_%s",b_)) ),
+              np$array( torch$load(sprintf("./candidates/test2/embeddings/rnn_bwd_%s",b_)) ) ))
+        })
+      embed <- (embed <- do.call(rbind,embed))[embed[,1]+1,-1]
+
+      if(val_ == "x"){ embedx <- embed }
+      if(val_ == "y"){ embedy <- embed }; rm(embed)
+      file.remove( sprintf("./candidates/test2/embeddings/%s",
+                           list.files("./candidates/test2/embeddings")) )
+    }
+
+    setwd( orig_wd )
+    pFuzzyMatchFxn_touse <- pFuzzyMatch_euclidean
+    jax <<- jax; jnp <<- jnp; np <<- np
+    if(nrow(embedx) != nrow(x)){browser(); stop("DeezyMatch output mismatch!")}
+    if(nrow(embedy) != nrow(y)){browser(); stop("DeezyMatch output mismatch!")}
+  }
+  if(algorithm == "lookup"){
+    load("~/Dropbox/Directory/DataInputs/linkedIn_rawData.Rdata")
+    directory_red <- my_data; rm(my_data)
+    directory_red$raw_names <- directory_red[,1]
+    directory_red[,1] <- tolower(directory_red[,1])
+    colnames(directory_red)[1:3] <- c("alias_name","canonical_id","weights") #colnames(directory)[1:3] <- c("from","to","weights")
+
+    # define matching metric
+    pFuzzyMatchFxn_touse <- pFuzzyMatch_discrete; DistanceMeasure <- "jaccard"
+
+    # descriptive stats
+    if(T == F){
+      library(dplyr)
+
+      # Step 1: Combine into a data frame
+      df <- as.data.frame(data.frame("x" = directory[,1], "y"=directory[,2]))
+      #x <- c("a", "b", "c", "d", "e"); y <- c(1, 1, 2, 2, 2)
+      #df <- as.data.frame(data.frame("x" = x, "y"=y))
+
+      # Step 2: Process the data
+      result <- df %>%
+        distinct() %>% # Remove exact duplicates
+        group_by(y) %>%
+        mutate(unique_x = n_distinct(x)) %>% # Count unique x values per group
+        filter(unique_x > 1) %>% # Keep only groups with more than one unique x
+        ungroup() %>%
+        count('y') # Count occurrences
+
+      # To count the number of pairs where x are not equal but have the same y
+      sum(result$freq) - nrow(result)
+      total_pairs <- nrow(result)
+    }
   }
   if(algorithm == "transfer" | DistanceMeasure == "transfer"){
     TransferModelLoc <- sprintf("%s/TransferLCoefs_tokenizer_parallelism_FALSE_model_bert-base-multilingual-uncased_layers_-1_device_cpu_logging_level_error_FullTRUE.csv", DownloadFolder)
@@ -152,16 +256,48 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     transferCoefs <- data.table::fread( TransferModelLoc )
 
     # build transfer learning platform
+    library(text); try(textrpp_initialize(),T)
     BuildTransferText <- gsub(deparse1(BuildTransfer,collapse="\n"), pattern="function \\(\\)",replace="")
     eval(parse(text = BuildTransferText))
 
     print2("Matching via name representations from a LLM...")
+    py_gc <- reticulate::import("gc")
     embedx <- getRepresentation_transfer( x[[by.x]] ); gc(); py_gc$collect()
     embedy <- getRepresentation_transfer( y[[by.y]] ); gc(); py_gc$collect()
-    if( algorithm == "transfer" | DistanceMeasure == "transfer" ){ pFuzzyMatchNetworkFxn_touse <- pFuzzyMatchRawFxn_touse <- pFuzzyMatch_euclidean }
+    if( algorithm == "transfer" | DistanceMeasure == "transfer" ){ pFuzzyMatchFxn_touse <- pFuzzyMatch_euclidean }
   }
 
-  if(algorithm %in% c("markov", "bipartite")){
+  if(algorithm %in% c("bipartite", "markov")){
+      # see https://techapple.net/2014/04/trick-obtain-direct-download-links-dropbox-files-dropbox-direct-link-maker-tool-cloudlinker/
+      if(algorithm == "bipartite"){ NetworkURL <- "https://dl.dropboxusercontent.com/s/tq675xfnnxjea4d/directory_data_bipartite_thresh40.zip?dl=0" }
+      if(algorithm == "markov"){ NetworkURL <- "https://dl.dropboxusercontent.com/s/ftt6ts6zrlnjqxp/directory_data_markov.zip?dl=0" }
+      DirectoryLoc <- gsub(DirectoryZipLoc <- sprintf('%s/Directory_%s.zip',
+                                DownloadFolder, algorithm ), pattern = "\\.zip", replace = "")
+      if(!dir.exists(sprintf("%s/Directory_%s/", DownloadFolder, algorithm) ) ){
+          download.file( NetworkURL, destfile = DirectoryZipLoc )
+          unzip(DirectoryZipLoc, exdir = DirectoryLoc)
+      }
+      load(sprintf("%s/%s/LinkIt_directory_%s_trigrams.Rdata",
+                   DirectoryLoc,
+                   ifelse(algorithm == "bipartite", yes = "directory_data_bipartite_thresh40", no = "directory_data_markov"),
+                   algorithm))
+      load(sprintf("%s/%s/LinkIt_directory_%s.Rdata",
+                   DirectoryLoc,
+                   ifelse(algorithm == "bipartite", yes = "directory_data_bipartite_thresh40", no = "directory_data_markov"),
+                   algorithm) )
+
+      directory <- data.table::as.data.table(directory)
+      directory_trigrams <- data.table::as.data.table(directory_trigrams)
+      if(ToLower == T){ directory_trigrams$trigram <- tolower(directory_trigrams$trigram) }
+      directory_trigrams <- directory_trigrams[!duplicated(paste(directory_trigrams$trigram,
+                                  directory_trigrams$alias_id,collapse="_")),]
+      print2( sprintf("Directory size: %i aliases",nrow( directory )  )); gc()
+
+      if( !algorithm %in% c("ml", "transfer", "deezymatch" ) ){
+      if( !DistanceMeasure %in% c("ml", "transfer", "deezymatch" ) ){
+        pFuzzyMatchFxn_touse <- pFuzzyMatch_discrete
+      } }
+
       if(DistanceMeasure %in% c("ml")){
         if(ml_version == "v0"){
           if(algorithm == "bipartite"){ EmbeddingsURL <- "https://www.dropbox.com/scl/fi/bnp5yxy7pgr6lqk5hd54n/Directory_LinkIt_bipartite_Embeddings_v0.csv.gz?rlkey=bvdzkkg544ujogzy82eyceezn&dl=0" }
@@ -177,38 +313,11 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
         if(!file.exists(EmbedddingsLoc)){
           download.file(LinkOrgs::dropboxURL2downloadURL(EmbeddingsURL), destfile = EmbedddingsLoc)
         }
-        linkedIn_embeddings <- NA2ColMean(as.matrix(fread(EmbedddingsLoc))[,-1]); gc(); py_gc$collect()
+        linkedIn_embeddings <- NA2ColMean(as.matrix(data.table::fread(EmbedddingsLoc, showProgress = T))[,-1]); gc(); py_gc$collect()
         # print(  sort( sapply(ls(),function(x){object.size(get(x))}))  )
-  } }
-
-  if(algorithm %in% c("bipartite", "markov")){
-      # see https://techapple.net/2014/04/trick-obtain-direct-download-links-dropbox-files-dropbox-direct-link-maker-tool-cloudlinker/
-      if(algorithm == "bipartite"){ NetworkURL <- "https://dl.dropboxusercontent.com/s/tq675xfnnxjea4d/directory_data_bipartite_thresh40.zip?dl=0" }
-      if(algorithm == "markov"){ NetworkURL <- "https://dl.dropboxusercontent.com/s/ftt6ts6zrlnjqxp/directory_data_markov.zip?dl=0" }
-      DirectoryLoc <- gsub(DirectoryZipLoc <- sprintf('%s/Directory_%s.zip',
-                                DownloadFolder, algorithm ), pattern = "\\.zip", replace = "")
-      if(!dir.exists(sprintf("%s/Directory_%s/", DownloadFolder, algorithm) ) ){
-          unzip(download.file( NetworkURL, destfile = DirectoryZipLoc ), exdir = DirectoryLoc)
       }
-      load(sprintf("%s/%s/LinkIt_directory_%s_trigrams.Rdata",
-                   DirectoryLoc,
-                   ifelse(algorithm == "bipartite", yes = "directory_data_bipartite_thresh40", no = "directory_data_markov"),
-                   algorithm))
-      load(sprintf("%s/%s/LinkIt_directory_%s.Rdata",
-                   DirectoryLoc,
-                   ifelse(algorithm == "bipartite", yes = "directory_data_bipartite_thresh40", no = "directory_data_markov"),
-                   algorithm) )
-
-      if(ToLower == T){ directory_trigrams$trigram <- tolower(directory_trigrams$trigram) }
-      directory_trigrams <- directory_trigrams[!duplicated(paste(directory_trigrams$trigram,
-                                  directory_trigrams$alias_id,collapse="_")),]
-      print2( sprintf("Directory size: %i aliases",nrow( directory )  )); gc()
-
-      if( !algorithm %in% c("ml", "transfer" ) ){
-      if( !DistanceMeasure %in% c("ml", "transfer" ) ){
-        pFuzzyMatchNetworkFxn_touse <- pFuzzyMatchRawFxn_touse <- pFuzzyMatch_discrete
-      } }
   }
+  if(algorithm == "fuzzy"){ pFuzzyMatchFxn_touse <- pFuzzyMatch_discrete }
 
   # check object sizes
   # print(  sort( sapply(ls(),function(x){object.size(get(x))}))  )
@@ -218,20 +327,21 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 
   # process unique IDs
   if(!is.null(by)){ by.x <- by.y <- by }
-  x = cbind(1:nrow(x),x);colnames(x)[1] <- 'Xref__ID'
-  y = cbind(1:nrow(y),y);colnames(y)[1] <- 'Yref__ID'
+
+  x = cbind(sapply(x[[by.x]],digest::digest), x); colnames(x)[1] <- 'Xref__ID'
+  y = cbind(sapply(y[[by.y]],digest::digest),y); colnames(y)[1] <- 'Yref__ID'
   names(by_x_orig) <- x$Xref__ID;names(by_y_orig) <- y$Yref__ID
   y$UniversalMatchCol <- x$UniversalMatchCol <- NA
-  colnames_x_orig = colnames(x); colnames_y_orig = colnames(y)
+  colnames_x_orig <- colnames(x); colnames_y_orig <- colnames(y)
 
   # preprocessing
-  x = as.data.table(x); y = as.data.table(y)
+  x <- as.data.table(x); y <- as.data.table(y)
   if(ToLower == T){
     for(it_ in c("x","y")){
       eval(parse(text = sprintf('set(%s,NULL,by.%s,tolower(%s[[by.%s]]))', it_, it_, it_, it_)))
     }
 
-    # all methods use lower-casedtext
+    # methods use lower-cased text
     if(algorithm %in% c("bipartite","markov")){
       directory[["alias_name"]] <- tolower(directory[["alias_name"]] )
     }
@@ -254,9 +364,11 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   }
 
   #drop duplicates after pre-process
-  if(!algorithm %in% c("ml", "transfer")){
+  if(algorithm %in% c("markov","bipartite")){
     keepAliases <- which(  !duplicated(directory$alias_name) & trimws(directory$alias_name) != '' )
-    if(DistanceMeasure == "ml"){ linkedIn_embeddings <- linkedIn_embeddings[keepAliases,] }
+    if(DistanceMeasure == "ml"){
+      linkedIn_embeddings <- linkedIn_embeddings[keepAliases,]
+    }
     directory = directory[keepAliases,]
 
     #get trigrams
@@ -274,120 +386,134 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   x$UniversalMatchCol <- as.character(x[[by.x]]); y$UniversalMatchCol = as.character( y[[by.y]] )
 
   print2("Searching for matches in the raw name space...")
-  z_RawNames <- as.data.frame(
-                          DeconflictNames(
-                                pFuzzyMatchRawFxn_touse(
+  z_RawNames <- as.data.frame( pFuzzyMatchFxn_touse(
                                   x = x, by.x = by.x, embedx = embedx,
                                   y = y, by.y = by.y, embedy = embedy,
-                                  DistanceMeasure = DistanceMeasure,
-                                  MaxDist = MaxDist,
-                                  AveMatchNumberPerAlias = AveMatchNumberPerAlias,
-                                  q = qgram)))
+                                  DistanceMeasure = DistanceMeasure, q = qgram,
+                                  MaxDist = MaxDist, AveMatchNumberPerAlias = AveMatchNumberPerAlias))
+  # View(z_RawNames[order(z_RawNames$stringdist),c(by.x,by.y,"stringdist")])
 
   # network match
-  if(!algorithm %in% c("ml","transfer")){
+  if(algorithm %in% c("markov","bipartite","lookup")){
     pFuzzyMatch_internal <- function(key_){
-      n_iters <- ifelse(key_ == "x", yes = nrow(x), no = nrow(y) )
-      my_matched_placeholder <- my_matched <- matrix(NA,nrow = 0, ncol = 4, dimnames = list(NULL,c("my_entry","alias_name","stringdist","canonical_id")))
-
       print2("Searching for network matches...")
       key_by_ref <- eval(parse(text = sprintf("by.%s",key_)))
       xory_by_ref <- eval(parse(text = sprintf("%s",key_)))
-      MatchedIntoNetwork <- try(pFuzzyMatchNetworkFxn_touse(
-                  x = xory_by_ref, by.x = key_by_ref, embedx = ifelse(key_ == 'x', yes = list(embedx), no = list(embedy))[[1]],
-                  y = directory_red, by.y = "alias_name", embedy = linkedIn_embeddings,
-                  MaxDist = MaxDist_network,
-                  AveMatchNumberPerAlias = AveMatchNumberPerAlias_network), T)
-      #MatchedIntoNetwork <- MatchedIntoNetwork[,c(paste0(key_by_ref,".x"),"alias_name.y","stringdist","canonical_id.y")]
-      MatchedIntoNetwork <- DeconflictNames(MatchedIntoNetwork)
+
+      if(algorithm != "lookup"){
+        MatchedIntoNetwork <- pFuzzyMatchFxn_touse(
+                    x = xory_by_ref, by.x = key_by_ref, embedx = ifelse(key_ == 'x', yes = list(embedx), no = list(embedy))[[1]],
+                    y = directory_red, by.y = "alias_name", embedy = linkedIn_embeddings,
+                    DistanceMeasure = DistanceMeasure, q = qgram,
+                    MaxDist = MaxDist_network, AveMatchNumberPerAlias = AveMatchNumberPerAlias_network)
+        MatchedIntoNetwork <- DeconflictNames(MatchedIntoNetwork)
+      }
+      if(algorithm == "lookup"){
+        MatchedIntoNetwork <- merge(xory_by_ref, by.x = key_by_ref, all.x = F,
+              directory_red, by.y = "alias_name", all.y = F)
+        MatchedIntoNetwork$stringdist <- runif(nrow(MatchedIntoNetwork),0,0.0000001) # add to avoid problems with Deduplication checks
+      }
 
       print2("De-duplicating merge among duplicates to canonical_id [keeping closest match]...")
       MatchedIntoNetwork$duplication_check <- paste(MatchedIntoNetwork[[key_by_ref]],
                                                     MatchedIntoNetwork[["canonical_id"]], sep = "_")
       minDist_vec <- tapply(MatchedIntoNetwork$stringdist, MatchedIntoNetwork$duplication_check, min)
+      MatchedIntoNetwork$stringdist <- minDist_vec[ MatchedIntoNetwork$duplication_check  ]
+
+      # drop duplicates after calculating stringdist like so
       MatchedIntoNetwork <- MatchedIntoNetwork[!duplicated(MatchedIntoNetwork$duplication_check),]
-      MatchedIntoNetwork$stringdist <- minDist_vec[ fastmatch::fmatch(MatchedIntoNetwork$duplication_check,names(minDist_vec)) ]
 
       print2(sprintf("Done deduplicating; final dimensions: %s...", nrow(MatchedIntoNetwork)))
       gc(); return( MatchedIntoNetwork )
     }
 
-    # perform match
+    # perform analysis via network
     x2Network <- pFuzzyMatch_internal(key_ = 'x')
     y2Network <- pFuzzyMatch_internal(key_ = 'y')
 
-    # merge into network
+    # merge into network - some redundancies may emerge due to multiple observations per name
     x2Network <- DeconflictNames( merge(x = as.matrix(x), by.x = by.x,
                        y = as.matrix(x2Network), by.y = by.x, all = F) )
     colnames(x2Network)[colnames(x2Network) %in% 'stringdist'] <- "stringdist.x2network"
+    x2Network$canonical_id <- as.character(x2Network$canonical_id);
 
     y2Network <- DeconflictNames( merge(x = as.matrix(y), by.x = by.y,
                       y = as.matrix(y2Network), by.y = by.y, all = F) )
     colnames(y2Network)[colnames(y2Network) %in% 'stringdist'] <- "stringdist.y2network"
-
-    x2Network$canonical_id <- f2n(x2Network$canonical_id);
-    y2Network$canonical_id <- f2n(y2Network$canonical_id)
+    y2Network$canonical_id <- as.character(y2Network$canonical_id)
 
     # merge network into network
-    z_Network <- as.data.frame(merge(x2Network, y2Network, by="canonical_id", all=F))
+    z_Network <- DeconflictNames( as.data.frame(merge(x2Network, y2Network, by="canonical_id", all=F)) )
     colnames(z_Network)[colnames(z_Network) == "canonical_id"] <- "ID_MATCH"
   }
 
   # bring in fuzzy matches
   {
-  z_RawNames$XYref__ID <- paste( z_RawNames$Xref__ID, z_RawNames$Yref__ID,
-                                 sep="__LINKED__" )
-  z_Network$XYref__ID <- paste( f2n(z_Network$Xref__ID), f2n(z_Network$Yref__ID),
-                                 sep="__LINKED__" )
-  z = rbind.fill(as.data.frame( z_RawNames ), as.data.frame( z_Network ) )
-  if(!ReturnDecomposition){ suppressWarnings( rm(z_RawNames, z_Network) ) }
+  z_RawNames$XYref__ID <- paste( z_RawNames$Xref__ID, z_RawNames$Yref__ID, sep="__LINKED__" )
+  if(is.null(z_Network)){ z <- as.data.frame( z_RawNames ) }
+  if(!is.null(z_Network)){
+    z_Network$XYref__ID <- paste( z_Network$Xref__ID, z_Network$Yref__ID, sep="__LINKED__" )
+    z = rbind.fill(as.data.frame( z_RawNames ), as.data.frame( z_Network ) )
+  }
 
   #drop duplicates
-  if( nrow(z)>1 ){
-    print2("Dropping duplicates...")
+  print2("Dropping duplicates..."); if( nrow(z)>1 ){
+    if(is.null(z_Network)){ z$minDist <- z$stringdist }
+    if(!is.null(z_Network)){
+      z$stringdist <- f2n( z$stringdist )
+      z$stringdist.y2network <- RelThresNetwork * f2n( z$stringdist.y2network )
+      z$stringdist.x2network <- RelThresNetwork * f2n( z$stringdist.x2network )
+      if(algorithm == "lookup"){ z$stringdist.x2network <- z$stringdist.y2network <- 0. }
 
-    if(!"stringdist.y2network" %in% colnames(z)){
-      z$stringdist.y2network <- z$stringdist.x2network <- z$stringdist
+      # x bigger - set maxDist2Network to x
+      z$maxDist2Network <- apply(z[,c("stringdist.y2network","stringdist.x2network")], 1, max)
+
+      # NAs cast to 0, add to get full profile of min distances
+      z$minDist <- na20(z$maxDist2Network) + na20(z$stringdist)
+
+      # take min{  max{network}, string } and save this as the min distance
+      minDist_vec <- tapply(z$minDist, z$XYref__ID, min)
+      z$minDist <- minDist_vec[z$XYref__ID];
     }
-    z$stringdist <- f2n( z$stringdist )
-    z$stringdist.y2network <- f2n( z$stringdist.y2network )
-    z$stringdist.x2network <- f2n( z$stringdist.x2network )
 
-    # x bigger - set maxDist2Network to x
-    z$maxDist2Network <- apply(cbind(z[,c("stringdist.y2network","stringdist.x2network")]),1,max)
+    if(T == F){ # checks
+      View(z[order(f2n(z_RawNames$stringdist)),c(by.x,by.y,"stringdist")])
+      View(z_Network[order(f2n(z_Network$stringdist.x2network)),c(by.x,by.y,"stringdist.x2network","stringdist.y2network")])
+      View(z[order(f2n(z$minDist)),c(by.x,by.y,"stringdist.x2network","stringdist.y2network","maxDist2Network","stringdist","minDist")])
+      View(z[order(f2n(z$minDist)),c(by.x,by.y,"minDist")])
+      View(z[!duplicated(z$XYref__ID),][order(z[!duplicated(z$XYref__ID),]$minDist),c(by.x,by.y,"minDist")])
+    }
 
-    # NAs cast to 0, add to get full profile of min distances
-    z$minDist <- na20(z$maxDist2Network) + na20(z$stringdist)
-
-    # take min{  max{network}, string }
-    minDist_vec <- tapply(z$minDist, z$XYref__ID, min)
+    # drop duplicates now that minDist is established
     z <- z[!duplicated(z$XYref__ID),]
-    z$minDist <- minDist_vec[ z$XYref__ID[fastmatch::fmatch(z$XYref__ID,names(minDist_vec))] ]
+    if(!ReturnDecomposition){ suppressWarnings( rm(z_RawNames, z_Network) ) }
   }
 
   # Checking for redundant name matches
   z <- DeconflictNames(z)
 
-  if( ReturnDiagnostics == F ){
-    z  = z[,colnames(z)[colnames(z) %fin% c(colnames(x ),colnames(y ),
-                          grep(colnames(z),pattern="stringdist",value=T), "minDist")]]
-    z = z[,!colnames(z) %fin% "UniversalMatchCol"]
-  }
-
   #undo modifications to names for processing
-  z[[by.y]] <- by_y_orig[f2n(z$Yref__ID)]
-  z[[by.x]] <- by_x_orig[f2n(z$Xref__ID)]
+  z[[by.y]] <- by_y_orig[z$Yref__ID]
+  z[[by.x]] <- by_x_orig[z$Xref__ID]
   z  = z[,!colnames(z) %fin% c("ID_MATCH.x", "ID_MATCH.y",
                                'Yref__ID', 'Xref__ID')]
-  if(algorithm %in% c("ml", "transfer")){
+  if(!(algorithm %in% c("markov", "bipartite"))){
     z <- z[,!colnames(z) %in% c("stringdist2network",
                                 "stringdist.y2network", "stringdist.x2network")]
   }
   }
 
+  if( ReturnDiagnostics == F ){
+    z  = z[,colnames(z)[colnames(z) %fin% c(colnames(x ),colnames(y ),
+                                            grep(colnames(z),pattern="stringdist",value=T), "minDist")]]
+    z = z[,!colnames(z) %fin% "UniversalMatchCol"]
+  }
+
+  # if(any(is.na( z[[by.x]] ))){browser()}; if(any(is.na( z[[by.y]] ))){browser()}
+
   print2("Returning matched dataset!")
-  if(ReturnDecomposition == T){ z = list("z"=z,
-                                         "z_RawNames"=z_RawNames,
-                                         "z_Network"=z_Networks)  }
+  if(ReturnDecomposition == T){ z = list("z" = z,
+                                         "z_RawNames" = z_RawNames,
+                                         "z_Network" = z_Networks)  }
   gc(); return(  z )
 }

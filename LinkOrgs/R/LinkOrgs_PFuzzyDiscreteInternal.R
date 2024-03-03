@@ -80,6 +80,8 @@ pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL,
   y = as.data.table(y); y$by.y_ORIG <- y[[by.y]]
   x_tri_index = trigram_index(x[[by.x]],"the.row")
   y_tri_index = trigram_index(y[[by.y]],"the.row")
+  # trigram_index(c("hi","hiaer", "hi","hi"),"the.row")
+
 
   # start pdist calc
   {
@@ -102,7 +104,7 @@ pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL,
                      .export = Export,
                      .noexport = NoExport) %dopar% {
       counter_ <- 0
-      my_matched_inner = matrix(NA,nrow = 0,ncol=3)
+      my_matched_inner = matrix(NA, nrow = 0,ncol=3)
       for(ix in split_list_x[[outer_ix]]){
         counter_ = counter_ + 1
         if(ix %% 100==0 & ReturnProgress){write.csv(data.frame("Current Split" = outer_ix,
@@ -115,35 +117,36 @@ pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL,
         my_entry = x[ix,][[by.x]]
 
         #get the trigrams of this name
-        my_entry_trigrams <- x_tri_index[the.row==ix,trigram]
+        my_entry_trigrams <- x_tri_index[the.row==ix, trigram]
 
-        #find the set of entries in directory_LinkIt_red that have some common trigram
-        #LT_entries = unique(x_tri_index[trigram %fin% my_entry_trigrams,the.row])
-        MinNumSharedTriGrams = ceiling( length(my_entry_trigrams)*0.1 )
-        LT_entries = table(y_tri_index[trigram %fin% my_entry_trigrams,the.row])
+        # find the set of entries in directory_LinkIt_red that have x% in common trigram
+        MinNumSharedTriGrams <- ceiling( length(my_entry_trigrams)*0.05 )
+        LT_entries <- table( y_tri_index[trigram %fin% my_entry_trigrams,the.row] )
         if( length(LT_entries) > 0){
-          LT_entries = f2n(names(LT_entries[LT_entries >= MinNumSharedTriGrams]))
+          LT_entries <- f2n(names(LT_entries[LT_entries >= MinNumSharedTriGrams]))
 
-          xyDistRed <- stringdist(my_entry, y[LT_entries,][[by.y]],
-                                  method = DistanceMeasure,q = qgram)
-          iy <- LT_entries[ belowThres_ <- which(xyDistRed <= MaxDist) ]
+          dist_vec_red <- stringdist(my_entry,
+                                     y[LT_entries,][[by.y]],
+                                     method = DistanceMeasure,
+                                     q = qgram)
+          iy <- LT_entries[ belowThres_ <- which(dist_vec_red <= MaxDist) ]
         if(length(iy) > 0){
           my_matched_inner = rbind(my_matched_inner,
-                                   match_ <- matrix( c(ix, iy, dist_vec[iy]),
-                                                     ncol = 3L, byrow = F) )
+                                    cbind(ix, matrix( c(iy, dist_vec_red[belowThres_]),
+                                              nrow = length(iy), ncol = 2L, byrow = F) ) )
         }
         }
       }
       return( my_matched_inner )
-    }
-    myMatched = do.call(rbind, loop_)
+   }
+    myMatched = as.data.frame( do.call(rbind, loop_) )
     colnames(myMatched) <- c("ix","iy","stringdist")
   }
 
   if(swappedXY){
-    myMatched <- cbind("ix" = myMatched$iy,
-                       "iy" = myMatched$ix,
-                       "stringdist" = myMatched$stringdist)
+    myMatched <- cbind("ix" = myMatched[,"iy"],
+                       "iy" = myMatched[,"ix"],
+                       "stringdist" = myMatched[,"stringdist"])
   }
 
   return( myMatched )

@@ -42,7 +42,6 @@
 
 AssessMatchPerformance = function(x, y, z, z_true, by, by.x=by, by.y=by, openBrowser=F){
   x[[by.x]] <- enc2utf8(x[[by.x]])
-
   y[[by.y]] <- enc2utf8(y[[by.y]])
 
   try(z[[by.x]] <- enc2utf8(z[[by.x]]),T)
@@ -64,13 +63,13 @@ AssessMatchPerformance = function(x, y, z, z_true, by, by.x=by, by.y=by, openBro
                             "MatchedDatasetSize")
 
   #drop remaining duplicates
-  dup_z_ <- duplicated(paste(z[,by.x],z[,by.y],sep= "___"))
+  dup_z_ <- duplicated(paste(z[,by.x], z[,by.y], sep= "___"))
   dup_zhuman_ <- duplicated(paste(z_true[,by.x],z_true[,by.y],sep= "___"))
-  if(length(dup_z_) > 0 & nrow(z)>1){ z <- z[!dup_z_,] }
-  if(length(dup_z_) > 0 & nrow(z_true)>1){ z_true <- z_true[!dup_zhuman_,]  }
+  if( length(dup_z_) > 0 & nrow(z)>1 ){ z <- z[!dup_z_,] }
+  if( length(dup_z_) > 0 & nrow(z_true)>1 ){ z_true <- z_true[!dup_zhuman_,]  }
 
   {
-    z_vec = paste(z[,by.x],z[,by.y],sep="____LINKED____")
+    z_vec = paste(z[,by.x], z[,by.y], sep="____LINKED____")
     z_true_vec <- paste(z_true[,by.x],z_true[,by.y],sep="____LINKED____")
     z_in_truth <- table(  z_vec %fin% z_true_vec )
     truth_in_z <- table(  z_true_vec %fin% z_vec )

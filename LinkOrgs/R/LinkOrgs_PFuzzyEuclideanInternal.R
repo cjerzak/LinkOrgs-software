@@ -65,7 +65,6 @@ pDistMatch_euclidean <- function(embedx, embedy, MaxDist = NULL, ReturnProgress 
   NoExport <- c(ls(), ls(parent.env(environment())), ls(globalenv()))
   NoExport <- NoExport[!NoExport %in% (Export <- c("embedx", "embedy", "MaxDist","ncl","ReturnProgress"))]
 
-
   CountDecimalPlaces <- function(xx) {
     xx <- sapply(c(xx), function(x){
     # Convert the number to a string
@@ -76,11 +75,7 @@ pDistMatch_euclidean <- function(embedx, embedy, MaxDist = NULL, ReturnProgress 
 
     # Calculate the number of characters after the decimal point
     # If there is no decimal point, return 0
-    if (decimal_pos < 0) {
-      return(0)
-    } else {
-      return(nchar(substr(str_num, decimal_pos + 1, nchar(str_num))))
-    }
+    if (decimal_pos < 0) { return(0) } else { return(nchar(substr(str_num, decimal_pos + 1, nchar(str_num)))) }
     })
     return( median(xx) )
   }
@@ -90,26 +85,39 @@ pDistMatch_euclidean <- function(embedx, embedy, MaxDist = NULL, ReturnProgress 
   if(which.min(UseDigits) == 2){ embedx <- round(embedx, min(UseDigits)) }
 
   print2(sprintf("Starting parallel Euclidean distance calculations with dim(x) = [%s, %s] and dim(y) = [%s, %s]...",
-                dim(embedx)[1], dim(embedx)[2], dim(embedy)[1], dim(embedy)[2]))
-  # if(ncol(embedy) > 100000){ browser() }
+                dim(embedx)[1], dim(embedx)[2], dim(embedy)[2], dim(embedy)[1]))
+   #if(ncol(embedy) > 100000){ browser() }
+
+  if("jax" %in% ls()){
+    embedy <- jnp$array(embedy, dtype = jnp$float16)
+    ColDists_jit <- jax$jit(function(an_x){
+      jnp$sqrt( 0.0001 + jnp$sum( (jnp$expand_dims(an_x,1L) - embedy)^2, 0L) )
+    })
+  }
+
   #gc(); distMat <- (foreach(ix = 1:nrow(embedx), .export = Export, .noexport = NoExport) %dopar% { # useful for small embedding dims
   gc(); library(Rfast); distMat <- lapply(1:nrow(embedx), function(ix){ # useful for big embedding dims
-    if(ix %% 25 == 0 & ReturnProgress | ix < 10){write.csv(data.frame("Current ix" = max(ix),
+    if(ix %% 25 == 0 & ReturnProgress | ix < 10){ gc(); write.csv(data.frame("Current ix" = max(ix),
                                                            "Total ix" = nrow(embedx)),
                                                 file = './PROGRESS_pDistMatch_euclidean.csv')}
 
     # calculate distances
-    # dist_vec <- colSums( (embedx[ix,] - embedy)^2 )^0.5  # embed2 is already transposed for row broadcasting
-    dist_vec <- colsums( (embedx[ix,] - embedy)^2, parallel = T)^0.5
+    if(!"jax" %in% ls()){
+       dist_vec <- colSums( (embedx[ix,] - embedy)^2 )^0.5  # embed2 is already transposed for row broadcasting
+    }
+    if("jax" %in% ls()){
+      dist_vec <- np$array( ColDists_jit( jnp$array(embedx[ix,], jnp$float16) ) )
+    }
 
     # select iy matches to ix
     iy <- ifelse(is.null(MaxDist),
-                 yes = list(1:length( dist_vec )),
-                 no = list(which(dist_vec <= MaxDist)))[[1]]
+                 yes = list( belowThres_ <- (1:length( dist_vec ))),
+                 no = list( belowThres_ <- which(dist_vec <= MaxDist)))[[1]]
 
     match_ <- NULL; if(length(iy) > 0){
-      match_ <- matrix( c(ix, iy, dist_vec[iy]),
-                        ncol = 3L, byrow = F)
+      match_ <- cbind(ix, matrix( c(iy, dist_vec[belowThres_]),
+                                  nrow = length(iy),
+                                  ncol = 2L, byrow = F))
     }
     return( list( match_ ))
   })
@@ -119,9 +127,9 @@ pDistMatch_euclidean <- function(embedx, embedy, MaxDist = NULL, ReturnProgress 
 
   print2("Wrapping up call to pDistMatch_euclidean()...")
   if(swappedXY){
-    distMat <- data.frame("ix" = distMat$iy,
-                          "iy" = distMat$ix,
-                          "stringdist" = distMat$stringdist)
+    distMat <- data.frame("ix" = distMat[,"iy"],
+                          "iy" = distMat[,"ix"],
+                          "stringdist" = distMat[,"stringdist"])
   }
 
   return( distMat )
