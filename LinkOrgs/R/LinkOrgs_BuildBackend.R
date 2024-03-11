@@ -21,21 +21,21 @@ BuildBackend <- function(conda_env = "LinkOrgsEnv", conda = "auto"){
                            python_version = "3.11")
 
   # Install Python packages within the environment
-  Packages2Install <- c("jax","optax","tensorflow","equinox","numpy",
+  Packages2Install <- c("jax","optax","tensorflow==2.15.0","equinox","numpy",
                           "tensorflow_probability","jmp")
   if(Sys.info()["sysname"] == "Darwin"){
-      for(Pack_ in Packages2Install){
-        try_ <- reticulate::py_install(Pack_, conda = conda, pip = TRUE, envname = conda_env)
+      for(pack_ in Packages2Install){
+        try_ <- reticulate::py_install(pack_, conda = conda, pip = TRUE, envname = conda_env)
       }
   }
   if(Sys.info()["sysname"] == "Windows"){
-    for(Pack_ in Packages2Install){
-      reticulate::py_install(Pack_, conda = conda, pip = TRUE, envname = conda_env)
+    for(pack_ in Packages2Install){
+      reticulate::py_install(pack_, conda = conda, pip = TRUE, envname = conda_env)
     }
   }
   if(Sys.info()["sysname"] == "Linux"){
-    for(Pack_ in Packages2Install){
-      reticulate::py_install(Pack_, conda = conda, pip = TRUE, envname = conda_env)
+    for(pack_ in Packages2Install){
+      reticulate::py_install(pack_, conda = conda, pip = TRUE, envname = conda_env)
     }
   }
   print("Done building LinkOrgs backend!")
