@@ -112,7 +112,8 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
           WeightsURL <- "https://www.dropbox.com/scl/fi/br8qs5w6nhl1ujgsot4wk/LinkOrgsBase_31PT3M_2024-02-26_ilast.eqx?rlkey=cdc8ao6zfkte4tk0dl0z5pnaw&dl=0"
         }
         if(ml_version == "v4"){ # 2^8 word, 2^9 for alias, 14k iters
-          ModelURL <- "https://www.dropbox.com/scl/fi/w2rqhoja730ey8udfv344/AnalysisR_LinkOrgsBase_17PT3M_2024-02-29.zip.zip?rlkey=e9d2nnago8ng0vc9sguvd7rsu&dl=0"
+          #ModelURL <- "https://www.dropbox.com/scl/fi/w2rqhoja730ey8udfv344/AnalysisR_LinkOrgsBase_17PT3M_2024-02-29.zip.zip?rlkey=e9d2nnago8ng0vc9sguvd7rsu&dl=0"
+          ModelURL <- "https://www.dropbox.com/scl/fi/2mi3v3e88cao9dzw2mns6/AnalysisR_LinkOrgsBase_17PT3M_2024-02-29.zip?rlkey=85d1xgm24t0u8j3l4wl321i4f&dl=0"
           WeightsURL <- "https://www.dropbox.com/scl/fi/zr4bziggj3nugrpovkxrm/LinkOrgsBase_17PT3M_2024-02-29_ilast.eqx?rlkey=b6f7i8dhuro62hlszm365vofi&dl=0"
         }
 
