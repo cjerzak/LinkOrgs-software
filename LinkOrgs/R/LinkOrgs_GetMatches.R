@@ -88,6 +88,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   DownloadFolder <- paste0(find.package("LinkOrgs"),"/data")
   if(algorithm == "ml"){ DistanceMeasure <- "ml" }
   if(algorithm == "ml" | DistanceMeasure == "ml"){
+      if(is.null(ml_version)){ ml_version <- "v4" }
       ModelLoc <- gsub(ModelZipLoc <- sprintf('%s/Model_%s.zip', DownloadFolder, ml_version ),
                        pattern = "\\.zip", replace = "")
       WeightsLoc <- sprintf('%s/ModelWeights_%s.eqx', DownloadFolder, ml_version)
@@ -445,6 +446,9 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     # merge network into network
     z_Network <- DeconflictNames( as.data.frame(merge(x2Network, y2Network, by="canonical_id", all=F)) )
     colnames(z_Network)[colnames(z_Network) == "canonical_id"] <- "ID_MATCH"
+
+    # bring back distances to 0 (after random jitter to avoid problems with deconflict names for lookup)
+    #if(algorithm == "lookup"){ z_Network$stringdist.x2network <- z_Network$stringdist.y2network <- 0. }
   }
 
   # bring in fuzzy matches
@@ -463,7 +467,6 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
       z$stringdist <- f2n( z$stringdist )
       z$stringdist.y2network <- RelThresNetwork * f2n( z$stringdist.y2network )
       z$stringdist.x2network <- RelThresNetwork * f2n( z$stringdist.x2network )
-      if(algorithm == "lookup"){ z$stringdist.x2network <- z$stringdist.y2network <- 0. }
 
       # x bigger - set maxDist2Network to x
       z$maxDist2Network <- apply(z[,c("stringdist.y2network","stringdist.x2network")], 1, max)
