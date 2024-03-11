@@ -8,10 +8,7 @@
 
   # local install for development team
   # install.packages("~/Documents/LinkOrgs-software/LinkOrgs",repos = NULL, type = "source", force = F)
-  library( LinkOrgs )
 
-  # install.packages( 'zoomerjoin', repos = c('https://beniaminogreen.r-universe.dev', getOption("repos")) )
-  # development branch on github / runiverse / cran
   # See package documentation for help
   # ?LinkOrgs::FastFuzzyMatch
   # ?LinkOrgs::AssessMatchPerformance
