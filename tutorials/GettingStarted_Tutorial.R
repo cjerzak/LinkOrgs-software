@@ -51,11 +51,10 @@
   # LinkOrgs::BuildBackend( conda_env = "LinkOrgsEnv", conda = "/Users/cjerzak/miniforge3/bin/python" )
 
   # Perform a merge using machine learning approach
-  LinkedOrgs_Markov <- LinkOrgs(
+  LinkedOrgs_ML <- LinkOrgs(
                           x = x, by.x = "orgnames_x",
                           y = y, by.y = "orgnames_y",
-                          algorithm = "ml",
-                          ml_version = "v4",
+                          algorithm = "ml", ml_version = "v4",
                           conda_env = "LinkOrgsEnv" )
 
   # Perform a merge with package using markov network representation and ML-based distance metric for names
@@ -63,8 +62,7 @@
                                 x = x, by.x = "orgnames_x",
                                 y = y, by.y = "orgnames_y",
                                 algorithm = "markov",
-                                DistanceMeasure = "ml",
-                                ml_version = "v4",
+                                DistanceMeasure = "ml", ml_version = "v4",
                                 conda_env = "LinkOrgsEnv" )
 
   # Perform a simple merge with package using bipartite network representation and ML-based distance metric for names
@@ -72,8 +70,7 @@
                                 x = x, by.x = "orgnames_x",
                                 y = y, by.y = "orgnames_y",
                                 algorithm = "bipartite",
-                                DistanceMeasure = "ml",
-                                ml_version = "v4",
+                                DistanceMeasure = "ml", ml_version = "v4",
                                 conda_env = "LinkOrgsEnv" )
 
 }

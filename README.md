@@ -73,15 +73,18 @@ z_linked_markov <- LinkOrgs(x  = x,
                      AveMatchNumberPerAlias = 10,
                      algorithm = "markov", 
                      DistanceMeasure = "jaccard")
+
+
+# Build backend for ML model (do this only once)# try(LinkOrgs::BuildBackend( conda_env = "LinkOrgsEnv", conda = "auto" ),T)# if conda = "auto" fails, try to specify the path to the correct conda to use# LinkOrgs::BuildBackend( conda_env = "LinkOrgsEnv", conda = "/Users/cjerzak/miniforge3/bin/python" )
                      
-# perform merge using machine learning approach
+# perform merge using a machine learning approach
 z_linked_ml <- LinkOrgs(x  = x, 
                      y =  y, 
                      by.x = "orgnames_x", 
                      by.y = "orgnames_y",
                      AveMatchNumberPerAlias = 10, 
-                     conda_env = "tensorflow",  
-                     algorithm = "ml")
+                     conda_env = "LinkOrgsEnv",  
+		     algorithm = "ml", ml_version = "v4")
 # note: change "tensorflow" to name of conda environment where a version of tensorflow v2 lives
                      
 # perform merge using combined network + machine learning approach
@@ -92,37 +95,9 @@ z_linked_combined <- LinkOrgs(x  = x,
                      AveMatchNumberPerAlias = 10, 
                      AveMatchNumberPerAlias_network = 1, 
                      algorithm = "markov",
-                     conda_env = "tensorflow", 
-                     DistanceMeasure = "ml")
+                     conda_env = "LinkOrgsEnv", 
+                     DistanceMeasure = "ml", ml_version = "v4")
 # note: change "tensorflow" to name of conda environment where a version of tensorflow v2 lives
-```
-
-### Integrating the LinkedIn Corpus with Large Language Models (LLMs) to Link Records on Organizations
-*Code under beta release. Let us know how you find it!*
-
-We have added a new option to obtained matched datasets while using the combined the power of large language models (LLMs) with the large LinkedIn corpus. At present, we have used Bidirectional Encoder Representations from Transformers (BERT) representations of organization names that are then re-trained using the vast pool of LinkIn organizational match examples.   
-
-To use this functionality, you'd first want install the `text` package and set up the various Python packages used in the transfer learning setup: 
-```
-install.packages("text")
-library(   text   )
-textrpp_install()
-
-# In some cases,  you may need to specify the conda and Python to use. For example: 
-textrpp_install( rpp_version = c("torch", "transformers", "numpy", "nltk"),
-                 conda = "/Users/cjerzak/miniforge3/bin/conda", 
-                 python_path = "~/../../usr/local/bin/python3" ) 
-# Replace conda and python_path with the path to your desired conda/python.
-# You can find these by entering "which conda" and "which python" or "which python3" in your terminal
-```
-After successfully installing the pre-trained transfer learning models via `textrpp_install()`, you can then use the `algorithm = "transfer"` option: 
-```
-z_linked_LLM <- LinkOrgs(x  = x, 
-                     y =  y, 
-                     by.x = "orgnames_x", 
-                     by.y = "orgnames_y",
-                     AveMatchNumberPerAlias = 10,
-                     algorithm = "transfer")
 ```
 
 ## Comparison of Results with Ground Truth 
