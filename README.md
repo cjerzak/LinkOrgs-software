@@ -75,7 +75,7 @@ z_linked_markov <- LinkOrgs(x  = x,
                      DistanceMeasure = "jaccard")
 
 
-# Build backend for ML model (do this only once)# try(LinkOrgs::BuildBackend( conda_env = "LinkOrgsEnv", conda = "auto" ),T)# if conda = "auto" fails, try to specify the path to the correct conda to use# LinkOrgs::BuildBackend( conda_env = "LinkOrgsEnv", conda = "/Users/cjerzak/miniforge3/bin/python" )
+# Build backend for ML model (do this only once)# try(LinkOrgs::BuildBackend( conda_env = "LinkOrgsEnv", conda = "auto" ),T)# if conda = "auto" fails, try to specify the path to the correct conda # LinkOrgs::BuildBackend( conda_env = "LinkOrgsEnv", conda = "/Users/cjerzak/miniforge3/bin/python" )
                      
 # perform merge using a machine learning approach
 z_linked_ml <- LinkOrgs(x  = x, 
