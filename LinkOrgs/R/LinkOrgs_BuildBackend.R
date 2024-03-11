@@ -24,12 +24,9 @@ BuildBackend <- function(conda_env = "LinkOrgsEnv", conda = "auto"){
   Packages2Install <- c("jax","optax","tensorflow","equinox","numpy",
                           "tensorflow_probability","jmp")
   if(Sys.info()["sysname"] == "Darwin"){
-    if("try-error" %in% class(try_)){
       for(Pack_ in Packages2Install){
-        try_ <- try(reticulate::py_install(Pack_, conda = conda, pip = TRUE, envname = conda_env), T)
+        try_ <- reticulate::py_install(Pack_, conda = conda, pip = TRUE, envname = conda_env)
       }
-    }
-
   }
   if(Sys.info()["sysname"] == "Windows"){
     for(Pack_ in Packages2Install){
@@ -37,7 +34,6 @@ BuildBackend <- function(conda_env = "LinkOrgsEnv", conda = "auto"){
     }
   }
   if(Sys.info()["sysname"] == "Linux"){
-    # pip install --upgrade jax jaxlib==0.1.69+cuda111 -f https://storage.googleapis.com/jax-releases/jax_releases.html
     for(Pack_ in Packages2Install){
       reticulate::py_install(Pack_, conda = conda, pip = TRUE, envname = conda_env)
     }

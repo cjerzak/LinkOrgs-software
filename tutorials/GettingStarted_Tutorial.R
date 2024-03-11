@@ -44,27 +44,36 @@
                          y = y, by.y = "orgnames_y",
                          algorithm = "bipartite")
 
-  # Build backend for ML model
-  LinkOrgs::BuildBackend( conda_env = "LinkOrgsEnv" )
+  # Build backend for ML model (do this only once)
+  # try(LinkOrgs::BuildBackend( conda_env = "LinkOrgsEnv", conda = "auto" ),T)
+
+  # if conda = "auto" fails, try to specify the path to the correct conda to use
+  # LinkOrgs::BuildBackend( conda_env = "LinkOrgsEnv", conda = "/Users/cjerzak/miniforge3/bin/python" )
 
   # Perform a merge using machine learning approach
   LinkedOrgs_Markov <- LinkOrgs(
                           x = x, by.x = "orgnames_x",
                           y = y, by.y = "orgnames_y",
-                          algorithm = "markov", ml_version = "v4")
+                          algorithm = "ml",
+                          ml_version = "v4",
+                          conda_env = "LinkOrgsEnv" )
 
   # Perform a merge with package using markov network representation and ML-based distance metric for names
   LinkedOrgs_MarkovWithML <- LinkOrgs(
                                 x = x, by.x = "orgnames_x",
                                 y = y, by.y = "orgnames_y",
                                 algorithm = "markov",
-                                DistanceMeasure = "ml")
+                                DistanceMeasure = "ml",
+                                ml_version = "v4",
+                                conda_env = "LinkOrgsEnv" )
 
   # Perform a simple merge with package using bipartite network representation and ML-based distance metric for names
   LinkedOrgs_BipartiteWithML <- LinkOrgs(
                                 x = x, by.x = "orgnames_x",
                                 y = y, by.y = "orgnames_y",
                                 algorithm = "bipartite",
-                                DistanceMeasure = "ml")
+                                DistanceMeasure = "ml",
+                                ml_version = "v4",
+                                conda_env = "LinkOrgsEnv" )
 
 }
