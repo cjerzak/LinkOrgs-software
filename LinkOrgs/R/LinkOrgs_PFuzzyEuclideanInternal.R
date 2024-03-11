@@ -79,13 +79,16 @@ pDistMatch_euclidean <- function(embedx, embedy, MaxDist = NULL, ReturnProgress 
     })
     return( median(xx) )
   }
-  UseDigits <- c(median(CountDecimalPlaces(embedx[1:10,1:10])),
-                  median(CountDecimalPlaces(embedy[1:10,1:10])))
+
+  UseDigits <- c(median(CountDecimalPlaces(embedx[1:min(c(10,nrow(embedx))), 1:10])),
+                  median(CountDecimalPlaces(embedy[1:10,1:min(c(10,ncol(embedy)))])))
   if(which.min(UseDigits) == 1){ embedy <- round(embedy, min(UseDigits)) }
   if(which.min(UseDigits) == 2){ embedx <- round(embedx, min(UseDigits)) }
 
   print2(sprintf("Starting parallel Euclidean distance calculations with dim(x) = [%s, %s] and dim(y) = [%s, %s]...",
                 dim(embedx)[1], dim(embedx)[2], dim(embedy)[2], dim(embedy)[1]))
+
+  # open browser to analyze performance in large n case
    #if(ncol(embedy) > 100000){ browser() }
 
   if("jax" %in% ls()){

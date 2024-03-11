@@ -57,7 +57,7 @@
                           algorithm = "ml", ml_version = "v4",
                           conda_env = "LinkOrgsEnv" )
 
-  # Experimental from here
+  # !! Experimental from here onwards - Check back soon !!
   # Perform a merge with package using markov network representation and ML-based distance metric for names
   LinkedOrgs_MarkovWithML <- LinkOrgs(
                                 x = x, by.x = "orgnames_x",
