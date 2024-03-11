@@ -17,7 +17,7 @@
   # Load package
   library( LinkOrgs )
 
-  # Create synthetic data to try everything out
+  # Create synthetic data to try package out
   x <- data.frame("orgnames_x" = x_orgnames <- c("apple","oracle",
                                                  "enron inc.","mcdonalds corporation"))
   y <- data.frame("orgnames_y"= y_orgnames <- c("apple corp","oracle inc",
@@ -32,22 +32,26 @@
                                y = y, by.y = "orgnames_y",
                                algorithm = "fuzzy")
 
-  # Perform a merge with a end-to-end meachine learning backend
-  LinkedOrgs_ML <- LinkOrgs::LinkOrgs(x = x, by.x = "orgnames_x",
-                                      y = y, by.y = "orgnames_y",
-                                      algorithm = "ml", ml_version = "v4")
+  # Perform a merge using Markov network representation of LinkedIn network
+  LinkedOrgs_Markov <- LinkOrgs(
+                          x = x, by.x = "orgnames_x",
+                          y = y, by.y = "orgnames_y",
+                          algorithm = "markov")
 
-  # Perform a merge with package using bipartite network representation
+  # Perform a merge using bipartite network representation of LinkedIn network
   LinkedOrgs_Bipartite <- LinkOrgs(
                          x = x, by.x = "orgnames_x",
                          y = y, by.y = "orgnames_y",
                          algorithm = "bipartite")
 
-  # Perform a merge with package using Markov network representation
+  # Build backend for ML model
+  LinkOrgs::BuildBackend( conda_env = "LinkOrgsEnv" )
+
+  # Perform a merge using machine learning approach
   LinkedOrgs_Markov <- LinkOrgs(
                           x = x, by.x = "orgnames_x",
                           y = y, by.y = "orgnames_y",
-                          algorithm = "markov")
+                          algorithm = "markov", ml_version = "v4")
 
   # Perform a merge with package using markov network representation and ML-based distance metric for names
   LinkedOrgs_MarkovWithML <- LinkOrgs(
