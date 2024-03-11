@@ -27,15 +27,15 @@
   # getting started with various merge types
   #############################################
 
+  # Perform a merge using parallelized fuzzy matching
+  LinkedOrgs_fuzzy <- LinkOrgs(x = x, by.x = "orgnames_x",
+                               y = y, by.y = "orgnames_y",
+                               algorithm = "fuzzy")
+
   # Perform a merge with a end-to-end meachine learning backend
   LinkedOrgs_ML <- LinkOrgs::LinkOrgs(x = x, by.x = "orgnames_x",
                                       y = y, by.y = "orgnames_y",
-                                      algorithm = "ml")
-
-  # Perform a merge with a transfer learning backend
-  # LinkedOrgs_transfer <- LinkOrgs::LinkOrgs( x = x, by.x = "orgnames_x",
-                                      # y = y, by.y = "orgnames_y",
-                                      # algorithm = "transfer")
+                                      algorithm = "ml", ml_version = "v4")
 
   # Perform a merge with package using bipartite network representation
   LinkedOrgs_Bipartite <- LinkOrgs(
@@ -47,26 +47,20 @@
   LinkedOrgs_Markov <- LinkOrgs(
                           x = x, by.x = "orgnames_x",
                           y = y, by.y = "orgnames_y",
-                          algorithm = "markov",
-                          openBrowser= F)
+                          algorithm = "markov")
 
   # Perform a merge with package using markov network representation and ML-based distance metric for names
   LinkedOrgs_MarkovWithML <- LinkOrgs(
                                 x = x, by.x = "orgnames_x",
                                 y = y, by.y = "orgnames_y",
                                 algorithm = "markov",
-                                DistanceMeasure = "ml",
-                                openBrowser= F)
+                                DistanceMeasure = "ml")
 
   # Perform a simple merge with package using bipartite network representation and ML-based distance metric for names
   LinkedOrgs_BipartiteWithML <- LinkOrgs(
                                 x = x, by.x = "orgnames_x",
                                 y = y, by.y = "orgnames_y",
                                 algorithm = "bipartite",
-                                DistanceMeasure = "ml",
-                                openBrowser= F)
+                                DistanceMeasure = "ml")
 
-  # note:
-  # algorithm %in% c("bipartite", "markov") and DistanceMeasure = "transfer"
-  # are not supported currently due to the time-complexity of the transfer learning backend
 }
