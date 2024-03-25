@@ -5,9 +5,9 @@
 \title{GetCalibratedDistThres}
 \usage{
 GetCalibratedDistThres(
-  x,
+  x = NULL,
   by.x = NULL,
-  y,
+  y = NULL,
   by.y = NULL,
   AveMatchNumberPerAlias = 5L,
   qgram = 2L,

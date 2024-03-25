@@ -34,6 +34,7 @@
 #'
 #' @import stringdist
 #' @import plyr
+#' @import doParallel
 #' @import data.table
 #'
 #' @export
@@ -58,7 +59,7 @@ pDistMatch_euclidean <- function(embedx, embedy, MaxDist = NULL, ReturnProgress 
   embedx <- as.matrix(embedx); embedy <- t(as.matrix(embedy))
 
   # parallelized dist calc
-  library(foreach);cl <- doMC::registerDoMC(ncl<-parallel::detectCores());
+  library(foreach);cl <- doParallel::registerDoParallel(ncl<-parallel::detectCores());
   # print(  sort( sapply(ls(),function(x){object.size(get(x))}))  )
 
   # perform the op

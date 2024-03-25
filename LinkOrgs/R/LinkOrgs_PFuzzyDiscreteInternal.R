@@ -86,7 +86,7 @@ pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL,
   # start pdist calc
   {
     n_iters <- nrow(x) # x is arbitrary reference (y is larger base)
-    library("foreach",quietly=T); library("doMC",quietly=T)
+    library("foreach",quietly=T); library("doParallel",quietly=T)
     ncl <- 1; split_list_x <- list(1:n_iters)
     if(n_iters>50){
       split_list_x = round(seq(0.5,n_iters,length.out = (ncl <- parallel::detectCores()) + 1))
@@ -94,7 +94,7 @@ pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL,
       split_list_x = sapply(1:ncl, function(as){ list(which(split_list_x ==as))})
     }
 
-    cl <- doMC::registerDoMC(ncl)
+    cl <- doParallel::registerDoParallel(ncl)
     Export <- c("split_list_x", "DistanceMeasure", "qgram", "ncl", "ReturnProgress",
                 "x", "by.x",
                 "y", "by.y")

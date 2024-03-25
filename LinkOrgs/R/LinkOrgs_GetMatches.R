@@ -51,7 +51,7 @@
 #' @importFrom data.table ":="
 #' @import Rfast
 #' @import fastmatch
-#' @import doMC
+#' @import doParallel
 #' @import reticulate
 #' @md
 

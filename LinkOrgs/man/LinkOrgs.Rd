@@ -11,8 +11,8 @@ LinkOrgs(
   by.x = NULL,
   by.y = NULL,
   algorithm = "ml",
-  conda_env = NULL,
-  conda_env_required = F,
+  conda_env = "CondaEnv_LinkOrgs",
+  conda_env_required = T,
   ReturnDiagnostics = F,
   ReturnProgress = T,
   ToLower = T,
@@ -24,9 +24,11 @@ LinkOrgs(
   AveMatchNumberPerAlias_network = 2,
   DistanceMeasure = "jaccard",
   qgram = 2,
-  ml_version = "v0",
+  RelThresNetwork = 1.5,
+  ml_version = "v4",
   openBrowser = F,
-  ReturnDecomposition = F
+  ReturnDecomposition = F,
+  python_executable
 )
 }
 \arguments{
