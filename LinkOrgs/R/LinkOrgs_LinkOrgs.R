@@ -73,6 +73,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                     openBrowser = F,
                     ReturnDecomposition = F,
                     python_executable, 
+                    nCores = NULL, 
                     deezyLoc = "~/Documents/DeezyMatch"){
   suppressPackageStartupMessages({
     library(plyr); library(dplyr);  library(data.table); library(fastmatch); library(stringdist); library(stringr)
@@ -402,7 +403,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   z_RawNames <- as.data.frame( pFuzzyMatchFxn_touse(
                                   x = x, by.x = by.x, embedx = embedx,
                                   y = y, by.y = by.y, embedy = embedy,
-                                  DistanceMeasure = DistanceMeasure, q = qgram,
+                                  DistanceMeasure = DistanceMeasure, q = qgram, nCores = nCores, 
                                   MaxDist = MaxDist, AveMatchNumberPerAlias = AveMatchNumberPerAlias))
   # View(z_RawNames[order(z_RawNames$stringdist),c(by.x,by.y,"stringdist")])
 
@@ -417,7 +418,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
         MatchedIntoNetwork <- pFuzzyMatchFxn_touse(
                     x = xory_by_ref, by.x = key_by_ref, embedx = ifelse(key_ == 'x', yes = list(embedx), no = list(embedy))[[1]],
                     y = directory_red, by.y = "alias_name", embedy = linkedIn_embeddings,
-                    DistanceMeasure = DistanceMeasure, q = qgram,
+                    DistanceMeasure = DistanceMeasure, q = qgram, nCores = nCores, 
                     MaxDist = MaxDist_network, AveMatchNumberPerAlias = AveMatchNumberPerAlias_network)
         MatchedIntoNetwork <- DeconflictNames(MatchedIntoNetwork)
       }

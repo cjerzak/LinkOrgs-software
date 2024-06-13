@@ -28,6 +28,7 @@ pFuzzyMatch_discrete <- function(
     MaxDist = NULL,
     qgram = 2, DistanceMeasure = "jaccard",
     AveMatchNumberPerAlias = NULL,
+    nCores = NULL,
     ...
 ){
   if(!is.null(AveMatchNumberPerAlias)){
@@ -36,6 +37,7 @@ pFuzzyMatch_discrete <- function(
                                       AveMatchNumberPerAlias = AveMatchNumberPerAlias,
                                       qgram = qgram,
                                       DistanceMeasure = DistanceMeasure,
+                                      nCores = nCores,
                                       mode = "discrete" )
   }
 
@@ -43,7 +45,8 @@ pFuzzyMatch_discrete <- function(
                                    y, by.y = by.y,
                                    qgram = qgram,
                                    DistanceMeasure = DistanceMeasure,
-                                   MaxDist = MaxDist)
+                                   MaxDist = MaxDist, 
+                                   nCores = nCores)
   colnames(y) <- paste(colnames(y), '.y', sep = "")
   colnames(x) <- paste(colnames(x), '.x', sep = "")
   z <- as.data.frame( cbind( x[z_indices[,"ix"],], y[z_indices[,"iy"],] ) )

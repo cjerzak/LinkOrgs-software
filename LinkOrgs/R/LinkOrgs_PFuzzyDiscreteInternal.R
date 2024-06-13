@@ -56,15 +56,13 @@
 pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL,
                            return_stringdist = T, onlyUFT = T,
                            qgram =2, DistanceMeasure = "jaccard", MaxDist = 0.20,
-                           ReturnProgress=T,
+                           ReturnProgress=T, nCores = NULL, 
                            ReturnMaxDistThreshold = F){
   library(stringdist)
-
-  #WARNING: X SHOULD ALWAYS BE THE LARGER SET
   if(is.null(by.x) & is.null(by.y)){ by.x <- by.y <- by }
-
   if(swappedXY <- (nrow(y) < nrow(x))){
-    # reason for condition: y should be larger than x for efficient vectorization potential
+    # condition: y should be larger than x for efficient parallelization 
+    # if not, swap
     x_old <- x; y_old <- y;
     by.y_old <- by.y;
     by.x_old <- by.x
@@ -82,34 +80,33 @@ pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL,
   y_tri_index = trigram_index(y[[by.y]],"the.row")
   # trigram_index(c("hi","hiaer", "hi","hi"),"the.row")
 
-
   # start pdist calc
   {
     n_iters <- nrow(x) # x is arbitrary reference (y is larger base)
-    library("foreach",quietly=T); library("doParallel",quietly=T)
-    ncl <- 1; split_list_x <- list(1:n_iters)
+    library("doParallel",quietly=T); library("foreach",quietly=T)
+    split_list_x <- list(1:n_iters)
+    if(is.null(nCores)){ nCores <- max(c(1L,parallel::detectCores() - 2L)) }
     if(n_iters>50){
-      split_list_x = round(seq(0.5,n_iters,length.out = 
-                                  (ncl<- max(c(1L,min(c(12L,parallel::detectCores() - 2L))))) + 1))
+      split_list_x = round(seq(0.5,n_iters,length.out = nCores + 1))
       split_list_x = as.numeric(cut(1:n_iters,breaks=split_list_x))
-      split_list_x = sapply(1:ncl, function(as){ list(which(split_list_x ==as))})
+      split_list_x = sapply(1:nCores, function(as){ list(which(split_list_x ==as))})
     }
 
-    cl <- doParallel::registerDoParallel(ncl)
-    Export <- c("split_list_x", "DistanceMeasure", "qgram", "ncl", "ReturnProgress",
-                "x", "by.x",
-                "y", "by.y")
+    cl <- doParallel::registerDoParallel(nCores)
+    Export <- c("split_list_x", "DistanceMeasure", "qgram", "nCores", "ReturnProgress",
+                "x", "by.x", "y", "by.y")
     NoExport <- c(ls(), ls(parent.env(environment())), ls(globalenv()))
     NoExport <- NoExport[!NoExport %in% Export]
-    loop_ <- foreach(outer_ix = 1:ncl,
+    loop_ <- foreach::foreach(outer_ix = 1:nCores,
                      .export = Export,
-                     .noexport = NoExport) %dopar% {
+                     .noexport = NoExport
+                     ) %dopar% {
       counter_ <- 0
-      my_matched_inner = matrix(NA, nrow = 0,ncol=3)
+      my_matched_inner <- matrix(NA, nrow = 0,ncol=3)
       for(ix in split_list_x[[outer_ix]]){
         counter_ = counter_ + 1
         if(ix %% 100==0 & ReturnProgress){write.csv(data.frame("Current Split" = outer_ix,
-                                                   "Total Splits" = ncl,
+                                                   "Total Splits" = nCores,
                                                    "Current Iters in Split" = counter_,
                                                    "Total Iters in Split" = length(split_list_x[[outer_ix]])),
                                                    file = './PROGRESS_pDistMatch_discrete.csv')}
@@ -140,6 +137,7 @@ pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL,
       }
       return( my_matched_inner )
    }
+    doParallel::stopImplicitCluster()
     myMatched = as.data.frame( do.call(rbind, loop_) )
     colnames(myMatched) <- c("ix","iy","stringdist")
   }

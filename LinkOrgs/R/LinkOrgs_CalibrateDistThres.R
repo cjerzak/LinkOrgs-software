@@ -56,10 +56,10 @@
 GetCalibratedDistThres <- function(x = NULL, by.x = NULL,
                                    y = NULL, by.y = NULL,
                                    AveMatchNumberPerAlias = 5L,
-                                   qgram = 2L, DistanceMeasure = "jaccard",
+                                   qgram = 2L, DistanceMeasure = "jaccard", nCores = NULL, 
                                    mode = "euclidean"){
   print2("Calibrating via AveMatchNumberPerAlias...")
-
+  
   # first, calculate all pairwise distances between x and y for a random subsample
   cal_x_indices <- sample(1:nrow(x), min(nrow(x),1000), replace = F)
   cal_y_indices <- sample(1:nrow(y), min(nrow(y),1000), replace = F)
@@ -72,7 +72,9 @@ GetCalibratedDistThres <- function(x = NULL, by.x = NULL,
   if(mode == "discrete"){
     DistMat <- pDistMatch_discrete(x = x[cal_x_indices,], by.x = by.x,
                                    y = y[cal_y_indices,], by.y = by.y,
-                                   qgram = qgram, DistanceMeasure = DistanceMeasure, MaxDist = Inf)
+                                   qgram = qgram, DistanceMeasure = DistanceMeasure, 
+                                   MaxDist = Inf, 
+                                   nCores = 1L)
   }
 
   IMPLIED_MATCH_DIST_THRES <- Inf; if(nrow(DistMat) > 0){
