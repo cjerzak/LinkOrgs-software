@@ -73,7 +73,6 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                     openBrowser = F,
                     ReturnDecomposition = F,
                     python_executable, 
-                    backend = "CPU", 
                     deezyLoc = "~/Documents/DeezyMatch"){
   suppressPackageStartupMessages({
     library(plyr); library(dplyr);  library(data.table); library(fastmatch); library(stringdist); library(stringr)
@@ -102,7 +101,8 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
           WeightsURL <- "https://www.dropbox.com/scl/fi/7w0fc4vdw372a4jkkwpfp/ModelWeights_v0.eqx?rlkey=5rjppey7i4ymllne5gitxt80x&dl=0"
         }
         if(ml_version == "v1"){
-          ModelURL <- "https://www.dropbox.com/scl/fi/zf40e7is48qgvq3t2xqpf/AnalysisR_LinkOrgsBase_29PT9M_2024-02-13.zip?rlkey=g4q5kgko1q1umszbz34awsvic&dl=0"
+          # ModelURL <- "https://www.dropbox.com/scl/fi/zf40e7is48qgvq3t2xqpf/AnalysisR_LinkOrgsBase_29PT9M_2024-02-13.zip?rlkey=g4q5kgko1q1umszbz34awsvic&dl=0"
+          ModelURL <- "https://www.dropbox.com/scl/fi/irzduuojtq13opz3hqpan/Analysis.zip?rlkey=i9nye1p3tkew00g50wpdwrx6x&dl=0"
           WeightsURL <- "https://www.dropbox.com/scl/fi/5klzz36zjyhto4eef3vdi/LinkOrgsBase_29PT9M_2024-02-13_ilast.eqx?rlkey=icirb63feja9nv3kq6t5yow8p&dl=0"
         }
         if(ml_version == "v2"){ # 2^8 word, 2^8.75 for alias, 10k iters
@@ -138,11 +138,19 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
       print2("Re-building ML model...")
       trainModel <- F; AnalysisName <- "LinkOrgs"
       charIndicators <- as.matrix(data.table::fread(file = CharIndicatorsLoc))
+      
+      print2("Loading LinkOrgs_Helpers.R...")
       source( sprintf('%s/Analysis/LinkOrgs_Helpers.R', ModelLoc), local = T )
+      
+      print2("Loading JaxTransformer_Imports.R...")
       source( sprintf('%s/Analysis/JaxTransformer_Imports.R', ModelLoc), local = T )
+      
+      print2("Loading JaxTransformer_BuildML.R...")
       source( sprintf('%s/Analysis/JaxTransformer_BuildML.R', ModelLoc), local = T )
+      
+      print2("Loading JaxTransformer_TrainDefine.R...")
       source( sprintf('%s/Analysis/JaxTransformer_TrainDefine.R', ModelLoc), local = T )
-      print(sprintf( "Default backend: %s", jax$default_backend())) 
+      print(sprintf( "Default device backend: %s", jax$default_backend())) 
       
       # obtain trained weights
       print2("Applying trained weights...")
@@ -226,7 +234,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     # define matching metric
     pFuzzyMatchFxn_touse <- pFuzzyMatch_discrete; DistanceMeasure <- "jaccard"
 
-    # descriptive stats
+    # descriptive stats -  to remove in future version 
     if(T == F){
       library(dplyr)
 
