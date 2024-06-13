@@ -59,7 +59,7 @@ pDistMatch_euclidean <- function(embedx, embedy, MaxDist = NULL, ReturnProgress 
   embedx <- as.matrix(embedx); embedy <- t(as.matrix(embedy))
 
   # parallelized dist calc
-  library(foreach);cl <- doParallel::registerDoParallel(ncl<-parallel::detectCores());
+  library(foreach);cl <- doParallel::registerDoParallel(ncl<- max(c(1L,(parallel::detectCores() - 2L))));
   # print(  sort( sapply(ls(),function(x){object.size(get(x))}))  )
 
   # perform the op

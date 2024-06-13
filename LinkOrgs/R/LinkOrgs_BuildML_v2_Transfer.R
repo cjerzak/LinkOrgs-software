@@ -27,7 +27,7 @@ BuildTransfer <- function(){
                                   training,
                                   roundAt = 6L,
                                   AcceptThreshold = NULL){
-    library(foreach); cl <- doParallel::registerDoParallel(ncl<-parallel::detectCores());
+    library(foreach); cl <- doParallel::registerDoParallel(ncl<- max(c(1L,(parallel::detectCores() - 2L))));
     n_iters <- length(names_raw1)
     if(! "ReturnProgress" %in% ls()){ ReturnProgress <- T }
 

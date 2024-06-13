@@ -89,7 +89,7 @@ pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL,
     library("foreach",quietly=T); library("doParallel",quietly=T)
     ncl <- 1; split_list_x <- list(1:n_iters)
     if(n_iters>50){
-      split_list_x = round(seq(0.5,n_iters,length.out = (ncl <- parallel::detectCores()) + 1))
+      split_list_x = round(seq(0.5,n_iters,length.out = (ncl<- max(c(1L,(parallel::detectCores() - 2L)))) + 1))
       split_list_x = as.numeric(cut(1:n_iters,breaks=split_list_x))
       split_list_x = sapply(1:ncl, function(as){ list(which(split_list_x ==as))})
     }
