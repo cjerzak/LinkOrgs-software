@@ -72,7 +72,8 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                     ml_version = "v4",
                     openBrowser = F,
                     ReturnDecomposition = F,
-                    python_executable){
+                    python_executable, 
+                    backend = "CPU"){
   suppressPackageStartupMessages({
     library(plyr); library(dplyr);  library(data.table); library(fastmatch); library(stringdist); library(stringr)
 } )
@@ -134,13 +135,14 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 
       # build model
       print2("Re-building ML model...")
-      backend <- "METAL"; trainModel <- F; AnalysisName <- "LinkOrgs"
+      trainModel <- F; AnalysisName <- "LinkOrgs"
       charIndicators <- as.matrix(data.table::fread(file = CharIndicatorsLoc))
       source( sprintf('%s/Analysis/LinkOrgs_Helpers.R', ModelLoc), local = T )
       source( sprintf('%s/Analysis/JaxTransformer_Imports.R', ModelLoc), local = T )
       source( sprintf('%s/Analysis/JaxTransformer_BuildML.R', ModelLoc), local = T )
       source( sprintf('%s/Analysis/JaxTransformer_TrainDefine.R', ModelLoc), local = T )
-
+      print(sprintf( "Default backend: %s", jax$default_backend())) 
+      
       # obtain trained weights
       print2("Applying trained weights...")
       ModelList <- eq$tree_deserialise_leaves( WeightsLoc, list(ModelList, StateList, opt_state) )
