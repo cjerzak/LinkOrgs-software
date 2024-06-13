@@ -73,7 +73,8 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                     openBrowser = F,
                     ReturnDecomposition = F,
                     python_executable, 
-                    backend = "CPU"){
+                    backend = "CPU", 
+                    deezyLoc = "~/Documents/DeezyMatch"){
   suppressPackageStartupMessages({
     library(plyr); library(dplyr);  library(data.table); library(fastmatch); library(stringdist); library(stringr)
 } )
@@ -159,7 +160,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
       jax <<- jax; jnp <<- jnp; np <<- np
   }
   if(algorithm == "deezymatch"){
-    library(reticulate)
+    library( reticulate )
     reticulate::use_condaenv("py39deezy")
     DeezyMatch <- import("DeezyMatch")
     pd <- import("pandas")
@@ -171,7 +172,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 
     orig_wd <- getwd()
     for(val_ in c("x","y")){
-      setwd("~/Downloads/DeezyMatch-master")
+      setwd( deezyLoc )
       DatasetPath <- c( "./dataset/dataset-candidates_LINKORGS.txt")
       input_ <- eval(parse(text =
                 sprintf('enc2utf8(gsub(tolower(%s[[by.%s]]),
