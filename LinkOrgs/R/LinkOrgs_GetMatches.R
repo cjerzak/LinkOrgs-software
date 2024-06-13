@@ -347,7 +347,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   y$UniversalMatchCol <- x$UniversalMatchCol <- NA
   colnames_x_orig <- colnames(x); colnames_y_orig <- colnames(y)
 
-  # preprocessing
+  print2("Pre-processing strings...")
   x <- as.data.table(x); y <- as.data.table(y)
   if(ToLower == T){
     for(it_ in c("x","y")){
@@ -406,8 +406,8 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                                   MaxDist = MaxDist, AveMatchNumberPerAlias = AveMatchNumberPerAlias))
   # View(z_RawNames[order(z_RawNames$stringdist),c(by.x,by.y,"stringdist")])
 
-  # network match
   if(algorithm %in% c("markov","bipartite","lookup")){
+    print2("Searching for LinkedIn network matches")
     pFuzzyMatch_internal <- function(key_){
       print2("Searching for network matches...")
       key_by_ref <- eval(parse(text = sprintf("by.%s",key_)))
@@ -463,7 +463,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     #if(algorithm == "lookup"){ z_Network$stringdist.x2network <- z_Network$stringdist.y2network <- 0. }
   }
 
-  # bring in fuzzy matches
+  print2("Combining with fuzzy matches...")
   {
   z_RawNames$XYref__ID <- paste( z_RawNames$Xref__ID, z_RawNames$Yref__ID, sep="__LINKED__" )
   if(is.null(z_Network)){ z <- as.data.frame( z_RawNames ) }
@@ -471,8 +471,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     z_Network$XYref__ID <- paste( z_Network$Xref__ID, z_Network$Yref__ID, sep="__LINKED__" )
     z = rbind.fill(as.data.frame( z_RawNames ), as.data.frame( z_Network ) )
   }
-
-  #drop duplicates
+    
   print2("Dropping duplicates..."); if( nrow(z)>1 ){
     if(is.null(z_Network)){ z$minDist <- z$stringdist }
     if(!is.null(z_Network)){
@@ -504,7 +503,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     if(!ReturnDecomposition){ suppressWarnings( rm(z_RawNames, z_Network) ) }
   }
 
-  # Checking for redundant name matches
+  print2("Checking for redundant name matches...")
   z <- DeconflictNames(z)
 
   #undo modifications to names for processing

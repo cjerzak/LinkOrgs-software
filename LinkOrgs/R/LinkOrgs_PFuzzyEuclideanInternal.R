@@ -125,7 +125,7 @@ pDistMatch_euclidean <- function(embedx, embedy, MaxDist = NULL, ReturnProgress 
     }
     return( list( match_ ))
   })
-  print2("Done with parallel Euclidean distance calculations...")
+  print2("Done with Euclidean distance calculations...")
   gc(); distMat <- as.data.frame( do.call(rbind, unlist(distMat,recursive=F) ))
   colnames(distMat) <- c("ix","iy","stringdist")
 
