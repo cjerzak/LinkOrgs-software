@@ -40,10 +40,10 @@ pFuzzyMatch_discrete <- function(
   }
 
   z_indices <- pDistMatch_discrete(x, by.x = by.x,
-                                      y, by.y = by.y,
-                                      qgram = qgram,
-                                      DistanceMeasure = DistanceMeasure,
-                                      MaxDist = MaxDist)
+                                   y, by.y = by.y,
+                                   qgram = qgram,
+                                   DistanceMeasure = DistanceMeasure,
+                                   MaxDist = MaxDist)
   colnames(y) <- paste(colnames(y), '.y', sep = "")
   colnames(x) <- paste(colnames(x), '.x', sep = "")
   z <- as.data.frame( cbind( x[z_indices[,"ix"],], y[z_indices[,"iy"],] ) )
