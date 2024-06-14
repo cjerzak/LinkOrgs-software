@@ -79,6 +79,13 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     library(plyr); library(dplyr);  library(data.table); library(fastmatch); library(stringdist); library(stringr)
 } )
   `%fin%` <- function(x, table) {fmatch(x, table, nomatch = 0L) > 0L}
+  if(DistanceMeasure != "ml"){ 
+      suppressPackageStartupMessages({
+        library("foreach",quietly=T); library("doParallel",quietly=T); 
+      })
+    if(is.null(nCores)){ nCores <- max(c(1L,parallel::detectCores() - 2L)) }
+    doParallel::registerDoParallel(  cl <- parallel::makeCluster(  nCores  ) )
+  }
 
   # change timeout for long download of large-scale data objects
   options(timeout = max(60*20, getOption("timeout")))
@@ -524,6 +531,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     z = z[,!colnames(z) %fin% "UniversalMatchCol"]
   }
 
+  if(DistanceMeasure != "ml"){ doParallel::stopImplicitCluster() }
   # if(any(is.na( z[[by.x]] ))){browser()}; if(any(is.na( z[[by.y]] ))){browser()}
 
   print2("Returning matched dataset!")

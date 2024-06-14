@@ -82,18 +82,15 @@ pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL,
 
   # start pdist calc
   {
-    n_iters <- nrow(x) # x is arbitrary reference (y is larger base)
-    library("doParallel",quietly=T); library("foreach",quietly=T)
-    split_list_x <- list(1:n_iters)
-    if(is.null(nCores)){ nCores <- max(c(1L,parallel::detectCores() - 2L)) }
+    split_list_x <- list(1:(n_iters <- nrow(x))) # # x is arbitrary reference (y is larger base)
     if(n_iters>50){
       split_list_x = round(seq(0.5,n_iters,length.out = nCores + 1))
       split_list_x = as.numeric(cut(1:n_iters,breaks=split_list_x))
       split_list_x = sapply(1:nCores, function(as){ list(which(split_list_x ==as))})
     }
-
-    cl <- doParallel::registerDoParallel(nCores)
+    
     Export <- c("split_list_x", "DistanceMeasure", "qgram", "nCores", "ReturnProgress",
+                "x_tri_index", "y_tri_index", "MaxDist",
                 "x", "by.x", "y", "by.y")
     NoExport <- c(ls(), ls(parent.env(environment())), ls(globalenv()))
     NoExport <- NoExport[!NoExport %in% Export]
@@ -110,44 +107,36 @@ pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL,
                                                    "Current Iters in Split" = counter_,
                                                    "Total Iters in Split" = length(split_list_x[[outer_ix]])),
                                                    file = './PROGRESS_pDistMatch_discrete.csv')}
-
-        #get the name we want to fuzzy match against
-        my_entry = x[ix,][[by.x]]
-
-        #get the trigrams of this name
-        my_entry_trigrams <- x_tri_index[the.row==ix, trigram]
-
+        
+        # get the trigrams of the name, x[ix,][[by.x]]
         # find the set of entries in directory_LinkIt_red that have x% in common trigram
-        MinNumSharedTriGrams <- ceiling( length(my_entry_trigrams)*0.05 )
-        LT_entries <- table( y_tri_index[trigram %fin% my_entry_trigrams,the.row] )
-        if( length(LT_entries) > 0){
+        MinNumSharedTriGrams <- ceiling( length(
+                 my_entry_trigrams <- x_tri_index[the.row==ix, trigram]
+                                  )*0.05 )
+        LT_entries <- table( y_tri_index[trigram %fin% my_entry_trigrams, the.row] )
+        if( length(LT_entries) > 0 ){
           LT_entries <- f2n(names(LT_entries[LT_entries >= MinNumSharedTriGrams]))
-
-          dist_vec_red <- stringdist(my_entry,
+          dist_vec_red <- stringdist(x[ix,][[by.x]], # match my entry 
                                      y[LT_entries,][[by.y]],
-                                     method = DistanceMeasure,
-                                     q = qgram)
+                                     method = DistanceMeasure, q = qgram)
           iy <- LT_entries[ belowThres_ <- which(dist_vec_red <= MaxDist) ]
         if(length(iy) > 0){
           my_matched_inner = rbind(my_matched_inner,
                                     cbind(ix, matrix( c(iy, dist_vec_red[belowThres_]),
-                                              nrow = length(iy), ncol = 2L, byrow = F) ) )
+                                                      nrow = length(iy), ncol = 2L, byrow = F) ) )
         }
         }
       }
       return( my_matched_inner )
-   }
-    doParallel::stopImplicitCluster()
+                     }
     myMatched = as.data.frame( do.call(rbind, loop_) )
     colnames(myMatched) <- c("ix","iy","stringdist")
   }
-
   if(swappedXY){
     myMatched <- cbind("ix" = myMatched[,"iy"],
                        "iy" = myMatched[,"ix"],
                        "stringdist" = myMatched[,"stringdist"])
   }
-
   return( myMatched )
   }
 
