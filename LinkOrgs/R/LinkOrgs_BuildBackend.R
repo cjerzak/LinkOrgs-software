@@ -14,15 +14,28 @@
 #' @export
 #' @md
 
-BuildBackend <- function(conda_env = "LinkOrgsEnv", conda = "auto"){
+BuildBackend <- function(conda_env = "LinkOrgsEnv", conda = "auto", tryMetal = T){
   # Create a new conda environment
   reticulate::conda_create(envname = conda_env,
                            conda = conda,
                            python_version = "3.11")
 
   # Install Python packages within the environment
-  Packages2Install <- c("jax","optax","tensorflow==2.15.0","equinox","numpy",
-                          "tensorflow_probability","jmp")
+  Packages2Install <- c("tensorflow==2.15",
+                        "numpy",
+                        "tensorflow_probability",
+                        "jax==0.4.26",
+                        "jaxlib==0.4.26",
+                        "ml_dtypes==0.4.0",
+                        "optax",
+                        "equinox",
+                        "jmp")
+  if(tryMetal){ 
+    if(Sys.info()["machine"] == "arm64"){
+        #Packages2Install[Packages2Install=="jax"] <- "jax-metal"    
+      Packages2Install <- c(Packages2Install,"jax-metal")
+    }
+  }
   if(Sys.info()["sysname"] == "Darwin"){
       for(pack_ in Packages2Install){
         try_ <- reticulate::py_install(pack_, conda = conda, pip = TRUE, envname = conda_env)
