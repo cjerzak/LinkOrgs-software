@@ -23,7 +23,7 @@ BuildBackend <- function(conda_env = "LinkOrgsEnv", conda = "auto", tryMetal = T
   # Install Python packages within the environment
   Packages2Install <- c("tensorflow==2.15",
                         "numpy",
-                        "tensorflow_probability",
+                        "tensorflow_probability==0.23",
                         "jax==0.4.26",
                         "jaxlib==0.4.26",
                         "ml_dtypes==0.4.0",
