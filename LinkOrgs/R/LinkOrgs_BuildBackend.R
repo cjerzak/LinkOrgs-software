@@ -22,18 +22,18 @@ BuildBackend <- function(conda_env = "LinkOrgsEnv", conda = "auto", tryMetal = T
 
   # Install Python packages within the environment
   Packages2Install <- c("tensorflow==2.15",
-                        "numpy",
+                        #"numpy==2.0",
+                        "numpy==1.26.4",
                         "tensorflow_probability==0.23",
                         "jax==0.4.26",
                         "jaxlib==0.4.26",
                         "ml_dtypes==0.4.0",
-                        "optax",
-                        "equinox",
-                        "jmp")
+                        "optax==0.2.2",
+                        "equinox==0.11.4",
+                        "jmp==0.0.4")
   if(tryMetal){ 
     if(Sys.info()["machine"] == "arm64"){
-        #Packages2Install[Packages2Install=="jax"] <- "jax-metal"    
-      Packages2Install <- c(Packages2Install,"jax-metal")
+      Packages2Install <- c(Packages2Install,"jax-metal==0.1.0")
     }
   }
   if(Sys.info()["sysname"] == "Darwin"){
