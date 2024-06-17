@@ -31,26 +31,19 @@ BuildBackend <- function(conda_env = "LinkOrgsEnv", conda = "auto", tryMetal = T
                         "optax==0.2.2",
                         "equinox==0.11.4",
                         "jmp==0.0.4")
-  if(tryMetal){ 
+  if(tryMetal){
     if(Sys.info()["machine"] == "arm64"){
       Packages2Install <- c(Packages2Install,"jax-metal==0.1.0")
     }
+
   }
-  if(Sys.info()["sysname"] == "Darwin"){
-      for(pack_ in Packages2Install){
-        try_ <- reticulate::py_install(pack_, conda = conda, pip = TRUE, envname = conda_env)
+
+  if(Sys.info()["sysname"] %in% c("Darwin", "Windows", "Linux")){
+      for(package in Packages2Install){
+        try_ <- reticulate::py_install(package, conda = conda, pip = TRUE, envname = conda_env)
       }
   }
-  if(Sys.info()["sysname"] == "Windows"){
-    for(pack_ in Packages2Install){
-      reticulate::py_install(pack_, conda = conda, pip = TRUE, envname = conda_env)
-    }
-  }
-  if(Sys.info()["sysname"] == "Linux"){
-    for(pack_ in Packages2Install){
-      reticulate::py_install(pack_, conda = conda, pip = TRUE, envname = conda_env)
-    }
-  }
+
   print("Done building LinkOrgs backend!")
 }
 
