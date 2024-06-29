@@ -1,4 +1,5 @@
 #!/usr/bin/env Rscript
+
 #' pFuzzyMatch_euclidean
 #'
 #' Implements
@@ -20,7 +21,6 @@
 #' @export
 #'
 #' @md
-
 pFuzzyMatch_euclidean <- function(
     x = NULL, by.x = NULL, embedx = NULL,
     y = NULL, by.y = NULL, embedy = NULL,
