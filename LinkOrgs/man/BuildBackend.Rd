@@ -4,7 +4,7 @@
 \alias{BuildBackend}
 \title{Build the environment for LinkOrgs machine learning models. Builds a conda environment in which jax, optax, equinox, and jmp are installed.}
 \usage{
-BuildBackend(conda_env = "LinkOrgsEnv", conda = "auto")
+BuildBackend(conda_env = "LinkOrgsEnv", conda = "auto", tryMetal = T)
 }
 \arguments{
 \item{conda_env}{(default = \code{"LinkOrgsEnv"}) Name of the conda environment in which to place the backends.}

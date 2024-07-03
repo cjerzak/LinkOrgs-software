@@ -8,8 +8,7 @@
 
   # local install for development team
   # (download package into temporary directory for development team debugging purposes)
-  # Sys.setenv("R_LIBS_USER"="/tmp/libDemo/lib")
-  # install.packages("~/Documents/LinkOrgs-software/LinkOrgs",repos = NULL, type = "source", force = F)
+  # Sys.setenv("R_LIBS_USER"="/tmp/libDemo/lib"); install.packages("~/Documents/LinkOrgs-software/LinkOrgs",repos = NULL, type = "source", force = F)
 
   # See package documentation for help
   # ?LinkOrgs::FastFuzzyMatch

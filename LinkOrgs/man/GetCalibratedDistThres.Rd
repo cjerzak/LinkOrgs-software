@@ -12,6 +12,7 @@ GetCalibratedDistThres(
   AveMatchNumberPerAlias = 5L,
   qgram = 2L,
   DistanceMeasure = "jaccard",
+  nCores = NULL,
   mode = "euclidean"
 )
 }

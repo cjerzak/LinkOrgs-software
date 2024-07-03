@@ -15,6 +15,7 @@ pFuzzyMatch_discrete(
   qgram = 2,
   DistanceMeasure = "jaccard",
   AveMatchNumberPerAlias = NULL,
+  nCores = NULL,
   ...
 )
 }

@@ -16,6 +16,7 @@ pDistMatch_discrete(
   DistanceMeasure = "jaccard",
   MaxDist = 0.2,
   ReturnProgress = T,
+  nCores = NULL,
   ReturnMaxDistThreshold = F
 )
 }
