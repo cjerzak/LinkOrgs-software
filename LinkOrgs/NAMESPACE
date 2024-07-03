@@ -2,7 +2,6 @@
 
 export(AssessMatchPerformance)
 export(BuildBackend)
-export(BuildTransfer)
 export(GetCalibratedDistThres)
 export(LinkOrgs)
 export(dropboxURL2downloadURL)
