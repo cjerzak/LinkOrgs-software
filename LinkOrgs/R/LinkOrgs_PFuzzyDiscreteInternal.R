@@ -78,6 +78,8 @@ pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL,
   y = as.data.table(y); y$by.y_ORIG <- y[[by.y]]
   x_tri_index = trigram_index(x[[by.x]],"the.row")
   y_tri_index = trigram_index(y[[by.y]],"the.row")
+  
+  # test 
   # trigram_index(c("hi","hiaer", "hi","hi"),"the.row")
 
   # start pdist calc
@@ -111,8 +113,7 @@ pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL,
         # get the trigrams of the name, x[ix,][[by.x]]
         # find the set of entries in directory_LinkIt_red that have x% in common trigram
         MinNumSharedTriGrams <- ceiling( length(
-                 my_entry_trigrams <- x_tri_index[the.row==ix, trigram]
-                                  )*0.05 )
+                 my_entry_trigrams <- x_tri_index[the.row==ix, trigram] )*0.05 )
         LT_entries <- table( y_tri_index[trigram %fin% my_entry_trigrams, the.row] )
         if( length(LT_entries) > 0 ){
           LT_entries <- f2n(names(LT_entries[LT_entries >= MinNumSharedTriGrams]))

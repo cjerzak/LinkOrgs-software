@@ -83,7 +83,11 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
       suppressPackageStartupMessages({
         library("foreach",quietly=T); library("doParallel",quietly=T); 
       })
-    if(is.null(nCores)){ nCores <- max(c(1L,parallel::detectCores() - 2L)) }
+    if(is.null(nCores)){ 
+      nCores <- ifelse(nrow(x)*nrow(y) > 500, 
+                       yes = max(c(1L,parallel::detectCores() - 2L)), 
+                       no = 1L)
+    }
     doParallel::registerDoParallel(  cl <- parallel::makeCluster(  nCores  ) )
   }
 

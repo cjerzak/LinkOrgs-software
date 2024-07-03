@@ -40,7 +40,6 @@ pFuzzyMatch_discrete <- function(
                                       nCores = nCores,
                                       mode = "discrete" )
   }
-
   z_indices <- pDistMatch_discrete(x, by.x = by.x,
                                    y, by.y = by.y,
                                    qgram = qgram,

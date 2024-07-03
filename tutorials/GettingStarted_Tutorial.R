@@ -7,6 +7,8 @@
   # devtools::install_github("cjerzak/LinkOrgs-software/LinkOrgs")
 
   # local install for development team
+  # (download package into temporary directory for development team debugging purposes)
+  # Sys.setenv("R_LIBS_USER"="/tmp/libDemo/lib")
   # install.packages("~/Documents/LinkOrgs-software/LinkOrgs",repos = NULL, type = "source", force = F)
 
   # See package documentation for help
@@ -44,10 +46,10 @@
                          y = y, by.y = "orgnames_y",
                          algorithm = "bipartite")
 
-  # Build backend for ML model (do this only once)
+  # Build backend for ML model (do this only once):
   # try(LinkOrgs::BuildBackend( conda_env = "LinkOrgsEnv", conda = "auto" ),T)
 
-  # if conda = "auto" fails, try to specify the path to the correct conda to use
+  # if conda = "auto" fails, try to specify the path to the correct conda to use like so: 
   # LinkOrgs::BuildBackend( conda_env = "LinkOrgsEnv", conda = "/Users/cjerzak/miniforge3/bin/python" )
 
   # Perform a merge using machine learning approach
@@ -57,13 +59,12 @@
                           algorithm = "ml", ml_version = "v4",
                           conda_env = "LinkOrgsEnv" )
 
-  # !! Experimental from here onwards - Check back soon !!
   # Perform a merge with package using markov network representation and ML-based distance metric for names
   LinkedOrgs_MarkovWithML <- LinkOrgs(
                                 x = x, by.x = "orgnames_x",
                                 y = y, by.y = "orgnames_y",
                                 algorithm = "markov",
-                                DistanceMeasure = "ml", ml_version = "v4",
+                                DistanceMeasure = "ml", ml_version = "v1",
                                 conda_env = "LinkOrgsEnv" )
 
   # Perform a simple merge with package using bipartite network representation and ML-based distance metric for names
@@ -71,7 +72,7 @@
                                 x = x, by.x = "orgnames_x",
                                 y = y, by.y = "orgnames_y",
                                 algorithm = "bipartite",
-                                DistanceMeasure = "ml", ml_version = "v4",
+                                DistanceMeasure = "ml", ml_version = "v1",
                                 conda_env = "LinkOrgsEnv" )
 
 }
