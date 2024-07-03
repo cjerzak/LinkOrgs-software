@@ -63,7 +63,7 @@ euclidean_hyper_search <- function(d1, d2, p1, p2,
     nvars = 3,
     max = FALSE,
     Domains = matrix(
-      c(1, 2000, 1, 500, 0, d1),
+      c(1, 5000, 1, 5000, 0, d1),
       ncol = 2,
       byrow = TRUE
     ),
