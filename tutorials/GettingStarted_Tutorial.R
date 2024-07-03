@@ -56,23 +56,6 @@
   LinkedOrgs_ML <- LinkOrgs(
                           x = x, by.x = "orgnames_x",
                           y = y, by.y = "orgnames_y",
-                          algorithm = "ml", ml_version = "v4",
+                          algorithm = "ml", ml_version = "v1",
                           conda_env = "LinkOrgsEnv" )
-
-  # Perform a merge with package using markov network representation and ML-based distance metric for names
-  LinkedOrgs_MarkovWithML <- LinkOrgs(
-                                x = x, by.x = "orgnames_x",
-                                y = y, by.y = "orgnames_y",
-                                algorithm = "markov",
-                                DistanceMeasure = "ml", ml_version = "v1",
-                                conda_env = "LinkOrgsEnv" )
-
-  # Perform a simple merge with package using bipartite network representation and ML-based distance metric for names
-  LinkedOrgs_BipartiteWithML <- LinkOrgs(
-                                x = x, by.x = "orgnames_x",
-                                y = y, by.y = "orgnames_y",
-                                algorithm = "bipartite",
-                                DistanceMeasure = "ml", ml_version = "v1",
-                                conda_env = "LinkOrgsEnv" )
-
 }
