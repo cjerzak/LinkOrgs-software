@@ -74,7 +74,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                     ReturnDecomposition = F,
                     python_executable, 
                     nCores = NULL, 
-                    deezyLoc = "~/Documents/DeezyMatch"){
+                    deezyLoc = NULL){
   suppressPackageStartupMessages({
     library(plyr); library(dplyr);  library(data.table); library(fastmatch); library(stringdist); library(stringr)
 } )
@@ -191,8 +191,8 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     pickle <- import("pickle")
 
     orig_wd <- getwd()
+    setwd( deezyLoc )
     for(val_ in c("x","y")){
-      setwd( deezyLoc )
       DatasetPath <- c( "./dataset/dataset-candidates_LINKORGS.txt")
       input_ <- eval(parse(text =
                 sprintf('enc2utf8(gsub(tolower(%s[[by.%s]]),
@@ -237,7 +237,20 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     if(nrow(embedy) != nrow(y)){browser(); stop("DeezyMatch output mismatch!")}
   }
   if(algorithm == "lookup"){
-    load("~/Dropbox/Directory/DataInputs/linkedIn_rawData.Rdata")
+    # old wayu 
+    # load("~/Dropbox/Directory/DataInputs/linkedIn_rawData.Rdata")
+
+    # load lookup data - new way 
+    {
+      # process URLs
+      lookupURL <- dropboxURL2downloadURL("https://www.dropbox.com/scl/fi/ct2qvgrr8jjh6959olrcg/linkedIn_rawData.Rdata?rlkey=v58cqpcccuksie8utobis4eov&dl=0")
+      
+      # download & unzip 
+      download.file( lookupURL, destfile = (lookupDest <- sprintf("%s/linkedIn_rawData.Rdata",
+                                                   paste0(find.package("LinkOrgs"),"/data") ) ))
+      load( lookupDest )
+    }
+    
     directory_red <- my_data; rm(my_data)
     directory_red$raw_names <- directory_red[,1]
     directory_red[,1] <- tolower(directory_red[,1])
