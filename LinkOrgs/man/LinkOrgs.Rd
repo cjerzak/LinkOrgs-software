@@ -30,7 +30,7 @@ LinkOrgs(
   ReturnDecomposition = F,
   python_executable,
   nCores = NULL,
-  deezyLoc = "~/Documents/DeezyMatch"
+  deezyLoc = NULL
 )
 }
 \arguments{

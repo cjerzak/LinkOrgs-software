@@ -55,7 +55,8 @@
 #' @import reticulate
 #' @md
 
-LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
+LinkOrgs <- function(x, y, by = NULL, by.x = NULL,by.y = NULL,
+                    embedx = NULL, embedy = NULL, 
                     algorithm = "ml",
                     conda_env = "CondaEnv_LinkOrgs", conda_env_required = T,
                     ReturnDiagnostics = F, ReturnProgress = T,
@@ -95,268 +96,273 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   options(timeout = max(60*20, getOption("timeout")))
 
   # type checks
-  z_Network <- linkedIn_embeddings <- embedx <- embedy <- NULL
-  DistanceMeasure <- tolower( as.character( DistanceMeasure ) )
-  algorithm <- tolower( as.character( algorithm ) )
-  DownloadFolder <- paste0(find.package("LinkOrgs"),"/data")
-  if(algorithm == "ml"){ DistanceMeasure <- "ml" }
-  if(algorithm == "ml" | DistanceMeasure == "ml"){
-      if(is.null(ml_version)){ ml_version <- "v4" }
-      ModelLoc <- gsub(ModelZipLoc <- sprintf('%s/Model_%s.zip', DownloadFolder, ml_version ),
-                       pattern = "\\.zip", replace = "")
-      WeightsLoc <- sprintf('%s/ModelWeights_%s.eqx', DownloadFolder, ml_version)
-      CharIndicatorsLoc <- sprintf('%s/CharIndicatorsLoc.csv', DownloadFolder)
-
-      if( !file.exists( ModelZipLoc ) | !file.exists( WeightsLoc) ){
-        if(ml_version == "v0"){
-          ModelURL <- "https://www.dropbox.com/scl/fi/1uz9pmw466kfnwwdrinpz/Archive.zip?rlkey=ia7d0nu8syixav8qlnug8gwpt&dl=0"
-          WeightsURL <- "https://www.dropbox.com/scl/fi/7w0fc4vdw372a4jkkwpfp/ModelWeights_v0.eqx?rlkey=5rjppey7i4ymllne5gitxt80x&dl=0"
+  if(!is.null(embedx)){ 
+    pFuzzyMatchFxn_touse <- pFuzzyMatch_euclidean
+    z_Network <- linkedIn_embeddings <- NULL
+  }
+  if(is.null(embedx)){ 
+    z_Network <- linkedIn_embeddings <- embedx <- embedy <- NULL
+    DistanceMeasure <- tolower( as.character( DistanceMeasure ) )
+    algorithm <- tolower( as.character( algorithm ) )
+    DownloadFolder <- paste0(find.package("LinkOrgs"),"/data")
+    if(algorithm == "ml"){ DistanceMeasure <- "ml" }
+    if(algorithm == "ml" | DistanceMeasure == "ml"){
+        if(is.null(ml_version)){ ml_version <- "v4" }
+        ModelLoc <- gsub(ModelZipLoc <- sprintf('%s/Model_%s.zip', DownloadFolder, ml_version ),
+                         pattern = "\\.zip", replace = "")
+        WeightsLoc <- sprintf('%s/ModelWeights_%s.eqx', DownloadFolder, ml_version)
+        CharIndicatorsLoc <- sprintf('%s/CharIndicatorsLoc.csv', DownloadFolder)
+  
+        if( !file.exists( ModelZipLoc ) | !file.exists( WeightsLoc) ){
+          if(ml_version == "v0"){
+            ModelURL <- "https://www.dropbox.com/scl/fi/1uz9pmw466kfnwwdrinpz/Archive.zip?rlkey=ia7d0nu8syixav8qlnug8gwpt&dl=0"
+            WeightsURL <- "https://www.dropbox.com/scl/fi/7w0fc4vdw372a4jkkwpfp/ModelWeights_v0.eqx?rlkey=5rjppey7i4ymllne5gitxt80x&dl=0"
+          }
+          if(ml_version == "v1"){
+            # ModelURL <- "https://www.dropbox.com/scl/fi/zf40e7is48qgvq3t2xqpf/AnalysisR_LinkOrgsBase_29PT9M_2024-02-13.zip?rlkey=g4q5kgko1q1umszbz34awsvic&dl=0"
+            ModelURL <- "https://www.dropbox.com/scl/fi/irzduuojtq13opz3hqpan/Analysis.zip?rlkey=i9nye1p3tkew00g50wpdwrx6x&dl=0"
+            WeightsURL <- "https://www.dropbox.com/scl/fi/5klzz36zjyhto4eef3vdi/LinkOrgsBase_29PT9M_2024-02-13_ilast.eqx?rlkey=icirb63feja9nv3kq6t5yow8p&dl=0"
+          }
+          if(ml_version == "v2"){ # 2^8 word, 2^8.75 for alias, 10k iters
+            ModelURL <- "https://www.dropbox.com/scl/fi/3rc7u27k1mszc6j9qehqq/AnalysisR_LinkOrgsBase_22PT9M_2024-02-25.zip?rlkey=qp2qclwpcypb43vq43h3wujzs&dl=0"
+            WeightsURL <- "https://www.dropbox.com/scl/fi/467ccsay1cos3baqiyy0k/LinkOrgsBase_22PT9M_2024-02-25_ilast.eqx?rlkey=5nyc0hovvmfj06srmc43mw2w6&dl=0"
+          }
+          if(ml_version == "v3"){ # 2^8 word, 2^9 for alias, 7k iters
+            ModelURL <- "https://www.dropbox.com/scl/fi/0lzgl5nyqyuebi94n13gy/AnalysisR_LinkOrgsBase_31PT3M_2024-02-26.zip?rlkey=svcuc8z02fg0hh2tn00s1jn9m&dl=0"
+            WeightsURL <- "https://www.dropbox.com/scl/fi/br8qs5w6nhl1ujgsot4wk/LinkOrgsBase_31PT3M_2024-02-26_ilast.eqx?rlkey=cdc8ao6zfkte4tk0dl0z5pnaw&dl=0"
+          }
+          if(ml_version == "v4"){ # 2^8 word, 2^9 for alias, 14k iters
+            #ModelURL <- "https://www.dropbox.com/scl/fi/w2rqhoja730ey8udfv344/AnalysisR_LinkOrgsBase_17PT3M_2024-02-29.zip.zip?rlkey=e9d2nnago8ng0vc9sguvd7rsu&dl=0"
+            ModelURL <- "https://www.dropbox.com/scl/fi/2mi3v3e88cao9dzw2mns6/AnalysisR_LinkOrgsBase_17PT3M_2024-02-29.zip?rlkey=85d1xgm24t0u8j3l4wl321i4f&dl=0"
+            WeightsURL <- "https://www.dropbox.com/scl/fi/zr4bziggj3nugrpovkxrm/LinkOrgsBase_17PT3M_2024-02-29_ilast.eqx?rlkey=b6f7i8dhuro62hlszm365vofi&dl=0"
+          }
+  
+          # process URLs
+          ModelURL <- dropboxURL2downloadURL(ModelURL); WeightsURL <- dropboxURL2downloadURL(WeightsURL)
+  
+          # download weights
+          download.file( WeightsURL, destfile = WeightsLoc )
+  
+          # download and unzip model
+          download.file( ModelURL, destfile = ModelZipLoc )
+          unzip(ModelZipLoc, exdir = ModelLoc)
+  
+          # download characters & save
+          charIndicators <- LinkOrgs::url2dt("https://www.dropbox.com/scl/fi/1jh8nrwsucfzj2gy9rydy/charIndicators.csv.zip?rlkey=wkhqk9x3550l364xbvnvnkoem&dl=0")
+          data.table::fwrite(charIndicators, file = CharIndicatorsLoc)
         }
-        if(ml_version == "v1"){
-          # ModelURL <- "https://www.dropbox.com/scl/fi/zf40e7is48qgvq3t2xqpf/AnalysisR_LinkOrgsBase_29PT9M_2024-02-13.zip?rlkey=g4q5kgko1q1umszbz34awsvic&dl=0"
-          ModelURL <- "https://www.dropbox.com/scl/fi/irzduuojtq13opz3hqpan/Analysis.zip?rlkey=i9nye1p3tkew00g50wpdwrx6x&dl=0"
-          WeightsURL <- "https://www.dropbox.com/scl/fi/5klzz36zjyhto4eef3vdi/LinkOrgsBase_29PT9M_2024-02-13_ilast.eqx?rlkey=icirb63feja9nv3kq6t5yow8p&dl=0"
-        }
-        if(ml_version == "v2"){ # 2^8 word, 2^8.75 for alias, 10k iters
-          ModelURL <- "https://www.dropbox.com/scl/fi/3rc7u27k1mszc6j9qehqq/AnalysisR_LinkOrgsBase_22PT9M_2024-02-25.zip?rlkey=qp2qclwpcypb43vq43h3wujzs&dl=0"
-          WeightsURL <- "https://www.dropbox.com/scl/fi/467ccsay1cos3baqiyy0k/LinkOrgsBase_22PT9M_2024-02-25_ilast.eqx?rlkey=5nyc0hovvmfj06srmc43mw2w6&dl=0"
-        }
-        if(ml_version == "v3"){ # 2^8 word, 2^9 for alias, 7k iters
-          ModelURL <- "https://www.dropbox.com/scl/fi/0lzgl5nyqyuebi94n13gy/AnalysisR_LinkOrgsBase_31PT3M_2024-02-26.zip?rlkey=svcuc8z02fg0hh2tn00s1jn9m&dl=0"
-          WeightsURL <- "https://www.dropbox.com/scl/fi/br8qs5w6nhl1ujgsot4wk/LinkOrgsBase_31PT3M_2024-02-26_ilast.eqx?rlkey=cdc8ao6zfkte4tk0dl0z5pnaw&dl=0"
-        }
-        if(ml_version == "v4"){ # 2^8 word, 2^9 for alias, 14k iters
-          #ModelURL <- "https://www.dropbox.com/scl/fi/w2rqhoja730ey8udfv344/AnalysisR_LinkOrgsBase_17PT3M_2024-02-29.zip.zip?rlkey=e9d2nnago8ng0vc9sguvd7rsu&dl=0"
-          ModelURL <- "https://www.dropbox.com/scl/fi/2mi3v3e88cao9dzw2mns6/AnalysisR_LinkOrgsBase_17PT3M_2024-02-29.zip?rlkey=85d1xgm24t0u8j3l4wl321i4f&dl=0"
-          WeightsURL <- "https://www.dropbox.com/scl/fi/zr4bziggj3nugrpovkxrm/LinkOrgsBase_17PT3M_2024-02-29_ilast.eqx?rlkey=b6f7i8dhuro62hlszm365vofi&dl=0"
-        }
-
-        # process URLs
-        ModelURL <- dropboxURL2downloadURL(ModelURL); WeightsURL <- dropboxURL2downloadURL(WeightsURL)
-
-        # download weights
-        download.file( WeightsURL, destfile = WeightsLoc )
-
-        # download and unzip model
-        download.file( ModelURL, destfile = ModelZipLoc )
-        unzip(ModelZipLoc, exdir = ModelLoc)
-
-        # download characters & save
-        charIndicators <- LinkOrgs::url2dt("https://www.dropbox.com/scl/fi/1jh8nrwsucfzj2gy9rydy/charIndicators.csv.zip?rlkey=wkhqk9x3550l364xbvnvnkoem&dl=0")
-        data.table::fwrite(charIndicators, file = CharIndicatorsLoc)
+  
+        # build model
+        print2("Re-building ML model...")
+        trainModel <- F; AnalysisName <- "LinkOrgs"
+        charIndicators <- as.matrix(data.table::fread(file = CharIndicatorsLoc))
+        
+        print2("Loading LinkOrgs_Helpers.R...")
+        source( sprintf('%s/Analysis/LinkOrgs_Helpers.R', ModelLoc), local = T )
+        
+        print2("Loading JaxTransformer_Imports.R...")
+        source( sprintf('%s/Analysis/JaxTransformer_Imports.R', ModelLoc), local = T )
+        
+        print2("Loading JaxTransformer_BuildML.R...")
+        source( sprintf('%s/Analysis/JaxTransformer_BuildML.R', ModelLoc), local = T )
+        
+        print2("Loading JaxTransformer_TrainDefine.R...")
+        source( sprintf('%s/Analysis/JaxTransformer_TrainDefine.R', ModelLoc), local = T )
+        print(sprintf( "Default device backend: %s", jax$default_backend())) 
+        
+        # obtain trained weights
+        print2("Applying trained weights...")
+        ModelList <- eq$tree_deserialise_leaves( WeightsLoc, list(ModelList, StateList, opt_state) )
+        StateList <- ModelList[[2]]; ModelList <- ModelList[[1]]
+  
+        print2(sprintf("Matching via name representations from ML models [%s]...", ml_version))
+        embedx <- NA2ColMean(
+                      GetAliasRep_BigBatch(gsub(tolower(x[[by.x]]), pattern = "\\s+", replace =" "), # unnormalized spaces result in NA (so we normalize)
+                                       nBatch_BigBatch = 50))
+        embedy <- NA2ColMean(
+                      GetAliasRep_BigBatch(gsub(tolower(y[[by.y]]), pattern = "\\s+", replace =" "),
+                                       nBatch_BigBatch = 50))
+        pFuzzyMatchFxn_touse <- pFuzzyMatch_euclidean
+        jax <<- jax; jnp <<- jnp; np <<- np
+    }
+    if(algorithm == "deezymatch"){
+      library( reticulate )
+      reticulate::use_condaenv("py39deezy")
+      DeezyMatch <- import("DeezyMatch")
+      pd <- import("pandas")
+      torch <- import("torch")
+      np <- import("numpy")
+      jax <- import("jax")
+      jnp <- import("jax.numpy")
+      pickle <- import("pickle")
+  
+      orig_wd <- getwd()
+      setwd( deezyLoc )
+      for(val_ in c("x","y")){
+        DatasetPath <- c( "./dataset/dataset-candidates_LINKORGS.txt")
+        input_ <- eval(parse(text =
+                  sprintf('enc2utf8(gsub(tolower(%s[[by.%s]]),
+                          pattern = "\\\\s+", replace =" "))', # [ir_]
+                          val_, val_)))
+        tmp <- strsplit(input_,split="")
+        input_ <- sapply(1:length(input_), function(s_){
+            # append to input with no letters to avoid problems in DeezyMatch
+            if(!any(letters %in% tmp[[s_]])){
+              input_[s_] <- paste0(input_[s_], " - inc")
+            }
+            input_[s_]
+        } )
+        writeLines(input_, con = DatasetPath)
+        file.remove( sprintf("./candidates/test2/embeddings/%s",
+                            list.files("./candidates/test2/embeddings")) )
+        DeezyMatch$inference(input_file_path="./inputs/input_dfm.yaml",
+                           dataset_path = DatasetPath,
+                           pretrained_model_path="./models/test001/test001.model",
+                           pretrained_vocab_path="./models/test001/test001.vocab",
+                           inference_mode="vect",
+                           scenario="./candidates/test2")
+        nBatches <- length(list.files("./candidates/test2/embeddings/")) / 3
+        embed <- sapply(0L:(nBatches-1L),function(b_){
+          list(cbind(
+                np$array( torch$load(sprintf("./candidates/test2/embeddings/rnn_indxs_%s",b_)) ),
+                np$array( torch$load(sprintf("./candidates/test2/embeddings/rnn_fwd_%s",b_)) ),
+                np$array( torch$load(sprintf("./candidates/test2/embeddings/rnn_bwd_%s",b_)) ) ))
+          })
+        embed <- (embed <- do.call(rbind,embed))[embed[,1]+1,-1]
+  
+        if(val_ == "x"){ embedx <- embed }
+        if(val_ == "y"){ embedy <- embed }; rm(embed)
+        file.remove( sprintf("./candidates/test2/embeddings/%s",
+                             list.files("./candidates/test2/embeddings")) )
       }
-
-      # build model
-      print2("Re-building ML model...")
-      trainModel <- F; AnalysisName <- "LinkOrgs"
-      charIndicators <- as.matrix(data.table::fread(file = CharIndicatorsLoc))
-      
-      print2("Loading LinkOrgs_Helpers.R...")
-      source( sprintf('%s/Analysis/LinkOrgs_Helpers.R', ModelLoc), local = T )
-      
-      print2("Loading JaxTransformer_Imports.R...")
-      source( sprintf('%s/Analysis/JaxTransformer_Imports.R', ModelLoc), local = T )
-      
-      print2("Loading JaxTransformer_BuildML.R...")
-      source( sprintf('%s/Analysis/JaxTransformer_BuildML.R', ModelLoc), local = T )
-      
-      print2("Loading JaxTransformer_TrainDefine.R...")
-      source( sprintf('%s/Analysis/JaxTransformer_TrainDefine.R', ModelLoc), local = T )
-      print(sprintf( "Default device backend: %s", jax$default_backend())) 
-      
-      # obtain trained weights
-      print2("Applying trained weights...")
-      ModelList <- eq$tree_deserialise_leaves( WeightsLoc, list(ModelList, StateList, opt_state) )
-      StateList <- ModelList[[2]]; ModelList <- ModelList[[1]]
-
-      print2(sprintf("Matching via name representations from ML models [%s]...", ml_version))
-      embedx <- NA2ColMean(
-                    GetAliasRep_BigBatch(gsub(tolower(x[[by.x]]), pattern = "\\s+", replace =" "), # unnormalized spaces result in NA (so we normalize)
-                                     nBatch_BigBatch = 50))
-      embedy <- NA2ColMean(
-                    GetAliasRep_BigBatch(gsub(tolower(y[[by.y]]), pattern = "\\s+", replace =" "),
-                                     nBatch_BigBatch = 50))
+  
+      setwd( orig_wd )
       pFuzzyMatchFxn_touse <- pFuzzyMatch_euclidean
       jax <<- jax; jnp <<- jnp; np <<- np
-  }
-  if(algorithm == "deezymatch"){
-    library( reticulate )
-    reticulate::use_condaenv("py39deezy")
-    DeezyMatch <- import("DeezyMatch")
-    pd <- import("pandas")
-    torch <- import("torch")
-    np <- import("numpy")
-    jax <- import("jax")
-    jnp <- import("jax.numpy")
-    pickle <- import("pickle")
-
-    orig_wd <- getwd()
-    setwd( deezyLoc )
-    for(val_ in c("x","y")){
-      DatasetPath <- c( "./dataset/dataset-candidates_LINKORGS.txt")
-      input_ <- eval(parse(text =
-                sprintf('enc2utf8(gsub(tolower(%s[[by.%s]]),
-                        pattern = "\\\\s+", replace =" "))', # [ir_]
-                        val_, val_)))
-      tmp <- strsplit(input_,split="")
-      input_ <- sapply(1:length(input_), function(s_){
-          # append to input with no letters to avoid problems in DeezyMatch
-          if(!any(letters %in% tmp[[s_]])){
-            input_[s_] <- paste0(input_[s_], " - inc")
-          }
-          input_[s_]
-      } )
-      writeLines(input_, con = DatasetPath)
-      file.remove( sprintf("./candidates/test2/embeddings/%s",
-                          list.files("./candidates/test2/embeddings")) )
-      DeezyMatch$inference(input_file_path="./inputs/input_dfm.yaml",
-                         dataset_path = DatasetPath,
-                         pretrained_model_path="./models/test001/test001.model",
-                         pretrained_vocab_path="./models/test001/test001.vocab",
-                         inference_mode="vect",
-                         scenario="./candidates/test2")
-      nBatches <- length(list.files("./candidates/test2/embeddings/")) / 3
-      embed <- sapply(0L:(nBatches-1L),function(b_){
-        list(cbind(
-              np$array( torch$load(sprintf("./candidates/test2/embeddings/rnn_indxs_%s",b_)) ),
-              np$array( torch$load(sprintf("./candidates/test2/embeddings/rnn_fwd_%s",b_)) ),
-              np$array( torch$load(sprintf("./candidates/test2/embeddings/rnn_bwd_%s",b_)) ) ))
-        })
-      embed <- (embed <- do.call(rbind,embed))[embed[,1]+1,-1]
-
-      if(val_ == "x"){ embedx <- embed }
-      if(val_ == "y"){ embedy <- embed }; rm(embed)
-      file.remove( sprintf("./candidates/test2/embeddings/%s",
-                           list.files("./candidates/test2/embeddings")) )
+      if(nrow(embedx) != nrow(x)){browser(); stop("DeezyMatch output mismatch!")}
+      if(nrow(embedy) != nrow(y)){browser(); stop("DeezyMatch output mismatch!")}
     }
-
-    setwd( orig_wd )
-    pFuzzyMatchFxn_touse <- pFuzzyMatch_euclidean
-    jax <<- jax; jnp <<- jnp; np <<- np
-    if(nrow(embedx) != nrow(x)){browser(); stop("DeezyMatch output mismatch!")}
-    if(nrow(embedy) != nrow(y)){browser(); stop("DeezyMatch output mismatch!")}
-  }
-  if(algorithm == "lookup"){
-    # old wayu 
-    # load("~/Dropbox/Directory/DataInputs/linkedIn_rawData.Rdata")
-
-    # load lookup data - new way 
-    {
-      # process URLs
-      lookupURL <- dropboxURL2downloadURL("https://www.dropbox.com/scl/fi/ct2qvgrr8jjh6959olrcg/linkedIn_rawData.Rdata?rlkey=v58cqpcccuksie8utobis4eov&dl=0")
+    if(algorithm == "lookup"){
+      # old wayu 
+      # load("~/Dropbox/Directory/DataInputs/linkedIn_rawData.Rdata")
+  
+      # load lookup data - new way 
+      {
+        # process URLs
+        lookupURL <- dropboxURL2downloadURL("https://www.dropbox.com/scl/fi/ct2qvgrr8jjh6959olrcg/linkedIn_rawData.Rdata?rlkey=v58cqpcccuksie8utobis4eov&dl=0")
+        
+        # download & unzip 
+        download.file( lookupURL, destfile = (lookupDest <- sprintf("%s/linkedIn_rawData.Rdata",
+                                                     paste0(find.package("LinkOrgs"),"/data") ) ))
+        load( lookupDest )
+      }
       
-      # download & unzip 
-      download.file( lookupURL, destfile = (lookupDest <- sprintf("%s/linkedIn_rawData.Rdata",
-                                                   paste0(find.package("LinkOrgs"),"/data") ) ))
-      load( lookupDest )
-    }
-    
-    directory_red <- my_data; rm(my_data)
-    directory_red$raw_names <- directory_red[,1]
-    directory_red[,1] <- tolower(directory_red[,1])
-    colnames(directory_red)[1:3] <- c("alias_name","canonical_id","weights") #colnames(directory)[1:3] <- c("from","to","weights")
-
-    # define matching metric
-    pFuzzyMatchFxn_touse <- pFuzzyMatch_discrete; DistanceMeasure <- "jaccard"
-
-    # descriptive stats -  to remove in future version 
-    if(T == F){
-      library(dplyr)
-
-      # Step 1: Combine into a data frame
-      df <- as.data.frame(data.frame("x" = directory[,1], "y"=directory[,2]))
-      #x <- c("a", "b", "c", "d", "e"); y <- c(1, 1, 2, 2, 2)
-      #df <- as.data.frame(data.frame("x" = x, "y"=y))
-
-      # Step 2: Process the data
-      result <- df %>%
-        distinct() %>% # Remove exact duplicates
-        group_by(y) %>%
-        mutate(unique_x = n_distinct(x)) %>% # Count unique x values per group
-        filter(unique_x > 1) %>% # Keep only groups with more than one unique x
-        ungroup() %>%
-        count('y') # Count occurrences
-
-      # To count the number of pairs where x are not equal but have the same y
-      sum(result$freq) - nrow(result)
-      total_pairs <- nrow(result)
-    }
-  }
-  if(algorithm == "transfer" | DistanceMeasure == "transfer"){
-    TransferModelLoc <- sprintf("%s/TransferLCoefs_tokenizer_parallelism_FALSE_model_bert-base-multilingual-uncased_layers_-1_device_cpu_logging_level_error_FullTRUE.csv", DownloadFolder)
-    if( !file.exists(TransferModelLoc) ){
-      transferCoefs_url <- "https://www.dropbox.com/s/b2lvc4illml68w5/TransferLCoefs_tokenizer_parallelism_FALSE_model_bert-base-multilingual-uncased_layers_-1_device_cpu_logging_level_error_FullTRUE.csv.zip?dl=0"
-      transferCoefs <- try(t(as.matrix(url2dt( transferCoefs_url )[-1,2])),T)
-      data.table::fwrite(transferCoefs, file = TransferModelLoc )
-    }
-
-    # load in transfer learning coefficients
-    transferCoefs <- data.table::fread( TransferModelLoc )
-
-    # build transfer learning platform
-    library(text); try(textrpp_initialize(),T)
-    BuildTransferText <- gsub(deparse1(BuildTransfer,collapse="\n"), pattern="function \\(\\)",replace="")
-    eval(parse(text = BuildTransferText))
-
-    print2("Matching via name representations from a LLM...")
-    py_gc <- reticulate::import("gc")
-    embedx <- getRepresentation_transfer( x[[by.x]] ); gc(); py_gc$collect()
-    embedy <- getRepresentation_transfer( y[[by.y]] ); gc(); py_gc$collect()
-    if( algorithm == "transfer" | DistanceMeasure == "transfer" ){ pFuzzyMatchFxn_touse <- pFuzzyMatch_euclidean }
-  }
-
-  if(algorithm %in% c("bipartite", "markov")){
-      # see https://techapple.net/2014/04/trick-obtain-direct-download-links-dropbox-files-dropbox-direct-link-maker-tool-cloudlinker/
-      if(algorithm == "bipartite"){ NetworkURL <- "https://dl.dropboxusercontent.com/s/tq675xfnnxjea4d/directory_data_bipartite_thresh40.zip?dl=0" }
-      if(algorithm == "markov"){ NetworkURL <- "https://dl.dropboxusercontent.com/s/ftt6ts6zrlnjqxp/directory_data_markov.zip?dl=0" }
-      DirectoryLoc <- gsub(DirectoryZipLoc <- sprintf('%s/Directory_%s.zip',
-                                DownloadFolder, algorithm ), pattern = "\\.zip", replace = "")
-      if(!dir.exists(sprintf("%s/Directory_%s/", DownloadFolder, algorithm) ) ){
-          download.file( NetworkURL, destfile = DirectoryZipLoc )
-          unzip(DirectoryZipLoc, exdir = DirectoryLoc)
+      directory_red <- my_data; rm(my_data)
+      directory_red$raw_names <- directory_red[,1]
+      directory_red[,1] <- tolower(directory_red[,1])
+      colnames(directory_red)[1:3] <- c("alias_name","canonical_id","weights") #colnames(directory)[1:3] <- c("from","to","weights")
+  
+      # define matching metric
+      pFuzzyMatchFxn_touse <- pFuzzyMatch_discrete; DistanceMeasure <- "jaccard"
+  
+      # descriptive stats -  to remove in future version 
+      if(T == F){
+        library(dplyr)
+  
+        # Step 1: Combine into a data frame
+        df <- as.data.frame(data.frame("x" = directory[,1], "y"=directory[,2]))
+        #x <- c("a", "b", "c", "d", "e"); y <- c(1, 1, 2, 2, 2)
+        #df <- as.data.frame(data.frame("x" = x, "y"=y))
+  
+        # Step 2: Process the data
+        result <- df %>%
+          distinct() %>% # Remove exact duplicates
+          group_by(y) %>%
+          mutate(unique_x = n_distinct(x)) %>% # Count unique x values per group
+          filter(unique_x > 1) %>% # Keep only groups with more than one unique x
+          ungroup() %>%
+          count('y') # Count occurrences
+  
+        # To count the number of pairs where x are not equal but have the same y
+        sum(result$freq) - nrow(result)
+        total_pairs <- nrow(result)
       }
-      load(sprintf("%s/%s/LinkIt_directory_%s_trigrams.Rdata",
-                   DirectoryLoc,
-                   ifelse(algorithm == "bipartite", yes = "directory_data_bipartite_thresh40", no = "directory_data_markov"),
-                   algorithm))
-      load(sprintf("%s/%s/LinkIt_directory_%s.Rdata",
-                   DirectoryLoc,
-                   ifelse(algorithm == "bipartite", yes = "directory_data_bipartite_thresh40", no = "directory_data_markov"),
-                   algorithm) )
-
-      directory <- data.table::as.data.table(directory)
-      directory_trigrams <- data.table::as.data.table(directory_trigrams)
-      if(ToLower == T){ directory_trigrams$trigram <- tolower(directory_trigrams$trigram) }
-      directory_trigrams <- directory_trigrams[!duplicated(paste(directory_trigrams$trigram,
-                                  directory_trigrams$alias_id,collapse="_")),]
-      print2( sprintf("Directory size: %i aliases",nrow( directory )  )); gc()
-
-      if( !algorithm %in% c("ml", "transfer", "deezymatch" ) ){
-      if( !DistanceMeasure %in% c("ml", "transfer", "deezymatch" ) ){
-        pFuzzyMatchFxn_touse <- pFuzzyMatch_discrete
-      } }
-
-      if(DistanceMeasure %in% c("ml")){
-        if(ml_version == "v0"){
-          if(algorithm == "bipartite"){ EmbeddingsURL <- "https://www.dropbox.com/scl/fi/bnp5yxy7pgr6lqk5hd54n/Directory_LinkIt_bipartite_Embeddings_v0.csv.gz?rlkey=bvdzkkg544ujogzy82eyceezn&dl=0" }
-          if(algorithm == "markov"){ EmbeddingsURL <- "https://www.dropbox.com/scl/fi/i8f5n93sxqw7jfyg6u8h5/Directory_LinkIt_markov_Embeddings_v0.csv.gz?rlkey=qxslvzxz0kn4n57mvoodadxif&dl=0" }
-        }
-        if(ml_version == "v1"){
-          if(algorithm == "bipartite"){ EmbeddingsURL <- "https://www.dropbox.com/scl/fi/20j96htp1qr6hnvj721qc/Directory_LinkIt_bipartite_Embeddings_v1.csv.gz?rlkey=i9gekn7rmuhidvu6pysanta9b&dl=0" }
-          if(algorithm == "markov"){ EmbeddingsURL <- "https://www.dropbox.com/scl/fi/zkl7x6yfr19nszlyak900/Directory_LinkIt_markov_Embeddings_v1.csv.gz?rlkey=506dspvnakihl9szp3kb02u6m&dl=0" }
-        }
-
-        EmbedddingsLoc <- sprintf("%s/Directory_LinkIt_%s_Embeddings_%s.csv.gz",
-                                  DownloadFolder, algorithm, ml_version)
-        if(!file.exists(EmbedddingsLoc)){
-          download.file(LinkOrgs::dropboxURL2downloadURL(EmbeddingsURL), destfile = EmbedddingsLoc)
-        }
-        linkedIn_embeddings <- NA2ColMean(as.matrix(data.table::fread(EmbedddingsLoc, showProgress = T))[,-1]); gc(); py_gc$collect()
-        # print(  sort( sapply(ls(),function(x){object.size(get(x))}))  )
+    }
+    if(algorithm == "transfer" | DistanceMeasure == "transfer"){
+      TransferModelLoc <- sprintf("%s/TransferLCoefs_tokenizer_parallelism_FALSE_model_bert-base-multilingual-uncased_layers_-1_device_cpu_logging_level_error_FullTRUE.csv", DownloadFolder)
+      if( !file.exists(TransferModelLoc) ){
+        transferCoefs_url <- "https://www.dropbox.com/s/b2lvc4illml68w5/TransferLCoefs_tokenizer_parallelism_FALSE_model_bert-base-multilingual-uncased_layers_-1_device_cpu_logging_level_error_FullTRUE.csv.zip?dl=0"
+        transferCoefs <- try(t(as.matrix(url2dt( transferCoefs_url )[-1,2])),T)
+        data.table::fwrite(transferCoefs, file = TransferModelLoc )
       }
+  
+      # load in transfer learning coefficients
+      transferCoefs <- data.table::fread( TransferModelLoc )
+  
+      # build transfer learning platform
+      library(text); try(textrpp_initialize(),T)
+      BuildTransferText <- gsub(deparse1(BuildTransfer,collapse="\n"), pattern="function \\(\\)",replace="")
+      eval(parse(text = BuildTransferText))
+  
+      print2("Matching via name representations from a LLM...")
+      py_gc <- reticulate::import("gc")
+      embedx <- getRepresentation_transfer( x[[by.x]] ); gc(); py_gc$collect()
+      embedy <- getRepresentation_transfer( y[[by.y]] ); gc(); py_gc$collect()
+      if( algorithm == "transfer" | DistanceMeasure == "transfer" ){ pFuzzyMatchFxn_touse <- pFuzzyMatch_euclidean }
+    }
+  
+    if(algorithm %in% c("bipartite", "markov")){
+        # see https://techapple.net/2014/04/trick-obtain-direct-download-links-dropbox-files-dropbox-direct-link-maker-tool-cloudlinker/
+        if(algorithm == "bipartite"){ NetworkURL <- "https://dl.dropboxusercontent.com/s/tq675xfnnxjea4d/directory_data_bipartite_thresh40.zip?dl=0" }
+        if(algorithm == "markov"){ NetworkURL <- "https://dl.dropboxusercontent.com/s/ftt6ts6zrlnjqxp/directory_data_markov.zip?dl=0" }
+        DirectoryLoc <- gsub(DirectoryZipLoc <- sprintf('%s/Directory_%s.zip',
+                                  DownloadFolder, algorithm ), pattern = "\\.zip", replace = "")
+        if(!dir.exists(sprintf("%s/Directory_%s/", DownloadFolder, algorithm) ) ){
+            download.file( NetworkURL, destfile = DirectoryZipLoc )
+            unzip(DirectoryZipLoc, exdir = DirectoryLoc)
+        }
+        load(sprintf("%s/%s/LinkIt_directory_%s_trigrams.Rdata",
+                     DirectoryLoc,
+                     ifelse(algorithm == "bipartite", yes = "directory_data_bipartite_thresh40", no = "directory_data_markov"),
+                     algorithm))
+        load(sprintf("%s/%s/LinkIt_directory_%s.Rdata",
+                     DirectoryLoc,
+                     ifelse(algorithm == "bipartite", yes = "directory_data_bipartite_thresh40", no = "directory_data_markov"),
+                     algorithm) )
+  
+        directory <- data.table::as.data.table(directory)
+        directory_trigrams <- data.table::as.data.table(directory_trigrams)
+        if(ToLower == T){ directory_trigrams$trigram <- tolower(directory_trigrams$trigram) }
+        directory_trigrams <- directory_trigrams[!duplicated(paste(directory_trigrams$trigram,
+                                    directory_trigrams$alias_id,collapse="_")),]
+        print2( sprintf("Directory size: %i aliases",nrow( directory )  )); gc()
+  
+        if( !algorithm %in% c("ml", "transfer", "deezymatch" ) ){
+        if( !DistanceMeasure %in% c("ml", "transfer", "deezymatch" ) ){
+          pFuzzyMatchFxn_touse <- pFuzzyMatch_discrete
+        } }
+  
+        if(DistanceMeasure %in% c("ml")){
+          if(ml_version == "v0"){
+            if(algorithm == "bipartite"){ EmbeddingsURL <- "https://www.dropbox.com/scl/fi/bnp5yxy7pgr6lqk5hd54n/Directory_LinkIt_bipartite_Embeddings_v0.csv.gz?rlkey=bvdzkkg544ujogzy82eyceezn&dl=0" }
+            if(algorithm == "markov"){ EmbeddingsURL <- "https://www.dropbox.com/scl/fi/i8f5n93sxqw7jfyg6u8h5/Directory_LinkIt_markov_Embeddings_v0.csv.gz?rlkey=qxslvzxz0kn4n57mvoodadxif&dl=0" }
+          }
+          if(ml_version == "v1"){
+            if(algorithm == "bipartite"){ EmbeddingsURL <- "https://www.dropbox.com/scl/fi/20j96htp1qr6hnvj721qc/Directory_LinkIt_bipartite_Embeddings_v1.csv.gz?rlkey=i9gekn7rmuhidvu6pysanta9b&dl=0" }
+            if(algorithm == "markov"){ EmbeddingsURL <- "https://www.dropbox.com/scl/fi/zkl7x6yfr19nszlyak900/Directory_LinkIt_markov_Embeddings_v1.csv.gz?rlkey=506dspvnakihl9szp3kb02u6m&dl=0" }
+          }
+  
+          EmbedddingsLoc <- sprintf("%s/Directory_LinkIt_%s_Embeddings_%s.csv.gz",
+                                    DownloadFolder, algorithm, ml_version)
+          if(!file.exists(EmbedddingsLoc)){
+            download.file(LinkOrgs::dropboxURL2downloadURL(EmbeddingsURL), destfile = EmbedddingsLoc)
+          }
+          linkedIn_embeddings <- NA2ColMean(as.matrix(data.table::fread(EmbedddingsLoc, showProgress = T))[,-1]); gc(); py_gc$collect()
+          # print(  sort( sapply(ls(),function(x){object.size(get(x))}))  )
+        }
+    }
+    if(algorithm == "fuzzy"){ pFuzzyMatchFxn_touse <- pFuzzyMatch_discrete }
   }
-  if(algorithm == "fuzzy"){ pFuzzyMatchFxn_touse <- pFuzzyMatch_discrete }
-
   # check object sizes
   # print(  sort( sapply(ls(),function(x){object.size(get(x))}))  )
 
