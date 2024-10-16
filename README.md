@@ -129,16 +129,16 @@ MIT License.
 
 ## References 
 
-Brian Libgober, Connor T. Jerzak. "Linking Datasets on Organizations Using Half-a-billion Open-collaborated Records." *ArXiv Preprint*, 2023.
-[[PDF]](https://arxiv.org/pdf/2302.02533.pdf) [[Data]](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/EHRQQL&faces-redirect=true)
+Brian Libgober, Connor T. Jerzak. "Linking Datasets on Organizations Using Half-a-billion Open-collaborated Records." *Political Science Methods and Research*, 2024.
+[[PDF]](https://doi.org/10.1017/psrm.2024.55) [[Data]](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/EHRQQL&faces-redirect=true)
 ```
-@article{libgober2023linking,
+@article{libgober2024linking,
   title={Linking Datasets on Organizations Using Half a Billion Open-Collaborated Records},
   author={Libgober, Brian and Connor T. Jerzak},
-  journal={ArXiv Preprint},
-  year={2023},
+  journal={Political Science Methods and Research},
+  year={2024},
   pages={},
-  publisher={}
+  publisher={Cambridge University Press}
 }
 ```
 
