@@ -7,7 +7,7 @@
 | [**References**](#references)
 | [**Documentation**](https://github.com/cjerzak/LinkOrgs-software/blob/master/LinkOrgs.pdf)
 
-*March 2, 2024:* `LinkOrgs` has been rebuilt with a [JAX](https://en.wikipedia.org/wiki/Google_JAX) machine learning backend for improved computational efficiency and we're currently adding locality sensitive hashing from [zoomerjoin](http://beniamino.org/zoomerjoin/) for better handling of massive merge tasks (> 1 million observations in each data corpus). The re-build is experimental, so let us know if you come across any issues. You can also check out another, possibly easier to use, implementation [here](https://github.com/beniaminogreen/linkorgsonnx). 
+*March 2, 2024:* `LinkOrgs` has been rebuilt with a [JAX](https://en.wikipedia.org/wiki/Google_JAX) machine learning backend for improved computational efficiency and we're currently adding locality sensitive hashing from [zoomerjoin](http://beniamino.org/zoomerjoin/) for better handling of massive merge tasks (> 1 million observations in each data corpus). The re-build is experimental, so let us know if you come across any issues. **You can also check out new, easier to use, implementation [here](https://github.com/beniaminogreen/linkorgsonnx).**
 
 ## Installation
 The most recent version of `LinkOrgs` can be installed directly from the repository using the `devtools` package
