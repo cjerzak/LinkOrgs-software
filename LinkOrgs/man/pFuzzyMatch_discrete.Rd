@@ -11,6 +11,7 @@ pFuzzyMatch_discrete(
   y = NULL,
   by.y = NULL,
   embedy = NULL,
+  embedDistMetric = NULL,
   MaxDist = NULL,
   qgram = 2,
   DistanceMeasure = "jaccard",

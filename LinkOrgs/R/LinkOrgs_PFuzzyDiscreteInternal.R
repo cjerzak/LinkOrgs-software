@@ -53,7 +53,7 @@
 #' @export
 #' @md
 
-pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL,
+pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, embedDistMetric = NULL, 
                            return_stringdist = T, onlyUFT = T,
                            qgram =2, DistanceMeasure = "jaccard", MaxDist = 0.20,
                            ReturnProgress=T, nCores = NULL, 

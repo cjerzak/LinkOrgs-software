@@ -10,6 +10,7 @@ pDistMatch_discrete(
   by = NULL,
   by.x = NULL,
   by.y = NULL,
+  embedDistMetric = NULL,
   return_stringdist = T,
   onlyUFT = T,
   qgram = 2,

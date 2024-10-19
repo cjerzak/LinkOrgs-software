@@ -40,7 +40,7 @@
 #' @export
 #' @md
 #'
-pDistMatch_euclidean <- function(embedx, embedy, MaxDist = NULL, ReturnProgress = T){
+pDistMatch_euclidean <- function(embedx, embedy, MaxDist = NULL, embedDistMetric=NULL, ReturnProgress = T){
   # parallelized distance matching
 
   # broadcast across larger matrix for fast vectorization
@@ -89,13 +89,16 @@ pDistMatch_euclidean <- function(embedx, embedy, MaxDist = NULL, ReturnProgress 
   print2(sprintf("Starting parallel Euclidean distance calculations with dim(x) = [%s, %s] and dim(y) = [%s, %s]...",
                 dim(embedx)[1], dim(embedx)[2], dim(embedy)[2], dim(embedy)[1]))
 
-  # open browser to analyze performance in large n case
-   #if(ncol(embedy) > 100000){ browser() }
-
   if("jax" %in% ls()){
     embedy <- jnp$array(embedy, dtype = jnp$float16)
     ColDists_jit <- jax$jit(function(an_x){
-      jnp$sqrt( 0.0001 + jnp$sum( (jnp$expand_dims(an_x,1L) - embedy)^2, 0L) )
+      if(is.null(embedDistMetric)){  # return euclidean 
+        val_ <- jnp$sqrt( 0.0001 + jnp$mean( (jnp$expand_dims(an_x,1L) - embedy)^2, 0L) )
+      }   
+      if(!is.null(embedDistMetric)){  # compute custom value 
+        val_ <- embedDistMetric(jnp$expand_dims(an_x,1L), embedy)
+      }
+      return( val_ )
     })
   }
 

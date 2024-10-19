@@ -24,7 +24,7 @@
 
 pFuzzyMatch_discrete <- function(
     x = NULL, by.x = NULL, embedx = NULL,
-    y = NULL, by.y = NULL, embedy = NULL,
+    y = NULL, by.y = NULL, embedy = NULL, embedDistMetric = NULL, 
     MaxDist = NULL,
     qgram = 2, DistanceMeasure = "jaccard",
     AveMatchNumberPerAlias = NULL,

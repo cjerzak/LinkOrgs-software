@@ -56,7 +56,7 @@
 #' @md
 
 LinkOrgs <- function(x, y, by = NULL, by.x = NULL,by.y = NULL,
-                    embedx = NULL, embedy = NULL, 
+                    embedx = NULL, embedy = NULL, embedDistMetric = NULL, 
                     algorithm = "ml",
                     conda_env = "CondaEnv_LinkOrgs", conda_env_required = T,
                     ReturnDiagnostics = F, ReturnProgress = T,

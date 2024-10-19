@@ -11,6 +11,7 @@ pFuzzyMatch_euclidean(
   y = NULL,
   by.y = NULL,
   embedy = NULL,
+  embedDistMetric = NULL,
   MaxDist = NULL,
   AveMatchNumberPerAlias = NULL,
   ...
