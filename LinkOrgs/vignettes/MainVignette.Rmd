@@ -8,141 +8,298 @@ vignette: >
   %\usepackage[UTF-8]{inputenc}
 ---
 
-## Introduction
-
-This vignette demonstrates how to use the fastrerandomize package for generating and testing experimental designs in an agricultural study setting based on: 
-
-* Burchardi, K.B., Gulesci, S., Lerva, B. and Sulaiman, M., 2019. Moral hazard: Experimental Evidence from Tenancy Contracts. The Quarterly Journal of Economics, 134(1), pp.281-347.
-
-We will walk through:
-
-* Generating synthetic covariate data
-* Creating candidate randomizations
-* Exploring the S3 methods for printing, summarizing, and plotting randomization objects
-* Conducting a randomization-based inference test
-
-Note: This tutorial assumes you have installed the fastrerandomize package, either from source or via GitHub:
-
-```{r setup, eval=FALSE}
-# If you haven't installed or set up the package:
-# devtools::install_github("cjerzak/fastrerandomize-software/fastrerandomize")
-
-# (Done once) Optionally build the JAX backend if needed
-# fastrerandomize::build_backend()
-
-# note that this vignette can be found like so: 
-# vignette(package = "fastrerandomize")
-```
-
-## 1. Obtain Pre-treatment Covariate Data
-
-For illustration, we use several pre-treatment covariates from the original experiment. 
-
-```{r generate_covariates}
-library(fastrerandomize)
-
-# Obtain pre-treatment covariates 
-data(QJEData, package = "fastrerandomize")
-myCovariates <- c("children","married","hh_size","hh_sexrat")
-QJEData <- QJEData[!is.na(rowSums(QJEData[,myCovariates])),]
-X <- QJEData[,myCovariates]
-  
-# Analysis parameters
-n_units   <- nrow(X)
-n_treated <- round(nrow(X)/2)
-```
-
-## 2. Generate Randomizations
-
-We now create our candidate randomizations using the function `generate_randomizations()` from fastrerandomize. Depending on the scale and complexity of your experiment, you may choose either exact enumeration ("exact") or Monte Carlo ("monte_carlo") randomization.
-
-In this example, we'll use the exact approach, but note that `randomization_accept_prob` is set very low (0.0001) for demonstration, so that we can see some filtering in action.
-
-```{r generate_randomizations}
-RunMainAnalysis <- (!is.null(check_jax_availability()) )
-# if FALSE, consider calling build_backend()
-
-if(RunMainAnalysis){
-CandRandomizations <- generate_randomizations(
-  n_units = n_units,
-  n_treated = n_treated,
-  X = X,
-  randomization_type = "monte_carlo", 
-  max_draws = 100000L,
-  batch_size = 1000L,
-  randomization_accept_prob = 0.0001
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
 )
-}
 ```
 
-## 4. S3 Methods: Print, Summary, and Plot
+# LinkOrgs Tutorial
 
-`generate_randomizations()` returns an S3 object of class `fastrerandomize_randomizations`. We can use its associated print, summary, and plot methods to inspect the candidate randomizations.
+Organizations can appear in different datasets under slightly different names, or with substantially different aliases. Manually linking records can be time-consuming, especially when the datasets become large. **LinkOrgs** is an R package designed to automate much of this process. It leverages both string-based methods (e.g., fuzzy string matching), and machine-learning or network-based approaches trained on half a billion open-collaborated records from LinkedIn.
 
-```{r s3_methods}
-if(RunMainAnalysis){
-# 4a. Print the object
-print(CandRandomizations)
+In this tutorial, we will show you how to:
 
-# 4b. Summary
-summary(CandRandomizations)
+- **Install and set up the necessary environment for advanced ML-based matching** (using the `BuildBackend()` function).
+- **Use various matching techniques** (fuzzy string distance, transfer learning, network-based matching, etc.) with the main `LinkOrgs()` function.
+- **Assess your match quality** with `AssessMatchPerformance()`.
+- **Download and load remote data** using convenience functions like `url2dt()`.
 
-# 4c. Plot the balance distribution
-plot(CandRandomizations)
-}
+Throughout, we will provide practical examples you can run immediately. For a broader explanation and academic references behind these methods, please see the GitHub repository and associated paper.
+
+# Installation
+
+You can install LinkOrgs directly from the GitHub repository as follows:
+
+```{r}
+# install.packages("remotes") # if you haven't installed 'remotes' previously
+remotes::install_github("cjerzak/LinkOrgs-software/LinkOrgs")
 ```
 
-## 3. Randomization Test
+This will install the package along with its R-based dependencies.
 
-Next, we showcase a randomization-based inference procedure using fastrerandomize.
+However, if you plan on using the machine learning (ML) linkage methods (`algorithm = "ml"` in `LinkOrgs()`), you also need Python packages such as JAX, Optax, equinox, and jmp. We bundle everything in a conda environment for convenience, so you should run `BuildBackend()` (described below) first.
 
-### 3a. Setup Simulated Outcomes
+# Building the Conda Backend (Optional, for ML-Based Matching)
 
-We simulate an outcome Y that depends on our covariates X, the chosen randomization, and some true treatment effect τ. Here, we pick the first acceptable randomization from our set as our "observed" assignment, Wobs.
+If you plan to rely only on fuzzy or network-based matching (as opposed to embedding-based ML matching), you can skip this step. But if you want to get the best performance from the advanced ML-based model, follow these steps to create a conda environment that has all the required Python dependencies:
 
-```{r setup_outcomes}
-if(RunMainAnalysis){
-CoefY <- rnorm(ncol(X))          # Coefficients for outcome model
-Wobs  <- CandRandomizations$randomizations[1, ]  # use the 1st acceptable randomization
-tau_true <- 1                     # true treatment effect
-# Generate Y = X * Coef + W*tau + noise
-Yobs <- as.numeric( as.matrix(X) %*% as.matrix(CoefY) + Wobs * tau_true + rnorm(n_units, sd = 0.1))
-}
+```{r}
+library(LinkOrgs)
+
+# This function calls reticulate::conda_create() under the hood to create a new conda env
+#BuildBackend(conda_env = "LinkOrgsEnv",  # or choose a custom name
+             #conda = "auto",
+             #tryMetal = TRUE)
 ```
 
-### 3b. Run the Randomization Test
+- `conda_env = "LinkOrgsEnv"` sets the name of your environment.
+- `conda = "auto"` tries to automatically find a conda binary.
+- `tryMetal = TRUE` attempts to install Metal acceleration on Apple Silicon machines.
 
-We pass our observed treatment assignment (`obsW`), observed outcomes (`obsY`), and the full matrix of candidate randomizations (`candidate_randomizations`) to `randomization_test()`. This test:
+**Tip:** If you see any errors about "Conda environment not found," check that you have conda properly installed and that reticulate can locate it.
 
-* Computes the observed difference in means
-* Permutes the treatment assignment across our candidate randomizations
-* Estimates the p-value by comparing the observed statistic to its permutation distribution
+## Core Matching via LinkOrgs()
 
-```{r randomization_test}
-if(RunMainAnalysis){
-randomization_test_results <- randomization_test(
-  obsW = Wobs,
-  obsY = Yobs,
-  candidate_randomizations = CandRandomizations$randomizations,
-  findFI = TRUE
+The main workhorse function for linking two datasets by organization names is `LinkOrgs()`. It provides multiple methods under the hood:
+
+- **Fuzzy String Distance:** For example, Jaccard or other stringdist measures.
+- **ML:** A neural model that transforms each organization name into an embedding, then uses Euclidean distances to find matches.
+- **Network-based:** Markov or Bipartite-based matching using a directory of tens of millions of aliases from LinkedIn.
+- **Ensemble:** A combination of ML and network-based approaches for best performance, albeit with heavier computation.
+
+### Minimal Example (Fuzzy Matching)
+
+If you just want to do a quick fuzzy match on two small data frames, run:
+
+```{r}
+# Let's create two synthetic datasets:
+x_orgnames <- c("apple","oracle","enron inc.","mcdonalds corporation")
+y_orgnames <- c("apple corp","oracle inc","enron","mcdonalds co")
+
+x <- data.frame("orgnames_x" = x_orgnames)
+y <- data.frame("orgnames_y" = y_orgnames)
+
+# A straightforward fuzzy match with default settings:
+linkedOrgs_fuzzy <- LinkOrgs(x = x,
+                             y = y,
+                             by.x = "orgnames_x",
+                             by.y = "orgnames_y",
+                             # MaxDist is a maximum allowed fuzzy distance
+                             MaxDist = 0.5,
+                             DistanceMeasure = "jaccard",
+                             algorithm = "fuzzy")
+
+linkedOrgs_fuzzy
+```
+
+Here:
+
+- `DistanceMeasure = "jaccard"` controls the string distance measure used.
+- `MaxDist = 0.5` sets the maximum “distance” for which a match is still acceptable. Adjust as needed.
+- `algorithm = "fuzzy"` ensures we use purely string-based matching.
+
+### ML Embedding Approach
+
+The real power of LinkOrgs is the advanced ML-based approach that uses a learned embedding space. If you ran `BuildBackend()` and have a suitable conda environment, you can do:
+
+```{r}
+linkedOrgs_ml <- LinkOrgs(x = x,
+                          y = y,
+                          by.x = "orgnames_x",
+                          by.y = "orgnames_y",
+                          MaxDist = 2.0,  # Euclidean distance in embedding space
+                          algorithm = "ml",
+                          conda_env = "LinkOrgsEnv")
+                          
+linkedOrgs_ml
+```
+
+- `algorithm = "ml"` instructs `LinkOrgs()` to use ML-based distance computations.
+- `MaxDist = 2.0` is an approximate threshold in the learned embedding space. You can experiment with different values or rely on the built-in calibration `AveMatchNumberPerAlias` to set a more automatic threshold.
+
+### Network + ML (Ensemble)
+
+The “ensemble” approach merges the strengths of ML embeddings and the LinkedIn network. You can access it by setting:
+
+```{r}
+linkedOrgs_ensemble <- LinkOrgs(x = x,
+                                y = y,
+                                by.x = "orgnames_x",
+                                by.y = "orgnames_y",
+                                MaxDist_network = 2.0,
+                                algorithm = "bipartite",  # or "markov"
+                                DistanceMeasure = "ml",
+                                conda_env = "LinkOrgsEnv")
+```
+
+This can be more computationally heavy because:
+
+- Each observation in `x` and `y` is first matched to the LinkedIn directory.
+- We find the best canonical “community” or “alias ID.”
+- We also rely on the ML embeddings to refine link quality.
+
+In small tasks, the difference might be minor, but in larger tasks with trickier alias issues, the ensemble often yields higher recall at the same precision.
+
+## Checking Match Performance via AssessMatchPerformance()
+
+If you have a ground truth set of matches (often from manual or expert-coded data), you can easily assess how well your new algorithmic matches did with:
+
+```{r}
+# Synthetic example: 
+x_orgnames <- c("apple","oracle","enron inc.","mcdonalds corporation")
+y_orgnames <- c("apple corp","oracle inc","enron","mcdonalds co")
+
+x <- data.frame("orgnames_x"=x_orgnames)
+y <- data.frame("orgnames_y"=y_orgnames)
+
+# Suppose z is your matched dataset from LinkOrgs (or anything else)
+z <- data.frame("orgnames_x"=x_orgnames[1:2], 
+                "orgnames_y"=y_orgnames[1:2])
+
+# Suppose z_true is your best ground truth:
+z_true <- data.frame("orgnames_x"=x_orgnames, 
+                     "orgnames_y"=y_orgnames)
+
+# Evaluate:
+PerformanceMatrix <- AssessMatchPerformance(x = x,
+                                           y = y,
+                                           z = z,
+                                           z_true = z_true,
+                                           by.x = "orgnames_x",
+                                           by.y = "orgnames_y")
+
+PerformanceMatrix
+```
+
+The output is a named vector with:
+
+- `TruePositives`
+- `FalsePositives`
+- `FalseNegatives`
+- `TrueNegatives`
+- `MatchedDatasetSize`
+
+These statistics are especially helpful when systematically adjusting match thresholds (e.g., `MaxDist`) to see how the false positive / false negative tradeoffs vary.
+
+## Downloading and Loading Remote Data: url2dt() and dropboxURL2downloadURL()
+
+If you store large CSVs or ZIP files of data (possibly for replication) on Dropbox, the LinkOrgs package provides convenience functions for automatic downloading and importing into R:
+
+```{r}
+# Download a zipped CSV from a Dropbox link and read it as a data.table
+my_dt <- url2dt(url = "https://www.dropbox.com/s/iqf9ids77dckopf/Directory_LinkIt_bipartite_Embeddings.csv.zip?dl=0")
+
+# Internally, url2dt uses dropboxURL2downloadURL() to fix the link so that
+# it becomes a direct download (dl.dropboxusercontent.com).
+
+# The function creates a temporary folder, downloads the file, unzips it, and returns a data.table.
+```
+
+## Utility Functions
+
+A few additional utility functions included in LinkOrgs:
+
+- `print2()`: A simple wrapper to print messages with timestamps. Handy for monitoring batch matching progress.
+- `f2n()`: Convert factors to numeric (commonly used internally).
+- `NA2ColMean()`: Impute missing numeric columns with column means.
+
+## Tips for Large-Scale Matching
+
+- **Parallelization:** Some matching routines within `LinkOrgs()` (e.g., discrete fuzzy matching) automatically attempt to parallelize using `doParallel` if your dataset is large. You can override the number of cores with `nCores = <number>` in `LinkOrgs()` or inside the distance functions.
+- **Threshold Tuning:** If you do not specify `MaxDist` but do provide `AveMatchNumberPerAlias`, the package attempts to calibrate an appropriate threshold on a random sample of names from your data. This often speeds up the development workflow.
+- **Network-based Approach:** Linking to the massive LinkedIn directory can take time. If you have thousands of organizations, be prepared for a multi-hour process. Consider saving partial results or focusing on subsets of your data first.
+
+## Example: Bringing Everything Together
+
+Below is a more fully featured example that shows a typical workflow using LinkOrgs. It uses fuzzy matching, then tries an ML-based approach, compares performances, and picks a threshold that balances false positives and false negatives:
+
+```{r}
+library(LinkOrgs)
+
+### 1. Suppose we have two large data frames:
+###    lobbying_data (org name in col "lobby_org") 
+###    finance_data  (org name in col "ticker_org")
+
+# For illustration, use smaller synthetic ones
+lobbying_data <- data.frame("lobby_org" = c("International Business Machs", 
+                                            "microsft", 
+                                            "Oracle inc."))
+finance_data  <- data.frame("ticker_org"  = c("Microsoft Corporation", 
+                                              "International Business Machines", 
+                                              "Micron Tech", 
+                                              "Oracle corp"))
+
+### 2. Fuzzy matching approach:
+fuzzy_matches <- LinkOrgs(
+  x = lobbying_data,
+  y = finance_data,
+  by.x = "lobby_org",
+  by.y = "ticker_org",
+  algorithm = "fuzzy",
+  DistanceMeasure = "jaccard",
+  MaxDist = 0.7
 )
 
-# Inspect results
-print(randomization_test_results)
-summary(randomization_test_results)
-plot(randomization_test_results)
-}
+### 3. ML approach (requires conda environment):
+# BuildBackend(conda_env = "LinkOrgsEnv") # if not done yet
+ml_matches <- LinkOrgs(
+  x = lobbying_data,
+  y = finance_data,
+  by.x = "lobby_org",
+  by.y = "ticker_org",
+  algorithm = "ml",
+  # We want an automatic threshold based on about 3 matches per name on average:
+  AveMatchNumberPerAlias = 3,
+  conda_env = "LinkOrgsEnv"
+)
+
+### 4. Evaluate with a small ground truth set (hypothetical):
+z_true <- data.frame(
+  "lobby_org" = c("International Business Machs", "microsft", "Oracle inc."),
+  "ticker_org" = c("International Business Machines", "Microsoft Corporation", 
+                   "Oracle corp")
+)
+
+Perf_fuzzy <- AssessMatchPerformance(
+  x = lobbying_data,
+  y = finance_data,
+  z = fuzzy_matches,
+  z_true = z_true,
+  by.x = "lobby_org",
+  by.y = "ticker_org"
+)
+
+Perf_ml <- AssessMatchPerformance(
+  x = lobbying_data,
+  y = finance_data,
+  z = ml_matches,
+  z_true = z_true,
+  by.x = "lobby_org",
+  by.y = "ticker_org"
+)
+
+Perf_fuzzy
+Perf_ml
+
+# Typically, the ML approach will better match "microsft" to "Microsoft Corporation"
+# and "International Business Machs" to "International Business Machines".
 ```
 
-The `findFI = TRUE` flag further attempts to locate a fiducial interval (FI) for the treatment effect.
+# Conclusion
 
-## Conclusion
+That’s it! You’ve seen how to install the LinkOrgs package, build a conda environment for advanced ML matching, run the main function with various algorithms, and evaluate your matches.
 
-This tutorial demonstrated a basic workflow with fastrerandomize:
+**Key points to remember:**
 
-* Generating synthetic or real covariate data
-* Producing a set of acceptable treatment assignments via randomization
-* Visualizing and summarizing these assignments
-* Testing for treatment effects with a randomization-based approach
+- For purely string-based matching, setting `algorithm = "fuzzy"` is simplest.
+- For advanced, learned embeddings (more robust but requires more setup), use `algorithm = "ml"`.
+- For network-based matching, set `algorithm = "bipartite"` or `algorithm = "markov"`. These methods leverage half-a-billion open-collaborated records from LinkedIn to refine your matches, especially if you are matching large corpora.
+- If you want both network-based and ML approaches at once, set `algorithm = "bipartite"` or `markov` and `DistanceMeasure = "ml"`.
+- Use `AssessMatchPerformance()` to systematically analyze your match quality if you have a hand-coded or otherwise “ground truth” dataset.
 
-We encourage you to consult the package documentation for more advanced functionalities, including GPU-accelerated computations via JAX and flexible definitions of balance criteria in addition to what was shown here.
+For more information, see the function reference in our GitHub repo. Feel free to file an issue or pull request there if you encounter difficulties.
+
+Enjoy streamlined organization record linking with LinkOrgs!
+
