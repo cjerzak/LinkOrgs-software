@@ -27,7 +27,7 @@ BuildBackend <- function(conda_env = "LinkOrgsEnv", conda = "auto", tryMetal = T
                         "tensorflow_probability==0.23",
                         "jax==0.4.26",
                         "jaxlib==0.4.26",
-                        "ml_dtypes==0.4.0",
+                        "ml_dtypes==0.3.0",
                         "optax==0.2.2",
                         "equinox==0.11.4",
                         "jmp==0.0.4")
