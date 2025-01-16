@@ -50,8 +50,7 @@ library(LinkOrgs)
 
 # This function calls reticulate::conda_create() under the hood to create a new conda env
 #BuildBackend(conda_env = "LinkOrgsEnv",  # or choose a custom name
-             #conda = "auto",
-             #tryMetal = TRUE)
+             #conda = "auto", tryMetal = TRUE)
 ```
 
 - `conda_env = "LinkOrgsEnv"` sets the name of your environment.
