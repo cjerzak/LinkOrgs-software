@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+<meta name="date" content="2025-01-15" />
+
+<title>LinkOrgs Package Tutorial</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">LinkOrgs Package Tutorial</h1>
+<h4 class="date">2025-01-15</h4>
+
+
+
+<div id="linkorgs-tutorial" class="section level1">
+<h1>LinkOrgs Tutorial</h1>
+<p>Organizations can appear in different datasets under slightly
+different names, or with substantially different aliases. Manually
+linking records can be time-consuming, especially when the datasets
+become large. <strong>LinkOrgs</strong> is an R package designed to
+automate much of this process. It leverages both string-based methods
+(e.g., fuzzy string matching), and machine-learning or network-based
+approaches trained on half a billion open-collaborated records from
+LinkedIn.</p>
+<p>In this tutorial, we will show you how to:</p>
+<ul>
+<li><strong>Install and set up the necessary environment for advanced
+ML-based matching</strong> (using the <code>BuildBackend()</code>
+function).</li>
+<li><strong>Use various matching techniques</strong> (fuzzy string
+distance, transfer learning, network-based matching, etc.) with the main
+<code>LinkOrgs()</code> function.</li>
+<li><strong>Assess your match quality</strong> with
+<code>AssessMatchPerformance()</code>.</li>
+<li><strong>Download and load remote data</strong> using convenience
+functions like <code>url2dt()</code>.</li>
+</ul>
+<p>Throughout, we will provide practical examples you can run
+immediately. For a broader explanation and academic references behind
+these methods, please see the GitHub repository and associated
+paper.</p>
+</div>
+<div id="installation" class="section level1">
+<h1>Installation</h1>
+<p>You can install LinkOrgs directly from the GitHub repository as
+follows:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># install.packages(&quot;remotes&quot;) # if you haven&#39;t installed &#39;remotes&#39; previously</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="co"># remotes::install_github(&quot;cjerzak/LinkOrgs-software/LinkOrgs&quot;)</span></span></code></pre></div>
+<p>This will install the package along with its R-based
+dependencies.</p>
+<p>However, if you plan on using the machine learning (ML) linkage
+methods (<code>algorithm = &quot;ml&quot;</code> in <code>LinkOrgs()</code>), you
+also need Python packages such as JAX, Optax, equinox, and jmp. We
+bundle everything in a conda environment for convenience, so you should
+run <code>BuildBackend()</code> (described below) first.</p>
+</div>
+<div id="building-the-conda-backend-optional-for-ml-based-matching" class="section level1">
+<h1>Building the Conda Backend (Optional, for ML-Based Matching)</h1>
+<p>If you plan to rely only on fuzzy or network-based matching (as
+opposed to embedding-based ML matching), you can skip this step. But if
+you want to get the best performance from the advanced ML-based model,
+follow these steps to create a conda environment that has all the
+required Python dependencies:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">library</span>(LinkOrgs)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="co">#&gt; Warning: replacing previous import &#39;Rfast::transpose&#39; by</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co">#&gt; &#39;data.table::transpose&#39; when loading &#39;LinkOrgs&#39;</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="co"># This function calls reticulate::conda_create() under the hood to create a new conda env</span></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="co">#LinkOrgs::BuildBackend(conda_env = &quot;LinkOrgsEnv&quot;,  # or choose custom name</span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>             <span class="co">#conda = &quot;auto&quot;, tryMetal = TRUE)</span></span></code></pre></div>
+<ul>
+<li><code>conda_env = &quot;LinkOrgsEnv&quot;</code> sets the name of your
+environment.</li>
+<li><code>conda = &quot;auto&quot;</code> tries to automatically find a conda
+binary.</li>
+<li><code>tryMetal = TRUE</code> attempts to install Metal acceleration
+on Apple Silicon machines.</li>
+</ul>
+<p><strong>Tip:</strong> If you see any errors about “Conda environment
+not found,” check that you have conda properly installed and that
+reticulate can locate it.</p>
+<div id="core-matching-via-linkorgs" class="section level2">
+<h2>Core Matching via LinkOrgs()</h2>
+<p>The main workhorse function for linking two datasets by organization
+names is <code>LinkOrgs()</code>. It provides multiple methods under the
+hood:</p>
+<ul>
+<li><strong>Fuzzy String Distance:</strong> For example, Jaccard or
+other stringdist measures.</li>
+<li><strong>ML:</strong> A neural model that transforms each
+organization name into an embedding, then uses Euclidean distances to
+find matches.</li>
+<li><strong>Network-based:</strong> Markov or Bipartite-based matching
+using a directory of tens of millions of aliases from LinkedIn.</li>
+<li><strong>Ensemble:</strong> A combination of ML and network-based
+approaches for best performance, albeit with heavier computation.</li>
+</ul>
+<div id="minimal-example-fuzzy-matching" class="section level3">
+<h3>Minimal Example (Fuzzy Matching)</h3>
+<p>If you just want to do a quick fuzzy match on two small data frames,
+run:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Let&#39;s create two synthetic datasets:</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>x_orgnames <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;apple&quot;</span>,<span class="st">&quot;oracle&quot;</span>,<span class="st">&quot;enron inc.&quot;</span>,<span class="st">&quot;mcdonalds corporation&quot;</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>y_orgnames <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;apple corp&quot;</span>,<span class="st">&quot;oracle inc&quot;</span>,<span class="st">&quot;enron&quot;</span>,<span class="st">&quot;mcdonalds co&quot;</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="st">&quot;orgnames_x&quot;</span> <span class="ot">=</span> x_orgnames)</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="st">&quot;orgnames_y&quot;</span> <span class="ot">=</span> y_orgnames)</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co"># A straightforward fuzzy match with default settings:</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>linkedOrgs_fuzzy <span class="ot">&lt;-</span> <span class="fu">LinkOrgs</span>(<span class="at">x =</span> x,</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>                             <span class="at">y =</span> y,</span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>                             <span class="at">by.x =</span> <span class="st">&quot;orgnames_x&quot;</span>,</span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>                             <span class="at">by.y =</span> <span class="st">&quot;orgnames_y&quot;</span>,</span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>                             <span class="co"># MaxDist is a maximum allowed fuzzy distance</span></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>                             <span class="at">MaxDist =</span> <span class="fl">0.5</span>,</span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>                             <span class="at">DistanceMeasure =</span> <span class="st">&quot;jaccard&quot;</span>,</span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>                             <span class="at">algorithm =</span> <span class="st">&quot;fuzzy&quot;</span>)</span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:01:31] Pre-processing strings...&quot;</span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:01:31] Searching for matches in the raw name space...&quot;</span></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:01:31] Calibrating via AveMatchNumberPerAlias...&quot;</span></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="co">#&gt; Warning in e$fun(obj, substitute(ex), parent.frame(), e$data): already</span></span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co">#&gt; exporting variable(s): split_list_x, DistanceMeasure, qgram, nCores,</span></span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a><span class="co">#&gt; ReturnProgress, x_tri_index, y_tri_index, MaxDist, x, by.x, y, by.y</span></span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:01:32] Calibrated accept match dist threshold: 0.920000&quot;</span></span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="co">#&gt; Warning in e$fun(obj, substitute(ex), parent.frame(), e$data): already</span></span>
+<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a><span class="co">#&gt; exporting variable(s): split_list_x, DistanceMeasure, qgram, nCores,</span></span>
+<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a><span class="co">#&gt; ReturnProgress, x_tri_index, y_tri_index, MaxDist, x, by.x, y, by.y</span></span>
+<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:01:32] Combining with fuzzy matches...&quot;</span></span>
+<span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:01:32] Dropping duplicates...&quot;</span></span>
+<span id="cb3-29"><a href="#cb3-29" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:01:32] Checking for redundant name matches...&quot;</span></span>
+<span id="cb3-30"><a href="#cb3-30" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:01:32] Returning matched dataset!&quot;</span></span>
+<span id="cb3-31"><a href="#cb3-31" tabindex="-1"></a></span>
+<span id="cb3-32"><a href="#cb3-32" tabindex="-1"></a>linkedOrgs_fuzzy</span>
+<span id="cb3-33"><a href="#cb3-33" tabindex="-1"></a><span class="co">#&gt;              orgnames_x   orgnames_y stringdist   minDist</span></span>
+<span id="cb3-34"><a href="#cb3-34" tabindex="-1"></a><span class="co">#&gt; 1                 apple   apple corp  0.5555556 0.5555556</span></span>
+<span id="cb3-35"><a href="#cb3-35" tabindex="-1"></a><span class="co">#&gt; 2                oracle   oracle inc  0.4444444 0.4444444</span></span>
+<span id="cb3-36"><a href="#cb3-36" tabindex="-1"></a><span class="co">#&gt; 3            enron inc.   oracle inc  0.7857143 0.7857143</span></span>
+<span id="cb3-37"><a href="#cb3-37" tabindex="-1"></a><span class="co">#&gt; 4            enron inc.        enron  0.5000000 0.5000000</span></span>
+<span id="cb3-38"><a href="#cb3-38" tabindex="-1"></a><span class="co">#&gt; 5 mcdonalds corporation   apple corp  0.8260870 0.8260870</span></span>
+<span id="cb3-39"><a href="#cb3-39" tabindex="-1"></a><span class="co">#&gt; 6 mcdonalds corporation   oracle inc  0.9200000 0.9200000</span></span>
+<span id="cb3-40"><a href="#cb3-40" tabindex="-1"></a><span class="co">#&gt; 7 mcdonalds corporation mcdonalds co  0.3888889 0.3888889</span></span></code></pre></div>
+<p>Here:</p>
+<ul>
+<li><code>DistanceMeasure = &quot;jaccard&quot;</code> controls the string
+distance measure used.</li>
+<li><code>MaxDist = 0.5</code> sets the maximum “distance” for which a
+match is still acceptable. Adjust as needed.</li>
+<li><code>algorithm = &quot;fuzzy&quot;</code> ensures we use purely string-based
+matching.</li>
+</ul>
+</div>
+<div id="ml-embedding-approach" class="section level3">
+<h3>ML Embedding Approach</h3>
+<p>The real power of LinkOrgs is the advanced ML-based approach that
+uses a learned embedding space. If you ran <code>BuildBackend()</code>
+and have a suitable conda environment, you can do:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>linkedOrgs_ml <span class="ot">&lt;-</span> <span class="fu">LinkOrgs</span>(<span class="at">x =</span> x,</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>                          <span class="at">y =</span> y,</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>                          <span class="at">by.x =</span> <span class="st">&quot;orgnames_x&quot;</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>                          <span class="at">by.y =</span> <span class="st">&quot;orgnames_y&quot;</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>                          <span class="at">MaxDist =</span> <span class="fl">2.0</span>,  <span class="co"># Euclidean distance in embedding space</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>                          <span class="at">algorithm =</span> <span class="st">&quot;ml&quot;</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>                          <span class="at">conda_env =</span> <span class="st">&quot;LinkOrgsEnv&quot;</span>, </span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>                          <span class="at">conda_env_required =</span> T)</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:01:39] Re-building ML model...&quot;</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:01:39] Loading LinkOrgs_Helpers.R...&quot;</span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:01:39] Loading JaxTransformer_Imports.R...&quot;</span></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:01:42] Loading JaxTransformer_BuildML.R...&quot;</span></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:01:47] Loading JaxTransformer_TrainDefine.R...&quot;</span></span></code></pre></div>
+<p><img role="img" src="data:image/png;base64,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" /><!-- --></p>
+<pre><code>#&gt; [1] &quot;[2025-01-15 23:02:47] Total parameter count: 29946062&quot;
+#&gt; [1] &quot;Default device backend: METAL&quot;
+#&gt; [1] &quot;[2025-01-15 23:02:47] Applying trained weights...&quot;
+#&gt; [1] &quot;[2025-01-15 23:02:47] Matching via name representations from ML models [v1]...&quot;
+#&gt; [1] &quot;[2025-01-15 23:02:47] Fraction complete, GetAliasRep_BigBatch() call:&quot;
+#&gt; [1] &quot;[2025-01-15 23:02:47] 1&quot;
+#&gt; [1] &quot;[2025-01-15 23:02:47] Starting Transformer block [depth 2; type word]...&quot;
+#&gt; [1] &quot;[2025-01-15 23:02:48] Done with Transformer block [depth 2; type word]...&quot;
+#&gt; [1] &quot;[2025-01-15 23:02:48] Starting Transformer block [depth 8; type alias]...&quot;
+#&gt; [1] &quot;[2025-01-15 23:02:51] Done with Transformer block [depth 8; type alias]...&quot;
+#&gt; [1] &quot;[2025-01-15 23:03:08] Fraction complete, GetAliasRep_BigBatch() call:&quot;
+#&gt; [1] &quot;[2025-01-15 23:03:08] 1&quot;
+#&gt; [1] &quot;[2025-01-15 23:03:09] Pre-processing strings...&quot;
+#&gt; [1] &quot;[2025-01-15 23:03:09] Searching for matches in the raw name space...&quot;
+#&gt; [1] &quot;[2025-01-15 23:03:09] Calibrating via AveMatchNumberPerAlias...&quot;
+#&gt; [1] &quot;[2025-01-15 23:03:09] Casting to matrix&quot;
+#&gt; [1] &quot;[2025-01-15 23:03:09] Starting parallel Euclidean distance calculations with dim(x) = [4, 1024] and dim(y) = [4, 1024]...&quot;
+#&gt; Loading required package: Rcpp
+#&gt; Loading required package: RcppZiggurat
+#&gt; Loading required package: RcppParallel
+#&gt; 
+#&gt; Attaching package: &#39;RcppParallel&#39;
+#&gt; The following object is masked from &#39;package:Rcpp&#39;:
+#&gt; 
+#&gt;     LdFlags
+#&gt; 
+#&gt; Rfast: 2.1.4
+#&gt;  ___ __ __ __ __    __ __ __ __ __ _             _               __ __ __ __ __     __ __ __ __ __ __   
+#&gt; |  __ __ __ __  |  |  __ __ __ __ _/            / \             |  __ __ __ __ /   /__ __ _   _ __ __\  
+#&gt; | |           | |  | |                         / _ \            | |                        / /          
+#&gt; | |           | |  | |                        / / \ \           | |                       / /          
+#&gt; | |           | |  | |                       / /   \ \          | |                      / /          
+#&gt; | |__ __ __ __| |  | |__ __ __ __           / /     \ \         | |__ __ __ __ _        / /__/\          
+#&gt; |    __ __ __ __|  |  __ __ __ __|         / /__ _ __\ \        |_ __ __ __ _   |      / ___  /           
+#&gt; |   \              | |                    / _ _ _ _ _ _ \                     | |      \/  / /       
+#&gt; | |\ \             | |                   / /           \ \                    | |         / /          
+#&gt; | | \ \            | |                  / /             \ \                   | |        / /          
+#&gt; | |  \ \           | |                 / /               \ \                  | |       / /          
+#&gt; | |   \ \__ __ _   | |                / /                 \ \     _ __ __ __ _| |      / /          
+#&gt; |_|    \__ __ __\  |_|               /_/                   \_\   /_ __ __ __ ___|      \/             team
+#&gt; 
+#&gt; Attaching package: &#39;Rfast&#39;
+#&gt; The following object is masked from &#39;package:data.table&#39;:
+#&gt; 
+#&gt;     transpose
+#&gt; The following object is masked from &#39;package:dplyr&#39;:
+#&gt; 
+#&gt;     nth
+#&gt; [1] &quot;[2025-01-15 23:03:09] Done with Euclidean distance calculations...&quot;
+#&gt; [1] &quot;[2025-01-15 23:03:09] Wrapping up call to pDistMatch_euclidean()...&quot;
+#&gt; [1] &quot;[2025-01-15 23:03:09] Calibrated accept match dist threshold: 65.568377&quot;
+#&gt; [1] &quot;[2025-01-15 23:03:09] Casting to matrix&quot;
+#&gt; [1] &quot;[2025-01-15 23:03:09] Starting parallel Euclidean distance calculations with dim(x) = [4, 1024] and dim(y) = [4, 1024]...&quot;
+#&gt; [1] &quot;[2025-01-15 23:03:10] Done with Euclidean distance calculations...&quot;
+#&gt; [1] &quot;[2025-01-15 23:03:10] Wrapping up call to pDistMatch_euclidean()...&quot;
+#&gt; [1] &quot;[2025-01-15 23:03:10] Combining with fuzzy matches...&quot;
+#&gt; [1] &quot;[2025-01-15 23:03:10] Dropping duplicates...&quot;
+#&gt; [1] &quot;[2025-01-15 23:03:10] Checking for redundant name matches...&quot;
+#&gt; [1] &quot;[2025-01-15 23:03:10] Returning matched dataset!&quot;
+                          
+linkedOrgs_ml
+#&gt;               orgnames_x   orgnames_y stringdist   minDist
+#&gt; 1                  apple   apple corp  15.243541 15.243541
+#&gt; 2                  apple   oracle inc  45.353548 45.353548
+#&gt; 3                  apple        enron  53.024035 53.024035
+#&gt; 4                  apple mcdonalds co  60.608779 60.608779
+#&gt; 5                 oracle   apple corp  46.559494 46.559494
+#&gt; 6                 oracle   oracle inc   9.528285  9.528285
+#&gt; 7                 oracle        enron  36.213872 36.213872
+#&gt; 8                 oracle mcdonalds co  53.423096 53.423096
+#&gt; 9             enron inc.   apple corp  61.342775 61.342775
+#&gt; 10            enron inc.   oracle inc  41.032261 41.032261
+#&gt; 11            enron inc.        enron   8.355850  8.355850
+#&gt; 12            enron inc. mcdonalds co  56.752322 56.752322
+#&gt; 13 mcdonalds corporation   oracle inc  60.298200 60.298200
+#&gt; 14 mcdonalds corporation        enron  53.540465 53.540465
+#&gt; 15 mcdonalds corporation mcdonalds co  10.522919 10.522919</code></pre>
+<ul>
+<li><code>algorithm = &quot;ml&quot;</code> instructs <code>LinkOrgs()</code> to
+use ML-based distance computations.</li>
+<li><code>MaxDist = 2.0</code> is an approximate threshold in the
+learned embedding space. You can experiment with different values or
+rely on the built-in calibration <code>AveMatchNumberPerAlias</code> to
+set a more automatic threshold.</li>
+</ul>
+</div>
+<div id="network-ml-ensemble" class="section level3">
+<h3>Network + ML (Ensemble)</h3>
+<p>The “ensemble” approach merges the strengths of ML embeddings and the
+LinkedIn network. You can access it by setting:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>linkedOrgs_ensemble <span class="ot">&lt;-</span> <span class="fu">LinkOrgs</span>(<span class="at">x =</span> x,</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>                                <span class="at">y =</span> y,</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>                                <span class="at">by.x =</span> <span class="st">&quot;orgnames_x&quot;</span>,</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>                                <span class="at">by.y =</span> <span class="st">&quot;orgnames_y&quot;</span>,</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>                                <span class="at">MaxDist_network =</span> <span class="fl">2.0</span>,</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>                                <span class="at">algorithm =</span> <span class="st">&quot;bipartite&quot;</span>,  <span class="co"># or &quot;markov&quot;</span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>                                <span class="at">DistanceMeasure =</span> <span class="st">&quot;ml&quot;</span>,</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>                                <span class="at">conda_env =</span> <span class="st">&quot;LinkOrgsEnv&quot;</span>, </span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>                                <span class="at">conda_env_required =</span> T)</span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:03:10] Re-building ML model...&quot;</span></span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:03:10] Loading LinkOrgs_Helpers.R...&quot;</span></span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:03:10] Loading JaxTransformer_Imports.R...&quot;</span></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:03:11] Loading JaxTransformer_BuildML.R...&quot;</span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:03:11] Loading JaxTransformer_TrainDefine.R...&quot;</span></span></code></pre></div>
+<p><img role="img" src="data:image/png;base64,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" /><!-- --></p>
+<pre><code>#&gt; [1] &quot;[2025-01-15 23:04:10] Total parameter count: 29946062&quot;
+#&gt; [1] &quot;Default device backend: METAL&quot;
+#&gt; [1] &quot;[2025-01-15 23:04:10] Applying trained weights...&quot;
+#&gt; [1] &quot;[2025-01-15 23:04:10] Matching via name representations from ML models [v1]...&quot;
+#&gt; [1] &quot;[2025-01-15 23:04:10] Fraction complete, GetAliasRep_BigBatch() call:&quot;
+#&gt; [1] &quot;[2025-01-15 23:04:10] 1&quot;
+#&gt; [1] &quot;[2025-01-15 23:04:10] Starting Transformer block [depth 2; type word]...&quot;
+#&gt; [1] &quot;[2025-01-15 23:04:11] Done with Transformer block [depth 2; type word]...&quot;
+#&gt; [1] &quot;[2025-01-15 23:04:11] Starting Transformer block [depth 8; type alias]...&quot;
+#&gt; [1] &quot;[2025-01-15 23:04:14] Done with Transformer block [depth 8; type alias]...&quot;
+#&gt; [1] &quot;[2025-01-15 23:04:28] Fraction complete, GetAliasRep_BigBatch() call:&quot;
+#&gt; [1] &quot;[2025-01-15 23:04:28] 1&quot;
+#&gt; [1] &quot;[2025-01-15 23:04:35] Directory size: 583723 aliases&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:18] Pre-processing strings...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:21] Searching for matches in the raw name space...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:21] Calibrating via AveMatchNumberPerAlias...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:21] Casting to matrix&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:21] Starting parallel Euclidean distance calculations with dim(x) = [4, 1024] and dim(y) = [4, 1024]...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:22] Done with Euclidean distance calculations...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:22] Wrapping up call to pDistMatch_euclidean()...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:22] Calibrated accept match dist threshold: 65.568377&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:22] Casting to matrix&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:22] Starting parallel Euclidean distance calculations with dim(x) = [4, 1024] and dim(y) = [4, 1024]...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:23] Done with Euclidean distance calculations...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:23] Wrapping up call to pDistMatch_euclidean()...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:23] Searching for LinkedIn network matches&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:23] Searching for network matches...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:23] Calibrating via AveMatchNumberPerAlias...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:23] Swapping for efficient use of vectorization...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:23] Casting to matrix&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:23] Starting parallel Euclidean distance calculations with dim(x) = [4, 1024] and dim(y) = [1000, 1024]...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:24] Done with Euclidean distance calculations...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:24] Wrapping up call to pDistMatch_euclidean()...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:24] Calibrated accept match dist threshold: 28.347942&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:24] Casting to matrix&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:25] Starting parallel Euclidean distance calculations with dim(x) = [4, 1024] and dim(y) = [562329, 1024]...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:32] Done with Euclidean distance calculations...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:32] Wrapping up call to pDistMatch_euclidean()...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:33] De-duplicating merge among duplicates to canonical_id [keeping closest match]...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:33] Done deduplicating; final dimensions: 1846...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:33] Searching for network matches...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:33] Calibrating via AveMatchNumberPerAlias...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:33] Swapping for efficient use of vectorization...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:33] Casting to matrix&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:33] Starting parallel Euclidean distance calculations with dim(x) = [4, 1024] and dim(y) = [1000, 1024]...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:34] Done with Euclidean distance calculations...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:34] Wrapping up call to pDistMatch_euclidean()...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:34] Calibrated accept match dist threshold: 29.339919&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:34] Casting to matrix&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:35] Starting parallel Euclidean distance calculations with dim(x) = [4, 1024] and dim(y) = [562329, 1024]...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:41] Done with Euclidean distance calculations...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:41] Wrapping up call to pDistMatch_euclidean()...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:41] De-duplicating merge among duplicates to canonical_id [keeping closest match]...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:41] Done deduplicating; final dimensions: 1765...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:42] Combining with fuzzy matches...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:42] Dropping duplicates...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:42] Checking for redundant name matches...&quot;
+#&gt; [1] &quot;[2025-01-15 23:05:42] Returning matched dataset!&quot;</code></pre>
+<p>This can be more computationally heavy because:</p>
+<ul>
+<li>Each observation in <code>x</code> and <code>y</code> is first
+matched to the LinkedIn directory.</li>
+<li>We find the best canonical “community” or “alias ID.”</li>
+<li>We also rely on the ML embeddings to refine link quality.</li>
+</ul>
+<p>In small tasks, the difference might be minor, but in larger tasks
+with trickier alias issues, the ensemble often yields higher recall at
+the same precision.</p>
+</div>
+</div>
+<div id="checking-match-performance-via-assessmatchperformance" class="section level2">
+<h2>Checking Match Performance via AssessMatchPerformance()</h2>
+<p>If you have a ground truth set of matches (often from manual or
+expert-coded data), you can easily assess how well your new algorithmic
+matches did with:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># Synthetic example: </span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>x_orgnames <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;apple&quot;</span>,<span class="st">&quot;oracle&quot;</span>,<span class="st">&quot;enron inc.&quot;</span>,<span class="st">&quot;mcdonalds corporation&quot;</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>y_orgnames <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;apple corp&quot;</span>,<span class="st">&quot;oracle inc&quot;</span>,<span class="st">&quot;enron&quot;</span>,<span class="st">&quot;mcdonalds co&quot;</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="st">&quot;orgnames_x&quot;</span><span class="ot">=</span>x_orgnames)</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="st">&quot;orgnames_y&quot;</span><span class="ot">=</span>y_orgnames)</span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co"># Suppose z is your matched dataset from LinkOrgs (or anything else)</span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>z <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="st">&quot;orgnames_x&quot;</span><span class="ot">=</span>x_orgnames[<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>], </span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>                <span class="st">&quot;orgnames_y&quot;</span><span class="ot">=</span>y_orgnames[<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>])</span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a></span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="co"># Suppose z_true is your best ground truth:</span></span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a>z_true <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="st">&quot;orgnames_x&quot;</span><span class="ot">=</span>x_orgnames, </span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a>                     <span class="st">&quot;orgnames_y&quot;</span><span class="ot">=</span>y_orgnames)</span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a></span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a><span class="co"># Evaluate:</span></span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a>PerformanceMatrix <span class="ot">&lt;-</span> <span class="fu">AssessMatchPerformance</span>(<span class="at">x =</span> x,</span>
+<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a>                                           <span class="at">y =</span> y,</span>
+<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a>                                           <span class="at">z =</span> z,</span>
+<span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a>                                           <span class="at">z_true =</span> z_true,</span>
+<span id="cb8-21"><a href="#cb8-21" tabindex="-1"></a>                                           <span class="at">by.x =</span> <span class="st">&quot;orgnames_x&quot;</span>,</span>
+<span id="cb8-22"><a href="#cb8-22" tabindex="-1"></a>                                           <span class="at">by.y =</span> <span class="st">&quot;orgnames_y&quot;</span>)</span>
+<span id="cb8-23"><a href="#cb8-23" tabindex="-1"></a></span>
+<span id="cb8-24"><a href="#cb8-24" tabindex="-1"></a>PerformanceMatrix</span>
+<span id="cb8-25"><a href="#cb8-25" tabindex="-1"></a><span class="co">#&gt;      TruePositives     FalsePositives     FalseNegatives      TrueNegatives </span></span>
+<span id="cb8-26"><a href="#cb8-26" tabindex="-1"></a><span class="co">#&gt;                  2                  0                  2                 14 </span></span>
+<span id="cb8-27"><a href="#cb8-27" tabindex="-1"></a><span class="co">#&gt; MatchedDatasetSize </span></span>
+<span id="cb8-28"><a href="#cb8-28" tabindex="-1"></a><span class="co">#&gt;                  2</span></span></code></pre></div>
+<p>The output is a named vector with:</p>
+<ul>
+<li><code>TruePositives</code></li>
+<li><code>FalsePositives</code></li>
+<li><code>FalseNegatives</code></li>
+<li><code>TrueNegatives</code></li>
+<li><code>MatchedDatasetSize</code></li>
+</ul>
+<p>These statistics are especially helpful when systematically adjusting
+match thresholds (e.g., <code>MaxDist</code>) to see how the false
+positive / false negative tradeoffs vary.</p>
+</div>
+<div id="downloading-and-loading-remote-data-url2dt-and-dropboxurl2downloadurl" class="section level2">
+<h2>Downloading and Loading Remote Data: url2dt() and
+dropboxURL2downloadURL()</h2>
+<p>If you store large CSVs or ZIP files of data (possibly for
+replication) on Dropbox, the LinkOrgs package provides convenience
+functions for automatic downloading and importing into R:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="co"># Download a zipped CSV from a Dropbox link and read it as a data.table</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>my_dt <span class="ot">&lt;-</span> <span class="fu">url2dt</span>(<span class="at">url =</span> <span class="st">&quot;https://www.dropbox.com/s/iqf9ids77dckopf/Directory_LinkIt_bipartite_Embeddings.csv.zip?dl=0&quot;</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co"># Internally, url2dt uses dropboxURL2downloadURL() to fix the link so that</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co"># it becomes a direct download (dl.dropboxusercontent.com).</span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co"># The function creates a temporary folder, downloads the file, unzips it, and returns a data.table.</span></span></code></pre></div>
+</div>
+<div id="utility-functions" class="section level2">
+<h2>Utility Functions</h2>
+<p>A few additional utility functions included in LinkOrgs:</p>
+<ul>
+<li><code>print2()</code>: A simple wrapper to print messages with
+timestamps. Handy for monitoring batch matching progress.</li>
+<li><code>f2n()</code>: Convert factors to numeric (commonly used
+internally).</li>
+<li><code>NA2ColMean()</code>: Impute missing numeric columns with
+column means.</li>
+</ul>
+</div>
+<div id="tips-for-large-scale-matching" class="section level2">
+<h2>Tips for Large-Scale Matching</h2>
+<ul>
+<li><strong>Parallelization:</strong> Some matching routines within
+<code>LinkOrgs()</code> (e.g., discrete fuzzy matching) automatically
+attempt to parallelize using <code>doParallel</code> if your dataset is
+large. You can override the number of cores with
+<code>nCores = &lt;number&gt;</code> in <code>LinkOrgs()</code> or
+inside the distance functions.</li>
+<li><strong>Threshold Tuning:</strong> If you do not specify
+<code>MaxDist</code> but do provide <code>AveMatchNumberPerAlias</code>,
+the package attempts to calibrate an appropriate threshold on a random
+sample of names from your data. This often speeds up the development
+workflow.</li>
+<li><strong>Network-based Approach:</strong> Linking to the massive
+LinkedIn directory can take time. If you have thousands of
+organizations, be prepared for a multi-hour process. Consider saving
+partial results or focusing on subsets of your data first.</li>
+</ul>
+</div>
+<div id="example-bringing-everything-together" class="section level2">
+<h2>Example: Bringing Everything Together</h2>
+<p>Below is a more fully featured example that shows a typical workflow
+using LinkOrgs. It uses fuzzy matching, then tries an ML-based approach,
+compares performances, and picks a threshold that balances false
+positives and false negatives:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">library</span>(LinkOrgs)</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="do">### 1. Suppose we have two large data frames:</span></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="do">###    lobbying_data (org name in col &quot;lobby_org&quot;) </span></span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="do">###    finance_data  (org name in col &quot;ticker_org&quot;)</span></span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="co"># For illustration, use smaller synthetic ones</span></span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>lobbying_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="st">&quot;lobby_org&quot;</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">&quot;International Business Machs&quot;</span>, </span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>                                            <span class="st">&quot;microsft&quot;</span>, </span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>                                            <span class="st">&quot;Oracle inc.&quot;</span>))</span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a>finance_data  <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="st">&quot;ticker_org&quot;</span>  <span class="ot">=</span> <span class="fu">c</span>(<span class="st">&quot;Microsoft Corporation&quot;</span>, </span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a>                                              <span class="st">&quot;International Business Machines&quot;</span>, </span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a>                                              <span class="st">&quot;Micron Tech&quot;</span>, </span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a>                                              <span class="st">&quot;Oracle corp&quot;</span>))</span>
+<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a></span>
+<span id="cb10-16"><a href="#cb10-16" tabindex="-1"></a><span class="do">### 2. Fuzzy matching approach:</span></span>
+<span id="cb10-17"><a href="#cb10-17" tabindex="-1"></a>fuzzy_matches <span class="ot">&lt;-</span> <span class="fu">LinkOrgs</span>(</span>
+<span id="cb10-18"><a href="#cb10-18" tabindex="-1"></a>  <span class="at">x =</span> lobbying_data,</span>
+<span id="cb10-19"><a href="#cb10-19" tabindex="-1"></a>  <span class="at">y =</span> finance_data,</span>
+<span id="cb10-20"><a href="#cb10-20" tabindex="-1"></a>  <span class="at">by.x =</span> <span class="st">&quot;lobby_org&quot;</span>,</span>
+<span id="cb10-21"><a href="#cb10-21" tabindex="-1"></a>  <span class="at">by.y =</span> <span class="st">&quot;ticker_org&quot;</span>,</span>
+<span id="cb10-22"><a href="#cb10-22" tabindex="-1"></a>  <span class="at">algorithm =</span> <span class="st">&quot;fuzzy&quot;</span>,</span>
+<span id="cb10-23"><a href="#cb10-23" tabindex="-1"></a>  <span class="at">DistanceMeasure =</span> <span class="st">&quot;jaccard&quot;</span>,</span>
+<span id="cb10-24"><a href="#cb10-24" tabindex="-1"></a>  <span class="at">MaxDist =</span> <span class="fl">0.7</span></span>
+<span id="cb10-25"><a href="#cb10-25" tabindex="-1"></a>)</span>
+<span id="cb10-26"><a href="#cb10-26" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:05:49] Pre-processing strings...&quot;</span></span>
+<span id="cb10-27"><a href="#cb10-27" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:05:49] Searching for matches in the raw name space...&quot;</span></span>
+<span id="cb10-28"><a href="#cb10-28" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:05:49] Calibrating via AveMatchNumberPerAlias...&quot;</span></span>
+<span id="cb10-29"><a href="#cb10-29" tabindex="-1"></a><span class="co">#&gt; Warning in e$fun(obj, substitute(ex), parent.frame(), e$data): already</span></span>
+<span id="cb10-30"><a href="#cb10-30" tabindex="-1"></a><span class="co">#&gt; exporting variable(s): split_list_x, DistanceMeasure, qgram, nCores,</span></span>
+<span id="cb10-31"><a href="#cb10-31" tabindex="-1"></a><span class="co">#&gt; ReturnProgress, x_tri_index, y_tri_index, MaxDist, x, by.x, y, by.y</span></span>
+<span id="cb10-32"><a href="#cb10-32" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:05:50] Calibrated accept match dist threshold: 0.923077&quot;</span></span>
+<span id="cb10-33"><a href="#cb10-33" tabindex="-1"></a><span class="co">#&gt; Warning in e$fun(obj, substitute(ex), parent.frame(), e$data): already</span></span>
+<span id="cb10-34"><a href="#cb10-34" tabindex="-1"></a><span class="co">#&gt; exporting variable(s): split_list_x, DistanceMeasure, qgram, nCores,</span></span>
+<span id="cb10-35"><a href="#cb10-35" tabindex="-1"></a><span class="co">#&gt; ReturnProgress, x_tri_index, y_tri_index, MaxDist, x, by.x, y, by.y</span></span>
+<span id="cb10-36"><a href="#cb10-36" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:05:50] Combining with fuzzy matches...&quot;</span></span>
+<span id="cb10-37"><a href="#cb10-37" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:05:50] Dropping duplicates...&quot;</span></span>
+<span id="cb10-38"><a href="#cb10-38" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:05:50] Checking for redundant name matches...&quot;</span></span>
+<span id="cb10-39"><a href="#cb10-39" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:05:50] Returning matched dataset!&quot;</span></span>
+<span id="cb10-40"><a href="#cb10-40" tabindex="-1"></a></span>
+<span id="cb10-41"><a href="#cb10-41" tabindex="-1"></a><span class="do">### 3. ML approach (requires conda environment):</span></span>
+<span id="cb10-42"><a href="#cb10-42" tabindex="-1"></a><span class="co"># BuildBackend(conda_env = &quot;LinkOrgsEnv&quot;) # if not done yet</span></span>
+<span id="cb10-43"><a href="#cb10-43" tabindex="-1"></a>ml_matches <span class="ot">&lt;-</span> <span class="fu">LinkOrgs</span>(</span>
+<span id="cb10-44"><a href="#cb10-44" tabindex="-1"></a>  <span class="at">x =</span> lobbying_data,</span>
+<span id="cb10-45"><a href="#cb10-45" tabindex="-1"></a>  <span class="at">y =</span> finance_data,</span>
+<span id="cb10-46"><a href="#cb10-46" tabindex="-1"></a>  <span class="at">by.x =</span> <span class="st">&quot;lobby_org&quot;</span>,</span>
+<span id="cb10-47"><a href="#cb10-47" tabindex="-1"></a>  <span class="at">by.y =</span> <span class="st">&quot;ticker_org&quot;</span>,</span>
+<span id="cb10-48"><a href="#cb10-48" tabindex="-1"></a>  <span class="at">algorithm =</span> <span class="st">&quot;ml&quot;</span>,</span>
+<span id="cb10-49"><a href="#cb10-49" tabindex="-1"></a>  <span class="co"># We want an automatic threshold based on about 3 matches per name on average:</span></span>
+<span id="cb10-50"><a href="#cb10-50" tabindex="-1"></a>  <span class="at">AveMatchNumberPerAlias =</span> <span class="dv">3</span>,</span>
+<span id="cb10-51"><a href="#cb10-51" tabindex="-1"></a>  <span class="at">conda_env =</span> <span class="st">&quot;LinkOrgsEnv&quot;</span>, </span>
+<span id="cb10-52"><a href="#cb10-52" tabindex="-1"></a>  <span class="at">conda_env_required =</span> T</span>
+<span id="cb10-53"><a href="#cb10-53" tabindex="-1"></a>)</span>
+<span id="cb10-54"><a href="#cb10-54" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:05:50] Re-building ML model...&quot;</span></span>
+<span id="cb10-55"><a href="#cb10-55" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:05:50] Loading LinkOrgs_Helpers.R...&quot;</span></span>
+<span id="cb10-56"><a href="#cb10-56" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:05:50] Loading JaxTransformer_Imports.R...&quot;</span></span>
+<span id="cb10-57"><a href="#cb10-57" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:05:52] Loading JaxTransformer_BuildML.R...&quot;</span></span>
+<span id="cb10-58"><a href="#cb10-58" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-01-15 23:05:52] Loading JaxTransformer_TrainDefine.R...&quot;</span></span></code></pre></div>
+<p><img role="img" src="data:image/png;base64,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" /><!-- --></p>
+<pre><code>#&gt; [1] &quot;[2025-01-15 23:06:50] Total parameter count: 29946062&quot;
+#&gt; [1] &quot;Default device backend: METAL&quot;
+#&gt; [1] &quot;[2025-01-15 23:06:50] Applying trained weights...&quot;
+#&gt; [1] &quot;[2025-01-15 23:06:50] Matching via name representations from ML models [v1]...&quot;
+#&gt; [1] &quot;[2025-01-15 23:06:50] Fraction complete, GetAliasRep_BigBatch() call:&quot;
+#&gt; [1] &quot;[2025-01-15 23:06:50] 1&quot;
+#&gt; [1] &quot;[2025-01-15 23:06:50] Starting Transformer block [depth 2; type word]...&quot;
+#&gt; [1] &quot;[2025-01-15 23:06:51] Done with Transformer block [depth 2; type word]...&quot;
+#&gt; [1] &quot;[2025-01-15 23:06:51] Starting Transformer block [depth 8; type alias]...&quot;
+#&gt; [1] &quot;[2025-01-15 23:06:54] Done with Transformer block [depth 8; type alias]...&quot;
+#&gt; [1] &quot;[2025-01-15 23:07:09] Fraction complete, GetAliasRep_BigBatch() call:&quot;
+#&gt; [1] &quot;[2025-01-15 23:07:09] 1&quot;
+#&gt; [1] &quot;[2025-01-15 23:07:09] Pre-processing strings...&quot;
+#&gt; [1] &quot;[2025-01-15 23:07:09] Searching for matches in the raw name space...&quot;
+#&gt; [1] &quot;[2025-01-15 23:07:09] Calibrating via AveMatchNumberPerAlias...&quot;
+#&gt; [1] &quot;[2025-01-15 23:07:09] Swapping for efficient use of vectorization...&quot;
+#&gt; [1] &quot;[2025-01-15 23:07:10] Casting to matrix&quot;
+#&gt; [1] &quot;[2025-01-15 23:07:10] Starting parallel Euclidean distance calculations with dim(x) = [3, 1024] and dim(y) = [4, 1024]...&quot;
+#&gt; [1] &quot;[2025-01-15 23:07:10] Done with Euclidean distance calculations...&quot;
+#&gt; [1] &quot;[2025-01-15 23:07:10] Wrapping up call to pDistMatch_euclidean()...&quot;
+#&gt; [1] &quot;[2025-01-15 23:07:10] Calibrated accept match dist threshold: 59.933774&quot;
+#&gt; [1] &quot;[2025-01-15 23:07:10] Casting to matrix&quot;
+#&gt; [1] &quot;[2025-01-15 23:07:10] Starting parallel Euclidean distance calculations with dim(x) = [3, 1024] and dim(y) = [4, 1024]...&quot;
+#&gt; [1] &quot;[2025-01-15 23:07:11] Done with Euclidean distance calculations...&quot;
+#&gt; [1] &quot;[2025-01-15 23:07:11] Wrapping up call to pDistMatch_euclidean()...&quot;
+#&gt; [1] &quot;[2025-01-15 23:07:11] Combining with fuzzy matches...&quot;
+#&gt; [1] &quot;[2025-01-15 23:07:11] Dropping duplicates...&quot;
+#&gt; [1] &quot;[2025-01-15 23:07:11] Checking for redundant name matches...&quot;
+#&gt; [1] &quot;[2025-01-15 23:07:11] Returning matched dataset!&quot;
+
+### 4. Evaluate with a small ground truth set (hypothetical):
+z_true &lt;- data.frame(
+  &quot;lobby_org&quot; = c(&quot;International Business Machs&quot;, &quot;microsft&quot;, &quot;Oracle inc.&quot;),
+  &quot;ticker_org&quot; = c(&quot;International Business Machines&quot;, &quot;Microsoft Corporation&quot;, 
+                   &quot;Oracle corp&quot;)
+)
+
+Perf_fuzzy &lt;- AssessMatchPerformance(
+  x = lobbying_data,
+  y = finance_data,
+  z = fuzzy_matches,
+  z_true = z_true,
+  by.x = &quot;lobby_org&quot;,
+  by.y = &quot;ticker_org&quot;
+)
+
+Perf_ml &lt;- AssessMatchPerformance(
+  x = lobbying_data,
+  y = finance_data,
+  z = ml_matches,
+  z_true = z_true,
+  by.x = &quot;lobby_org&quot;,
+  by.y = &quot;ticker_org&quot;
+)
+
+Perf_fuzzy
+#&gt;      TruePositives     FalsePositives     FalseNegatives      TrueNegatives 
+#&gt;                  3                  3                  0                  6 
+#&gt; MatchedDatasetSize 
+#&gt;                  6
+Perf_ml
+#&gt;      TruePositives     FalsePositives     FalseNegatives      TrueNegatives 
+#&gt;                  3                  7                  0                  2 
+#&gt; MatchedDatasetSize 
+#&gt;                 10
+
+# Typically, the ML approach will better match &quot;microsft&quot; to &quot;Microsoft Corporation&quot;
+# and &quot;International Business Machs&quot; to &quot;International Business Machines&quot;.</code></pre>
+</div>
+</div>
+<div id="conclusion" class="section level1">
+<h1>Conclusion</h1>
+<p>You’ve seen how to install the LinkOrgs package, build a conda
+environment for advanced ML matching, run the main function with various
+algorithms, and evaluate your matches.</p>
+<p><strong>Key points to remember:</strong></p>
+<ul>
+<li>For purely string-based matching, setting
+<code>algorithm = &quot;fuzzy&quot;</code> is simplest.</li>
+<li>For advanced, learned embeddings (more robust but requires more
+setup), use <code>algorithm = &quot;ml&quot;</code>.</li>
+<li>For network-based matching, set <code>algorithm = &quot;bipartite&quot;</code>
+or <code>algorithm = &quot;markov&quot;</code>. These methods leverage
+half-a-billion open-collaborated records from LinkedIn to refine your
+matches, especially if you are matching large corpora.</li>
+<li>If you want both network-based and ML approaches at once, set
+<code>algorithm = &quot;bipartite&quot;</code> or <code>markov</code> and
+<code>DistanceMeasure = &quot;ml&quot;</code>.</li>
+<li>Use <code>AssessMatchPerformance()</code> to systematically analyze
+your match quality if you have a hand-coded or otherwise “ground truth”
+dataset.</li>
+</ul>
+<p>For more information, check out the package <a href="https://github.com/cjerzak/LinkOrgs-software/blob/master/LinkOrgs.pdf?raw=true">documentation</a></p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

@@ -301,6 +301,6 @@ You’ve seen how to install the LinkOrgs package, build a conda environment for
 - If you want both network-based and ML approaches at once, set `algorithm = "bipartite"` or `markov` and `DistanceMeasure = "ml"`.
 - Use `AssessMatchPerformance()` to systematically analyze your match quality if you have a hand-coded or otherwise “ground truth” dataset.
 
-For more information, check out the package [documentation](https://github.com/cjerzak/LinkOrgs-software/blob/master/LinkOrgs.pdf?raw=true)
+For more information, check out the package [documentation](https://github.com/cjerzak/LinkOrgs-software/blob/master/LinkOrgs.pdf?raw=true). 
 
 
