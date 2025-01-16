@@ -34,7 +34,7 @@ You can install LinkOrgs directly from the GitHub repository as follows:
 
 ```{r}
 # install.packages("remotes") # if you haven't installed 'remotes' previously
-remotes::install_github("cjerzak/LinkOrgs-software/LinkOrgs")
+# remotes::install_github("cjerzak/LinkOrgs-software/LinkOrgs")
 ```
 
 This will install the package along with its R-based dependencies.
@@ -49,7 +49,7 @@ If you plan to rely only on fuzzy or network-based matching (as opposed to embed
 library(LinkOrgs)
 
 # This function calls reticulate::conda_create() under the hood to create a new conda env
-#BuildBackend(conda_env = "LinkOrgsEnv",  # or choose a custom name
+#LinkOrgs::BuildBackend(conda_env = "LinkOrgsEnv",  # or choose custom name
              #conda = "auto", tryMetal = TRUE)
 ```
 
@@ -110,7 +110,8 @@ linkedOrgs_ml <- LinkOrgs(x = x,
                           by.y = "orgnames_y",
                           MaxDist = 2.0,  # Euclidean distance in embedding space
                           algorithm = "ml",
-                          conda_env = "LinkOrgsEnv")
+                          conda_env = "LinkOrgsEnv", 
+                          conda_env_required = T)
                           
 linkedOrgs_ml
 ```
@@ -130,7 +131,8 @@ linkedOrgs_ensemble <- LinkOrgs(x = x,
                                 MaxDist_network = 2.0,
                                 algorithm = "bipartite",  # or "markov"
                                 DistanceMeasure = "ml",
-                                conda_env = "LinkOrgsEnv")
+                                conda_env = "LinkOrgsEnv", 
+                                conda_env_required = T)
 ```
 
 This can be more computationally heavy because:
@@ -251,7 +253,8 @@ ml_matches <- LinkOrgs(
   algorithm = "ml",
   # We want an automatic threshold based on about 3 matches per name on average:
   AveMatchNumberPerAlias = 3,
-  conda_env = "LinkOrgsEnv"
+  conda_env = "LinkOrgsEnv", 
+  conda_env_required = T
 )
 
 ### 4. Evaluate with a small ground truth set (hypothetical):
@@ -288,7 +291,7 @@ Perf_ml
 
 # Conclusion
 
-That’s it! You’ve seen how to install the LinkOrgs package, build a conda environment for advanced ML matching, run the main function with various algorithms, and evaluate your matches.
+You’ve seen how to install the LinkOrgs package, build a conda environment for advanced ML matching, run the main function with various algorithms, and evaluate your matches.
 
 **Key points to remember:**
 
@@ -298,7 +301,6 @@ That’s it! You’ve seen how to install the LinkOrgs package, build a conda en
 - If you want both network-based and ML approaches at once, set `algorithm = "bipartite"` or `markov` and `DistanceMeasure = "ml"`.
 - Use `AssessMatchPerformance()` to systematically analyze your match quality if you have a hand-coded or otherwise “ground truth” dataset.
 
-For more information, see the function reference in our GitHub repo. Feel free to file an issue or pull request there if you encounter difficulties.
+For more information, check out the package [documentation](https://github.com/cjerzak/LinkOrgs-software/blob/master/LinkOrgs.pdf?raw=true)
 
-Enjoy streamlined organization record linking with LinkOrgs!
 

@@ -32,24 +32,34 @@ BuildBackend <- function(conda_env = "LinkOrgsEnv", conda = "auto", tryMetal = T
                         "equinox==0.11.4",
                         "jmp==0.0.4")
   if(tryMetal){ 
-    if(Sys.info()["machine"] == "arm64"){
-      Packages2Install <- c(Packages2Install,"jax-metal==0.1.0")
+    if(Sys.info()["sysname"] == "Darwin" & 
+       Sys.info()["machine"] == "arm64"){
+        Packages2Install <- c(Packages2Install,"jax-metal==0.1.0")
     }
+        reticulate::py_install(Packages2Install, 
+                                         conda = conda, 
+                                         pip = TRUE, 
+                                         envname = conda_env)
   }
-  if(Sys.info()["sysname"] == "Darwin"){
-      for(pack_ in Packages2Install){
-        try_ <- reticulate::py_install(pack_, conda = conda, pip = TRUE, envname = conda_env)
-      }
+  if(!tryMetal){ 
+    if(Sys.info()["sysname"] == "Darwin"){
+      reticulate::py_install(Packages2Install, 
+                             conda = conda, 
+                             pip = TRUE, 
+                             envname = conda_env)
+    }
   }
   if(Sys.info()["sysname"] == "Windows"){
-    for(pack_ in Packages2Install){
-      reticulate::py_install(pack_, conda = conda, pip = TRUE, envname = conda_env)
-    }
+     reticulate::py_install(Packages2Install, 
+                             conda = conda, 
+                             pip = TRUE, 
+                             envname = conda_env)
   }
   if(Sys.info()["sysname"] == "Linux"){
-    for(pack_ in Packages2Install){
-      reticulate::py_install(pack_, conda = conda, pip = TRUE, envname = conda_env)
-    }
+    reticulate::py_install(Packages2Install, 
+                           conda = conda, 
+                           pip = TRUE, 
+                           envname = conda_env)
   }
   print("Done building LinkOrgs backend!")
 }
