@@ -1,0 +1,148 @@
+---
+title: "LinkOrgs Package Tutorial"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{LinkOrgs Package Tutorial}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\usepackage[UTF-8]{inputenc}
+---
+
+## Introduction
+
+This vignette demonstrates how to use the fastrerandomize package for generating and testing experimental designs in an agricultural study setting based on: 
+
+* Burchardi, K.B., Gulesci, S., Lerva, B. and Sulaiman, M., 2019. Moral hazard: Experimental Evidence from Tenancy Contracts. The Quarterly Journal of Economics, 134(1), pp.281-347.
+
+We will walk through:
+
+* Generating synthetic covariate data
+* Creating candidate randomizations
+* Exploring the S3 methods for printing, summarizing, and plotting randomization objects
+* Conducting a randomization-based inference test
+
+Note: This tutorial assumes you have installed the fastrerandomize package, either from source or via GitHub:
+
+```{r setup, eval=FALSE}
+# If you haven't installed or set up the package:
+# devtools::install_github("cjerzak/fastrerandomize-software/fastrerandomize")
+
+# (Done once) Optionally build the JAX backend if needed
+# fastrerandomize::build_backend()
+
+# note that this vignette can be found like so: 
+# vignette(package = "fastrerandomize")
+```
+
+## 1. Obtain Pre-treatment Covariate Data
+
+For illustration, we use several pre-treatment covariates from the original experiment. 
+
+```{r generate_covariates}
+library(fastrerandomize)
+
+# Obtain pre-treatment covariates 
+data(QJEData, package = "fastrerandomize")
+myCovariates <- c("children","married","hh_size","hh_sexrat")
+QJEData <- QJEData[!is.na(rowSums(QJEData[,myCovariates])),]
+X <- QJEData[,myCovariates]
+  
+# Analysis parameters
+n_units   <- nrow(X)
+n_treated <- round(nrow(X)/2)
+```
+
+## 2. Generate Randomizations
+
+We now create our candidate randomizations using the function `generate_randomizations()` from fastrerandomize. Depending on the scale and complexity of your experiment, you may choose either exact enumeration ("exact") or Monte Carlo ("monte_carlo") randomization.
+
+In this example, we'll use the exact approach, but note that `randomization_accept_prob` is set very low (0.0001) for demonstration, so that we can see some filtering in action.
+
+```{r generate_randomizations}
+RunMainAnalysis <- (!is.null(check_jax_availability()) )
+# if FALSE, consider calling build_backend()
+
+if(RunMainAnalysis){
+CandRandomizations <- generate_randomizations(
+  n_units = n_units,
+  n_treated = n_treated,
+  X = X,
+  randomization_type = "monte_carlo", 
+  max_draws = 100000L,
+  batch_size = 1000L,
+  randomization_accept_prob = 0.0001
+)
+}
+```
+
+## 4. S3 Methods: Print, Summary, and Plot
+
+`generate_randomizations()` returns an S3 object of class `fastrerandomize_randomizations`. We can use its associated print, summary, and plot methods to inspect the candidate randomizations.
+
+```{r s3_methods}
+if(RunMainAnalysis){
+# 4a. Print the object
+print(CandRandomizations)
+
+# 4b. Summary
+summary(CandRandomizations)
+
+# 4c. Plot the balance distribution
+plot(CandRandomizations)
+}
+```
+
+## 3. Randomization Test
+
+Next, we showcase a randomization-based inference procedure using fastrerandomize.
+
+### 3a. Setup Simulated Outcomes
+
+We simulate an outcome Y that depends on our covariates X, the chosen randomization, and some true treatment effect τ. Here, we pick the first acceptable randomization from our set as our "observed" assignment, Wobs.
+
+```{r setup_outcomes}
+if(RunMainAnalysis){
+CoefY <- rnorm(ncol(X))          # Coefficients for outcome model
+Wobs  <- CandRandomizations$randomizations[1, ]  # use the 1st acceptable randomization
+tau_true <- 1                     # true treatment effect
+# Generate Y = X * Coef + W*tau + noise
+Yobs <- as.numeric( as.matrix(X) %*% as.matrix(CoefY) + Wobs * tau_true + rnorm(n_units, sd = 0.1))
+}
+```
+
+### 3b. Run the Randomization Test
+
+We pass our observed treatment assignment (`obsW`), observed outcomes (`obsY`), and the full matrix of candidate randomizations (`candidate_randomizations`) to `randomization_test()`. This test:
+
+* Computes the observed difference in means
+* Permutes the treatment assignment across our candidate randomizations
+* Estimates the p-value by comparing the observed statistic to its permutation distribution
+
+```{r randomization_test}
+if(RunMainAnalysis){
+randomization_test_results <- randomization_test(
+  obsW = Wobs,
+  obsY = Yobs,
+  candidate_randomizations = CandRandomizations$randomizations,
+  findFI = TRUE
+)
+
+# Inspect results
+print(randomization_test_results)
+summary(randomization_test_results)
+plot(randomization_test_results)
+}
+```
+
+The `findFI = TRUE` flag further attempts to locate a fiducial interval (FI) for the treatment effect.
+
+## Conclusion
+
+This tutorial demonstrated a basic workflow with fastrerandomize:
+
+* Generating synthetic or real covariate data
+* Producing a set of acceptable treatment assignments via randomization
+* Visualizing and summarizing these assignments
+* Testing for treatment effects with a randomization-based approach
+
+We encourage you to consult the package documentation for more advanced functionalities, including GPU-accelerated computations via JAX and flexible definitions of balance criteria in addition to what was shown here.
