@@ -34,12 +34,13 @@ BuildBackend <- function(conda_env = "LinkOrgsEnv", conda = "auto", tryMetal = T
   if(tryMetal){ 
     if(Sys.info()["sysname"] == "Darwin" & 
        Sys.info()["machine"] == "arm64"){
-        Packages2Install <- c(Packages2Install,"jax-metal==0.1.0")
+        Packages2Install <- c(Packages2Install,
+                              "jax-metal==0.1.0")
     }
         reticulate::py_install(Packages2Install, 
-                                         conda = conda, 
-                                         pip = TRUE, 
-                                         envname = conda_env)
+                               conda = conda, 
+                               pip = TRUE, 
+                               envname = conda_env)
   }
   if(!tryMetal){ 
     if(Sys.info()["sysname"] == "Darwin"){
