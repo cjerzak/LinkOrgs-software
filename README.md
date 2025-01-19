@@ -151,6 +151,6 @@ Green, Beniamino. "Zoomerjoin: Superlatively-Fast Fuzzy Joins." *Journal of Open
 
 [<img src="https://i0.wp.com/connorjerzak.com/wp-content/uploads/2024/09/Screenshot-2024-09-01-at-8.37.04%E2%80%AFPM.png?w=1280&ssl=1" width="900" height="300">](https://doi.org/10.1017/psrm.2024.55)
 
-[<img src="https://i0.wp.com/connorjerzak.com/wp-content/uploads/2024/09/Screenshot-2024-09-03-at-2.32.26%E2%80%AFPM.png?w=944&ssl=1" width="400" height="400">](https://doi.org/10.1017/psrm.2024.55)
+[<img src="https://i0.wp.com/connorjerzak.com/wp-content/uploads/2024/09/Screenshot-2024-09-03-at-2.32.26%E2%80%AFPM.png?w=944&ssl=1" width="600" height="600">](https://doi.org/10.1017/psrm.2024.55)
 
 
