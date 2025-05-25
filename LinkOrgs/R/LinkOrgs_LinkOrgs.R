@@ -369,8 +369,8 @@ LinkOrgs <- function(x, y, by = NULL, by.x = NULL,by.y = NULL,
           }
           if(ml_version == "v1"){
             if(algorithm == "bipartite"){ 
-              EmbeddingsURL <- "https://www.dropbox.com/scl/fi/20j96htp1qr6hnvj721qc/Directory_LinkIt_bipartite_Embeddings_v1.csv.gz?rlkey=i9gekn7rmuhidvu6pysanta9b&dl=0" 
-              EmbeddingsURL <- ""
+              #EmbeddingsURL <- "https://www.dropbox.com/scl/fi/20j96htp1qr6hnvj721qc/Directory_LinkIt_bipartite_Embeddings_v1.csv.gz?rlkey=i9gekn7rmuhidvu6pysanta9b&dl=0" 
+              EmbeddingsURL <- "https://huggingface.co/datasets/cjerzak/LinkOrgs_PackageSupport/resolve/main/Directory_LinkIt_bipartite_Embeddings_v1.csv.gz"
             }
             if(algorithm == "markov"){ 
               #EmbeddingsURL <- "https://www.dropbox.com/scl/fi/zkl7x6yfr19nszlyak900/Directory_LinkIt_markov_Embeddings_v1.csv.gz?rlkey=506dspvnakihl9szp3kb02u6m&dl=0" 
