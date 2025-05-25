@@ -115,30 +115,38 @@ LinkOrgs <- function(x, y, by = NULL, by.x = NULL,by.y = NULL,
   
         if( !file.exists( ModelZipLoc ) | !file.exists( WeightsLoc) ){
           if(ml_version == "v0"){
-            ModelURL <- "https://www.dropbox.com/scl/fi/1uz9pmw466kfnwwdrinpz/Archive.zip?rlkey=ia7d0nu8syixav8qlnug8gwpt&dl=0"
-            WeightsURL <- "https://www.dropbox.com/scl/fi/7w0fc4vdw372a4jkkwpfp/ModelWeights_v0.eqx?rlkey=5rjppey7i4ymllne5gitxt80x&dl=0"
+            #ModelURL <- "https://www.dropbox.com/scl/fi/1uz9pmw466kfnwwdrinpz/Archive.zip?rlkey=ia7d0nu8syixav8qlnug8gwpt&dl=0"
+            #WeightsURL <- "https://www.dropbox.com/scl/fi/7w0fc4vdw372a4jkkwpfp/ModelWeights_v0.eqx?rlkey=5rjppey7i4ymllne5gitxt80x&dl=0"
+            ModelURL <- "https://huggingface.co/datasets/cjerzak/LinkOrgs_PackageSupport/resolve/main/Archive_v0.zip"
+            WeightsURL <- "https://huggingface.co/datasets/cjerzak/LinkOrgs_PackageSupport/resolve/main/ModelWeights_v0.eqx"
           }
           if(ml_version == "v1"){
-            # ModelURL <- "https://www.dropbox.com/scl/fi/zf40e7is48qgvq3t2xqpf/AnalysisR_LinkOrgsBase_29PT9M_2024-02-13.zip?rlkey=g4q5kgko1q1umszbz34awsvic&dl=0"
-            ModelURL <- "https://www.dropbox.com/scl/fi/irzduuojtq13opz3hqpan/Analysis.zip?rlkey=i9nye1p3tkew00g50wpdwrx6x&dl=0"
-            WeightsURL <- "https://www.dropbox.com/scl/fi/5klzz36zjyhto4eef3vdi/LinkOrgsBase_29PT9M_2024-02-13_ilast.eqx?rlkey=icirb63feja9nv3kq6t5yow8p&dl=0"
+            #ModelURL <- "https://www.dropbox.com/scl/fi/irzduuojtq13opz3hqpan/Analysis.zip?rlkey=i9nye1p3tkew00g50wpdwrx6x&dl=0"
+            #WeightsURL <- "https://www.dropbox.com/scl/fi/5klzz36zjyhto4eef3vdi/LinkOrgsBase_29PT9M_2024-02-13_ilast.eqx?rlkey=icirb63feja9nv3kq6t5yow8p&dl=0"
+            ModelURL <- "https://huggingface.co/datasets/cjerzak/LinkOrgs_PackageSupport/resolve/main/Analysis_v1.zip"
+            WeightsURL <- "https://huggingface.co/datasets/cjerzak/LinkOrgs_PackageSupport/resolve/main/LinkOrgsBase_29PT9M_2024-02-13_ilast.eqx"
           }
           if(ml_version == "v2"){ # 2^8 word, 2^8.75 for alias, 10k iters
-            ModelURL <- "https://www.dropbox.com/scl/fi/3rc7u27k1mszc6j9qehqq/AnalysisR_LinkOrgsBase_22PT9M_2024-02-25.zip?rlkey=qp2qclwpcypb43vq43h3wujzs&dl=0"
-            WeightsURL <- "https://www.dropbox.com/scl/fi/467ccsay1cos3baqiyy0k/LinkOrgsBase_22PT9M_2024-02-25_ilast.eqx?rlkey=5nyc0hovvmfj06srmc43mw2w6&dl=0"
+            #ModelURL <- "https://www.dropbox.com/scl/fi/3rc7u27k1mszc6j9qehqq/AnalysisR_LinkOrgsBase_22PT9M_2024-02-25.zip?rlkey=qp2qclwpcypb43vq43h3wujzs&dl=0"
+            #WeightsURL <- "https://www.dropbox.com/scl/fi/467ccsay1cos3baqiyy0k/LinkOrgsBase_22PT9M_2024-02-25_ilast.eqx?rlkey=5nyc0hovvmfj06srmc43mw2w6&dl=0"
+            ModelURL <- "https://huggingface.co/datasets/cjerzak/LinkOrgs_PackageSupport/resolve/main/AnalysisR_LinkOrgsBase_22PT9M_2024-02-25.zip"
+            WeightsURL <- "https://huggingface.co/datasets/cjerzak/LinkOrgs_PackageSupport/resolve/main/LinkOrgsBase_22PT9M_2024-02-25_ilast.eqx"
           }
           if(ml_version == "v3"){ # 2^8 word, 2^9 for alias, 7k iters
-            ModelURL <- "https://www.dropbox.com/scl/fi/0lzgl5nyqyuebi94n13gy/AnalysisR_LinkOrgsBase_31PT3M_2024-02-26.zip?rlkey=svcuc8z02fg0hh2tn00s1jn9m&dl=0"
-            WeightsURL <- "https://www.dropbox.com/scl/fi/br8qs5w6nhl1ujgsot4wk/LinkOrgsBase_31PT3M_2024-02-26_ilast.eqx?rlkey=cdc8ao6zfkte4tk0dl0z5pnaw&dl=0"
+            #ModelURL <- "https://www.dropbox.com/scl/fi/0lzgl5nyqyuebi94n13gy/AnalysisR_LinkOrgsBase_31PT3M_2024-02-26.zip?rlkey=svcuc8z02fg0hh2tn00s1jn9m&dl=0"
+            #WeightsURL <- "https://www.dropbox.com/scl/fi/br8qs5w6nhl1ujgsot4wk/LinkOrgsBase_31PT3M_2024-02-26_ilast.eqx?rlkey=cdc8ao6zfkte4tk0dl0z5pnaw&dl=0"
+            ModelURL <- "https://huggingface.co/datasets/cjerzak/LinkOrgs_PackageSupport/resolve/main/AnalysisR_LinkOrgsBase_31PT3M_2024-02-26.zip"
+            WeightsURL <- "https://huggingface.co/datasets/cjerzak/LinkOrgs_PackageSupport/resolve/main/LinkOrgsBase_31PT3M_2024-02-26_ilast.eqx"
           }
           if(ml_version == "v4"){ # 2^8 word, 2^9 for alias, 14k iters
-            #ModelURL <- "https://www.dropbox.com/scl/fi/w2rqhoja730ey8udfv344/AnalysisR_LinkOrgsBase_17PT3M_2024-02-29.zip.zip?rlkey=e9d2nnago8ng0vc9sguvd7rsu&dl=0"
-            ModelURL <- "https://www.dropbox.com/scl/fi/2mi3v3e88cao9dzw2mns6/AnalysisR_LinkOrgsBase_17PT3M_2024-02-29.zip?rlkey=85d1xgm24t0u8j3l4wl321i4f&dl=0"
-            WeightsURL <- "https://www.dropbox.com/scl/fi/zr4bziggj3nugrpovkxrm/LinkOrgsBase_17PT3M_2024-02-29_ilast.eqx?rlkey=b6f7i8dhuro62hlszm365vofi&dl=0"
+            #ModelURL <- "https://www.dropbox.com/scl/fi/2mi3v3e88cao9dzw2mns6/AnalysisR_LinkOrgsBase_17PT3M_2024-02-29.zip?rlkey=85d1xgm24t0u8j3l4wl321i4f&dl=0"
+            #WeightsURL <- "https://www.dropbox.com/scl/fi/zr4bziggj3nugrpovkxrm/LinkOrgsBase_17PT3M_2024-02-29_ilast.eqx?rlkey=b6f7i8dhuro62hlszm365vofi&dl=0"
+            ModelURL <- "https://huggingface.co/datasets/cjerzak/LinkOrgs_PackageSupport/resolve/main/AnalysisR_LinkOrgsBase_17PT3M_2024-02-29.zip"
+            WeightsURL <- "https://huggingface.co/datasets/cjerzak/LinkOrgs_PackageSupport/resolve/main/LinkOrgsBase_17PT3M_2024-02-29_ilast.eqx"
           }
   
-          # process URLs
-          ModelURL <- dropboxURL2downloadURL(ModelURL); WeightsURL <- dropboxURL2downloadURL(WeightsURL)
+          # process URLs if using dropbox URLs
+          #ModelURL <- dropboxURL2downloadURL(ModelURL);WeightsURL <- dropboxURL2downloadURL(WeightsURL)
   
           # download weights
           download.file( WeightsURL, destfile = WeightsLoc )
@@ -148,7 +156,8 @@ LinkOrgs <- function(x, y, by = NULL, by.x = NULL,by.y = NULL,
           unzip(ModelZipLoc, exdir = ModelLoc)
   
           # download characters & save
-          charIndicators <- LinkOrgs::url2dt("https://www.dropbox.com/scl/fi/1jh8nrwsucfzj2gy9rydy/charIndicators.csv.zip?rlkey=wkhqk9x3550l364xbvnvnkoem&dl=0")
+          #charIndicators <- LinkOrgs::url2dt("https://www.dropbox.com/scl/fi/1jh8nrwsucfzj2gy9rydy/charIndicators.csv.zip?rlkey=wkhqk9x3550l364xbvnvnkoem&dl=0")
+          charIndicators <- LinkOrgs::url2dt("https://huggingface.co/datasets/cjerzak/LinkOrgs_PackageSupport/resolve/main/charIndicators.csv.zip")
           data.table::fwrite(charIndicators, file = CharIndicatorsLoc)
         }
   
@@ -243,13 +252,11 @@ LinkOrgs <- function(x, y, by = NULL, by.x = NULL,by.y = NULL,
       if(nrow(embedy) != nrow(y)){browser(); stop("DeezyMatch output mismatch!")}
     }
     if(algorithm == "lookup"){
-      # old wayu 
-      # load("~/Dropbox/Directory/DataInputs/linkedIn_rawData.Rdata")
-  
       # load lookup data - new way 
       {
         # process URLs
-        lookupURL <- dropboxURL2downloadURL("https://www.dropbox.com/scl/fi/ct2qvgrr8jjh6959olrcg/linkedIn_rawData.Rdata?rlkey=v58cqpcccuksie8utobis4eov&dl=0")
+        #lookupURL <- dropboxURL2downloadURL("https://www.dropbox.com/scl/fi/ct2qvgrr8jjh6959olrcg/linkedIn_rawData.Rdata?rlkey=v58cqpcccuksie8utobis4eov&dl=0")
+        lookupURL <- "https://huggingface.co/datasets/cjerzak/LinkOrgs_PackageSupport/resolve/main/linkedIn_rawData.Rdata"
         
         # download & unzip 
         download.file( lookupURL, destfile = (lookupDest <- sprintf("%s/linkedIn_rawData.Rdata",
@@ -291,7 +298,8 @@ LinkOrgs <- function(x, y, by = NULL, by.x = NULL,by.y = NULL,
     if(algorithm == "transfer" | DistanceMeasure == "transfer"){
       TransferModelLoc <- sprintf("%s/TransferLCoefs_tokenizer_parallelism_FALSE_model_bert-base-multilingual-uncased_layers_-1_device_cpu_logging_level_error_FullTRUE.csv", DownloadFolder)
       if( !file.exists(TransferModelLoc) ){
-        transferCoefs_url <- "https://www.dropbox.com/s/b2lvc4illml68w5/TransferLCoefs_tokenizer_parallelism_FALSE_model_bert-base-multilingual-uncased_layers_-1_device_cpu_logging_level_error_FullTRUE.csv.zip?dl=0"
+        #transferCoefs_url <- "https://www.dropbox.com/s/b2lvc4illml68w5/TransferLCoefs_tokenizer_parallelism_FALSE_model_bert-base-multilingual-uncased_layers_-1_device_cpu_logging_level_error_FullTRUE.csv.zip?dl=0"
+        transferCoefs_url <- "https://huggingface.co/datasets/cjerzak/LinkOrgs_PackageSupport/resolve/main/TransferLCoefs_tokenizer_parallelism_FALSE_model_bert-base-multilingual-uncased_layers_-1_device_cpu_logging_level_error_FullTRUE.csv.zip"
         transferCoefs <- try(t(as.matrix(url2dt( transferCoefs_url )[-1,2])),T)
         data.table::fwrite(transferCoefs, file = TransferModelLoc )
       }
@@ -313,8 +321,14 @@ LinkOrgs <- function(x, y, by = NULL, by.x = NULL,by.y = NULL,
   
     if(algorithm %in% c("bipartite", "markov")){
         # see https://techapple.net/2014/04/trick-obtain-direct-download-links-dropbox-files-dropbox-direct-link-maker-tool-cloudlinker/
-        if(algorithm == "bipartite"){ NetworkURL <- "https://dl.dropboxusercontent.com/s/tq675xfnnxjea4d/directory_data_bipartite_thresh40.zip?dl=0" }
-        if(algorithm == "markov"){ NetworkURL <- "https://dl.dropboxusercontent.com/s/ftt6ts6zrlnjqxp/directory_data_markov.zip?dl=0" }
+        if(algorithm == "bipartite"){ 
+          #NetworkURL <- "https://dl.dropboxusercontent.com/s/tq675xfnnxjea4d/directory_data_bipartite_thresh40.zip?dl=0" 
+          NetworkURL <- "https://huggingface.co/datasets/cjerzak/LinkOrgs_PackageSupport/resolve/main/directory_data_bipartite_thresh40.zip"
+        }
+        if(algorithm == "markov"){ 
+          #NetworkURL <- "https://dl.dropboxusercontent.com/s/ftt6ts6zrlnjqxp/directory_data_markov.zip?dl=0" 
+          NetworkURL <- "https://huggingface.co/datasets/cjerzak/LinkOrgs_PackageSupport/resolve/main/directory_data_markov.zip"
+        }
         DirectoryLoc <- gsub(DirectoryZipLoc <- sprintf('%s/Directory_%s.zip',
                                   DownloadFolder, algorithm ), pattern = "\\.zip", replace = "")
         if(!dir.exists(sprintf("%s/Directory_%s/", DownloadFolder, algorithm) ) ){
@@ -344,18 +358,33 @@ LinkOrgs <- function(x, y, by = NULL, by.x = NULL,by.y = NULL,
   
         if(DistanceMeasure %in% c("ml")){
           if(ml_version == "v0"){
-            if(algorithm == "bipartite"){ EmbeddingsURL <- "https://www.dropbox.com/scl/fi/bnp5yxy7pgr6lqk5hd54n/Directory_LinkIt_bipartite_Embeddings_v0.csv.gz?rlkey=bvdzkkg544ujogzy82eyceezn&dl=0" }
-            if(algorithm == "markov"){ EmbeddingsURL <- "https://www.dropbox.com/scl/fi/i8f5n93sxqw7jfyg6u8h5/Directory_LinkIt_markov_Embeddings_v0.csv.gz?rlkey=qxslvzxz0kn4n57mvoodadxif&dl=0" }
+            if(algorithm == "bipartite"){ 
+              EmbeddingsURL <- "https://www.dropbox.com/scl/fi/bnp5yxy7pgr6lqk5hd54n/Directory_LinkIt_bipartite_Embeddings_v0.csv.gz?rlkey=bvdzkkg544ujogzy82eyceezn&dl=0" 
+              EmbeddingsURL <- ""
+            }
+            if(algorithm == "markov"){ 
+              EmbeddingsURL <- "https://www.dropbox.com/scl/fi/i8f5n93sxqw7jfyg6u8h5/Directory_LinkIt_markov_Embeddings_v0.csv.gz?rlkey=qxslvzxz0kn4n57mvoodadxif&dl=0" 
+              EmbeddingsURL <- ""
+            }
           }
           if(ml_version == "v1"){
-            if(algorithm == "bipartite"){ EmbeddingsURL <- "https://www.dropbox.com/scl/fi/20j96htp1qr6hnvj721qc/Directory_LinkIt_bipartite_Embeddings_v1.csv.gz?rlkey=i9gekn7rmuhidvu6pysanta9b&dl=0" }
-            if(algorithm == "markov"){ EmbeddingsURL <- "https://www.dropbox.com/scl/fi/zkl7x6yfr19nszlyak900/Directory_LinkIt_markov_Embeddings_v1.csv.gz?rlkey=506dspvnakihl9szp3kb02u6m&dl=0" }
+            if(algorithm == "bipartite"){ 
+              EmbeddingsURL <- "https://www.dropbox.com/scl/fi/20j96htp1qr6hnvj721qc/Directory_LinkIt_bipartite_Embeddings_v1.csv.gz?rlkey=i9gekn7rmuhidvu6pysanta9b&dl=0" 
+              EmbeddingsURL <- ""
+            }
+            if(algorithm == "markov"){ 
+              EmbeddingsURL <- "https://www.dropbox.com/scl/fi/zkl7x6yfr19nszlyak900/Directory_LinkIt_markov_Embeddings_v1.csv.gz?rlkey=506dspvnakihl9szp3kb02u6m&dl=0" 
+              EmbeddingsURL <- ""
+            }
           }
+          
+          # Convert link if using Dropbox 
+          # EmbeddingsURL <- LinkOrgs::dropboxURL2downloadURL(EmbeddingsURL)
   
           EmbedddingsLoc <- sprintf("%s/Directory_LinkIt_%s_Embeddings_%s.csv.gz",
                                     DownloadFolder, algorithm, ml_version)
           if(!file.exists(EmbedddingsLoc)){
-            download.file(LinkOrgs::dropboxURL2downloadURL(EmbeddingsURL), destfile = EmbedddingsLoc)
+            download.file(EmbeddingsURL, destfile = EmbedddingsLoc)
           }
           linkedIn_embeddings <- NA2ColMean(as.matrix(data.table::fread(EmbedddingsLoc, showProgress = T))[,-1]); gc(); py_gc$collect()
           # print(  sort( sapply(ls(),function(x){object.size(get(x))}))  )
