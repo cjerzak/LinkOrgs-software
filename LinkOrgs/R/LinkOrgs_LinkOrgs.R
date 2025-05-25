@@ -359,12 +359,12 @@ LinkOrgs <- function(x, y, by = NULL, by.x = NULL,by.y = NULL,
         if(DistanceMeasure %in% c("ml")){
           if(ml_version == "v0"){
             if(algorithm == "bipartite"){ 
-              EmbeddingsURL <- "https://www.dropbox.com/scl/fi/bnp5yxy7pgr6lqk5hd54n/Directory_LinkIt_bipartite_Embeddings_v0.csv.gz?rlkey=bvdzkkg544ujogzy82eyceezn&dl=0" 
-              EmbeddingsURL <- ""
+              #EmbeddingsURL <- "https://www.dropbox.com/scl/fi/bnp5yxy7pgr6lqk5hd54n/Directory_LinkIt_bipartite_Embeddings_v0.csv.gz?rlkey=bvdzkkg544ujogzy82eyceezn&dl=0" 
+              EmbeddingsURL <- "https://huggingface.co/datasets/cjerzak/LinkOrgs_PackageSupport/resolve/main/Directory_LinkIt_bipartite_Embeddings_v0.csv.gz"
             }
             if(algorithm == "markov"){ 
-              EmbeddingsURL <- "https://www.dropbox.com/scl/fi/i8f5n93sxqw7jfyg6u8h5/Directory_LinkIt_markov_Embeddings_v0.csv.gz?rlkey=qxslvzxz0kn4n57mvoodadxif&dl=0" 
-              EmbeddingsURL <- ""
+              #EmbeddingsURL <- "https://www.dropbox.com/scl/fi/i8f5n93sxqw7jfyg6u8h5/Directory_LinkIt_markov_Embeddings_v0.csv.gz?rlkey=qxslvzxz0kn4n57mvoodadxif&dl=0" 
+              EmbeddingsURL <- "https://huggingface.co/datasets/cjerzak/LinkOrgs_PackageSupport/resolve/main/Directory_LinkIt_markov_Embeddings_v0.csv.gz"
             }
           }
           if(ml_version == "v1"){
@@ -373,8 +373,8 @@ LinkOrgs <- function(x, y, by = NULL, by.x = NULL,by.y = NULL,
               EmbeddingsURL <- ""
             }
             if(algorithm == "markov"){ 
-              EmbeddingsURL <- "https://www.dropbox.com/scl/fi/zkl7x6yfr19nszlyak900/Directory_LinkIt_markov_Embeddings_v1.csv.gz?rlkey=506dspvnakihl9szp3kb02u6m&dl=0" 
-              EmbeddingsURL <- ""
+              #EmbeddingsURL <- "https://www.dropbox.com/scl/fi/zkl7x6yfr19nszlyak900/Directory_LinkIt_markov_Embeddings_v1.csv.gz?rlkey=506dspvnakihl9szp3kb02u6m&dl=0" 
+              EmbeddingsURL <- "https://huggingface.co/datasets/cjerzak/LinkOrgs_PackageSupport/resolve/main/Directory_LinkIt_markov_Embeddings_v1.csv.gz"
             }
           }
           
