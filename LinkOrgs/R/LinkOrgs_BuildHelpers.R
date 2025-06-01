@@ -38,7 +38,9 @@ url2dt <- function(url){
                                                            theExtension)))
 
   # unzip into folder
-  destfolder_unzip <- gsub(destfile_zip, pattern=sprintf("\\.%s",theExtension), replace="")
+  destfolder_unzip <- gsub(pattern = sprintf("\\.%s", theExtension),
+                           replacement = "",
+                           x = destfile_zip)
   unzip(destfile_zip, junkpaths = T, exdir = destfolder_unzip)
 
   # load unzipped file into memory as a data.table
@@ -79,10 +81,15 @@ url2dt <- function(url){
 #' @md
 dropboxURL2downloadURL <- function( url ){
   # clean URL if from dropbox
-  url <- gsub(url, pattern="https://www.dropbox.com",
-              replace="https://dl.dropboxusercontent.com")
-  url <- gsub(url, pattern="www.dropbox.com", replace="dl.dropboxusercontent.com")
-  url <- gsub(url, pattern="dropbox.com", replace="dl.dropboxusercontent.com")
+  url <- gsub(pattern = "https://www.dropbox.com",
+              replacement = "https://dl.dropboxusercontent.com",
+              x = url)
+  url <- gsub(pattern = "www.dropbox.com",
+              replacement = "dl.dropboxusercontent.com",
+              x = url)
+  url <- gsub(pattern = "dropbox.com",
+              replacement = "dl.dropboxusercontent.com",
+              x = url)
 
   # return
   return( url )
@@ -137,8 +144,12 @@ inf20 <- function(ze){ if(is.infinite(ze)){ze<-0};ze}
 na20 <- function(ze){ ze[is.na(ze)] <- 0;ze}
 
 DeconflictNames <- function(z){
-  names_clean <- gsub( gsub(names_raw <- colnames(z),pattern="\\.x",replace=""),
-                       pattern="\\.y",replace="")
+  names_raw <- colnames(z)
+  names_clean <- gsub(pattern = "\\.y",
+                      replacement = "",
+                      x = gsub(pattern = "\\.x",
+                              replacement = "",
+                              x = names_raw))
   FracMatchAmongSharedCols <- tapply(1:ncol(z), names_clean, function(col_){
     value_ <- NA
     if(length(col_) == 2){

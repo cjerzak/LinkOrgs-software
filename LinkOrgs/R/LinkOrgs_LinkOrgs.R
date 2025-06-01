@@ -108,8 +108,11 @@ LinkOrgs <- function(x, y, by = NULL, by.x = NULL,by.y = NULL,
     if(algorithm == "ml"){ DistanceMeasure <- "ml" }
     if(algorithm == "ml" | DistanceMeasure == "ml"){
         if(is.null(ml_version)){ ml_version <- "v4" }
-        ModelLoc <- gsub(ModelZipLoc <- sprintf('%s/Model_%s.zip', DownloadFolder, ml_version ),
-                         pattern = "\\.zip", replace = "")
+        ModelLoc <- gsub(pattern = "\\.zip",
+                         replacement = "",
+                         x = (ModelZipLoc <- sprintf('%s/Model_%s.zip',
+                                                     DownloadFolder,
+                                                     ml_version )))
         WeightsLoc <- sprintf('%s/ModelWeights_%s.eqx', DownloadFolder, ml_version)
         CharIndicatorsLoc <- sprintf('%s/CharIndicatorsLoc.csv', DownloadFolder)
   
@@ -186,10 +189,14 @@ LinkOrgs <- function(x, y, by = NULL, by.x = NULL,by.y = NULL,
   
         print2(sprintf("Matching via name representations from ML models [%s]...", ml_version))
         embedx <- NA2ColMean(
-                      GetAliasRep_BigBatch(gsub(tolower(x[[by.x]]), pattern = "\\s+", replace =" "), # unnormalized spaces result in NA (so we normalize)
+                      GetAliasRep_BigBatch(gsub(pattern = "\\s+",
+                                               replacement = " ",
+                                               x = tolower(x[[by.x]])), # unnormalized spaces result in NA (so we normalize)
                                        nBatch_BigBatch = 50))
         embedy <- NA2ColMean(
-                      GetAliasRep_BigBatch(gsub(tolower(y[[by.y]]), pattern = "\\s+", replace =" "),
+                      GetAliasRep_BigBatch(gsub(pattern = "\\s+",
+                                               replacement = " ",
+                                               x = tolower(y[[by.y]])),
                                        nBatch_BigBatch = 50))
         pFuzzyMatchFxn_touse <- pFuzzyMatch_euclidean
         jax <<- jax; jnp <<- jnp; np <<- np
@@ -210,8 +217,9 @@ LinkOrgs <- function(x, y, by = NULL, by.x = NULL,by.y = NULL,
       for(val_ in c("x","y")){
         DatasetPath <- c( "./dataset/dataset-candidates_LINKORGS.txt")
         input_ <- eval(parse(text =
-                  sprintf('enc2utf8(gsub(tolower(%s[[by.%s]]),
-                          pattern = "\\\\s+", replace =" "))', # [ir_]
+                  sprintf('enc2utf8(gsub(pattern = "\\\\s+",
+                                  replacement = " ",
+                                  x = tolower(%s[[by.%s]])))', # [ir_]
                           val_, val_)))
         tmp <- strsplit(input_,split="")
         input_ <- sapply(1:length(input_), function(s_){
@@ -309,7 +317,9 @@ LinkOrgs <- function(x, y, by = NULL, by.x = NULL,by.y = NULL,
   
       # build transfer learning platform
       library(text); try(textrpp_initialize(),T)
-      BuildTransferText <- gsub(deparse1(BuildTransfer,collapse="\n"), pattern="function \\(\\)",replace="")
+      BuildTransferText <- gsub(pattern = "function \\(\\)",
+                               replacement = "",
+                               x = deparse1(BuildTransfer, collapse = "\n"))
       eval(parse(text = BuildTransferText))
   
       print2("Matching via name representations from a LLM...")
@@ -329,8 +339,11 @@ LinkOrgs <- function(x, y, by = NULL, by.x = NULL,by.y = NULL,
           #NetworkURL <- "https://dl.dropboxusercontent.com/s/ftt6ts6zrlnjqxp/directory_data_markov.zip?dl=0" 
           NetworkURL <- "https://huggingface.co/datasets/cjerzak/LinkOrgs_PackageSupport/resolve/main/directory_data_markov.zip"
         }
-        DirectoryLoc <- gsub(DirectoryZipLoc <- sprintf('%s/Directory_%s.zip',
-                                  DownloadFolder, algorithm ), pattern = "\\.zip", replace = "")
+        DirectoryLoc <- gsub(pattern = "\\.zip",
+                              replacement = "",
+                              x = (DirectoryZipLoc <- sprintf('%s/Directory_%s.zip',
+                                                            DownloadFolder,
+                                                            algorithm )))
         if(!dir.exists(sprintf("%s/Directory_%s/", DownloadFolder, algorithm) ) ){
             download.file( NetworkURL, destfile = DirectoryZipLoc )
             unzip(DirectoryZipLoc, exdir = DirectoryLoc)
