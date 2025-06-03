@@ -71,7 +71,7 @@ apt-get update \
   r-cran-rcppparallel  r-cran-fastmatch     r-cran-dplyr       r-cran-stringr \
   r-cran-glmnet        r-cran-data.table    r-cran-reticulate  r-cran-remotes \
   r-cran-r.methodss3   r-cran-r.utils       r-cran-r.oo        r-cran-fansi \
-  r-cran-plyr  r-cran-stringdist \ 
+  r-cran-plyr  r-cran-stringdist \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
@@ -80,16 +80,15 @@ apt-get update \
 Rscript -e "
   options(
     repos = c(CRAN = 'https://cloud.r-project.org'),
-    Ncpus = parallel::detectCores(),
     install.packages.compile.from.source = 'never'  # prefer binaries when available
   );
 "
 
 # Quickly install other binaries 
-BIN_ROOT="https://raw.githubusercontent.com/cjerzak/LinkOrgs-software/main/misc/DockerSETUP/BINARIES"
+BIN_ROOT="https://raw.githubusercontent.com/cjerzak/LinkOrgs-software/main/misc/DockerSetup/binaries"
 
 # Tarballs you produced in the builder container
-for f in emIRT_0.0.14_R_x86_64-pc-linux-gnu.tar.gz
+for f in Rfast_2.1.5.1_R_x86_64-pc-linux-gnu.tar.gz
 do
   curl -sSL -o "/tmp/$f" "$BIN_ROOT/$f"
 done
@@ -110,8 +109,6 @@ rm /tmp/*.tar.gz
 #    off vignette building so it doesn’t crawl CRAN for hundreds of MB.
 #------------------------------------------------------------------------------
 Rscript -e "
-  options(Ncpus = parallel::detectCores());
-  install.packages('Rfast');
   remotes::install_github(
     'cjerzak/LinkOrgs-software',
     subdir = 'LinkOrgs',
