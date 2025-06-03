@@ -85,7 +85,7 @@ Rscript -e "
 "
 
 # Quickly install other binaries 
-BIN_ROOT="https://raw.githubusercontent.com/cjerzak/LinkOrgs-software/main/misc/DockerSetup/binaries"
+BIN_ROOT="https://github.com/cjerzak/LinkOrgs-software/raw/refs/heads/master/misc/DockerSetup/binaries/"
 
 # Tarballs you produced in the builder container
 for f in Rfast_2.1.5.1_R_x86_64-pc-linux-gnu.tar.gz
@@ -109,7 +109,8 @@ rm /tmp/*.tar.gz
 #    off vignette building so it doesn’t crawl CRAN for hundreds of MB.
 #------------------------------------------------------------------------------
 Rscript -e "
-  remotes::install_github(
+  install.packages('zigg');
+   remotes::install_github(
     'cjerzak/LinkOrgs-software',
     subdir = 'LinkOrgs',
     dependencies = FALSE,
