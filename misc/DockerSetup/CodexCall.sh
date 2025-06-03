@@ -16,6 +16,8 @@ apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
        r-base \
        r-base-dev \
+       libtbb2 \
+       libtbb-dev     \
        libcurl4-openssl-dev \
        libssl-dev \
        libxml2-dev \

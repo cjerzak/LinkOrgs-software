@@ -16,6 +16,15 @@ docker run --platform=linux/amd64 --rm \
       libssl-dev \
       libxml2-dev
 
+ # Add CRAN’s GPG key
+ RUN apt-get update \
+    && apt-get install -y --no-install-recommends dirmngr gnupg apt-transport-https ca-certificates \
+    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 51716619E084DAB9 \
+    && echo \"deb https://cloud.r-project.org/bin/linux/ubuntu focal-cran40/\" \
+          > /etc/apt/sources.list.d/cran40.list \
+     && apt-get clean \
+     && rm -rf /var/lib/apt/lists/*
+
     apt-get update \
       && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       r-cran-rcpp           r-cran-rcppparallel   r-cran-rcpparmadillo \
@@ -34,42 +43,6 @@ docker run --platform=linux/amd64 --rm \
     cd /binaries
 
     ################################################################################
-    ## 4) Build Rcpp → “Rcpp_<ver>_R_x86_64-pc-linux-gnu.tar.gz”
-    echo '📦 Downloading Rcpp source…'
-    Rscript -e 'download.packages(
-      \"Rcpp\",
-      destdir      = \"/binaries\",
-      type         = \"source\",
-      repos        = \"https://cloud.r-project.org\"
-    )'
-    echo '⚙️  Building Rcpp binary…'
-    R CMD INSTALL --build /binaries/Rcpp_*.tar.gz
-
-    ################################################################################
-    ## 5) Build RcppArmadillo → “RcppArmadillo_<ver>_R_x86_64-pc-linux-gnu.tar.gz”
-    echo '📦 Downloading RcppArmadillo source…'
-    Rscript -e 'download.packages(
-      \"RcppArmadillo\",
-      destdir      = \"/binaries\",
-      type         = \"source\",
-      repos        = \"https://cloud.r-project.org\"
-    )'
-    echo '⚙️  Building RcppArmadillo binary…'
-    R CMD INSTALL --build /binaries/RcppArmadillo_*.tar.gz
-
-    ################################################################################
-    ## 5) Build RcppParallel → “RcppParallel_<ver>_R_x86_64-pc-linux-gnu.tar.gz”
-    echo '📦 Downloading RcppParallel source…'
-    Rscript -e 'download.packages(
-      \"RcppParallel\",
-      destdir      = \"/binaries\",
-      type         = \"source\",
-      repos        = \"https://cloud.r-project.org\"
-    )'
-    echo '⚙️  Building RcppParallel binary…'
-    R CMD INSTALL --build /binaries/RcppParallel_*.tar.gz
-
-    ################################################################################
     ## 4) Build Rfast → “Rfast_<ver>_R_x86_64-pc-linux-gnu.tar.gz”
     echo '📦 Downloading Rfast source…'
     Rscript -e 'download.packages(
@@ -80,7 +53,6 @@ docker run --platform=linux/amd64 --rm \
     )'
     echo '⚙️  Building Rcpp binary…'
     R CMD INSTALL --build /binaries/Rfast_*.tar.gz
-
 
     ################################################################################
     ## List out exactly what landed in /binaries
