@@ -9,6 +9,8 @@
 
 [<img src="https://img.shields.io/badge/Demo-View%20Demo-blue" alt="Demo Button">](https://connorjerzak.com/wp-content/uploads/2025/01/MainVignette.html)
 
+[![Hugging Face Dataset](https://img.shields.io/badge/Hugging%20Face-View%20Dataset-orange?style=flat-square&logo=huggingface&logoColor=white)](https://huggingface.co/datasets/cjerzak/LinkOrgs)
+
 **NB: You can also check out alternative  implementation [here](https://github.com/beniaminogreen/linkorgsonnx).**
 
 ## Installation
