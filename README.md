@@ -11,7 +11,7 @@
 
 [![Hugging Face Dataset](https://img.shields.io/badge/Hugging%20Face-View%20Dataset-orange?style=flat-square&logo=huggingface&logoColor=white)](https://huggingface.co/datasets/cjerzak/LinkOrgs)
 
-**NB: You can also check out alternative  implementation [here](https://github.com/beniaminogreen/linkorgsonnx).**
+**NB: You can access a point-and-click implementation online [here](https://huggingface.co/spaces/cjerzak/LinkOrgs_Online/).**
 
 ## Installation
 The most recent version of `LinkOrgs` can be installed directly from the repository using the `devtools` package
