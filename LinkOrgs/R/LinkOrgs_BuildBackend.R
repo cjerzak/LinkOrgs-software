@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 #' Build the environment for LinkOrgs machine learning models. Builds a conda environment in which jax, optax, equinox, and jmp are installed.
 #'
-#' @param conda_env (default = `"LinkOrgsEnv"`) Name of the conda environment in which to place the backends.
+#' @param conda_env (default = `"LinkOrgs_env"`) Name of the conda environment in which to place the backends.
 #' @param conda (default = `auto`) The path to a conda executable. Using `"auto"` allows reticulate to attempt to automatically find an appropriate conda binary.
 
 #' @return Builds the computational environment for `LinkOrgs`. This function requires an Internet connection.
@@ -14,7 +14,7 @@
 #' @export
 #' @md
 
-BuildBackend <- function(conda_env = "LinkOrgsEnv", conda = "auto", tryMetal = T){
+BuildBackend <- function(conda_env = "LinkOrgs_env", conda = "auto", tryMetal = T){
   # Create a new conda environment
   reticulate::conda_create(envname = conda_env,
                            conda = conda,
