@@ -15,3 +15,6 @@ LazyData: true
 Maintainer: 'Connor Jerzak' <connor.jerzak@gmail.com>
 Imports: data.table,plyr,Rfast,stringdist,parallel,glmnet,parallel,stringr,dplyr,fastmatch,reticulate,R.utils
 RoxygenNote: 7.3.2
+RemoteType: local
+RemotePkgRef: local::~/Documents/LinkOrgs-software/LinkOrgs
+RemoteUrl: /Users/cjerzak/Documents/LinkOrgs-software/LinkOrgs

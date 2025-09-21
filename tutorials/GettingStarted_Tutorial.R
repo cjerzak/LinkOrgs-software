@@ -8,7 +8,10 @@
 
   # local install for development team
   # (download package into temporary directory for development team debugging purposes)
-  # Sys.setenv("R_LIBS_USER"="/tmp/libDemo/lib"); install.packages("~/Documents/LinkOrgs-software/LinkOrgs",repos = NULL, type = "source", force = F)
+  # install.packages("~/Documents/LinkOrgs-software/LinkOrgs",repos = NULL, type = "source", force = F)
+  
+  # build backend 
+  # LinkOrgs::BuildBackend()
 
   # See package documentation for help
   # ?LinkOrgs::FastFuzzyMatch
@@ -57,4 +60,25 @@
                           y = y, by.y = "orgnames_y",
                           algorithm = "ml", ml_version = "v1",
                           conda_env = "LinkOrgsEnv" )
+  
+  # Perform a merge using the ML approach, just exporting the name representations
+  rep_joint <- LinkOrgs( # returns list(embedx = ..., embedy = ...) for manual linkage.
+    x = x, y = y,
+    by.x = "orgnames_x", by.y = "orgnames_y",
+    algorithm = "ml",
+    ExportEmbeddingsOnly = TRUE
+  )
+  rep_x <- LinkOrgs( # returns list(embedx = ...)
+    x = x, y = NULL,
+    by.x = "orgnames_x",
+    algorithm = "ml",
+    ExportEmbeddingsOnly = TRUE
+  ) 
+  rep_y <- LinkOrgs( # returns list(embedy = ...)
+    x = NULL, y = y,
+    by.y = "orgnames_y",
+    algorithm = "ml",
+    ExportEmbeddingsOnly = TRUE) 
+  
+  
 }
