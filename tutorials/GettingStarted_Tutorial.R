@@ -7,10 +7,9 @@
   # devtools::install_github("cjerzak/LinkOrgs-software/LinkOrgs")
 
   # local install for development team
-  # (download package into temporary directory for development team debugging purposes)
   # install.packages("~/Documents/LinkOrgs-software/LinkOrgs",repos = NULL, type = "source", force = F)
   
-  # build backend 
+  # build backend - do this once, when before first using ML backend. 
   # LinkOrgs::BuildBackend()
 
   # See package documentation for help
@@ -58,8 +57,7 @@
   LinkedOrgs_ML <- LinkOrgs(
                           x = x, by.x = "orgnames_x",
                           y = y, by.y = "orgnames_y",
-                          algorithm = "ml", ml_version = "v1",
-                          conda_env = "LinkOrgsEnv" )
+                          algorithm = "ml", ml_version = "v1")
   
   # Perform a merge using the ML approach, just exporting the name representations
   rep_joint <- LinkOrgs( # returns list(embedx = ..., embedy = ...) for manual linkage.
