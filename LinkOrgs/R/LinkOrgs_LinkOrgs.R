@@ -9,7 +9,8 @@
 #' @param ml_version character; specifies which version of the ML algorithm should be used. Options are of the form `"v0"` and `"v1"`. Highest version currently supported is `"v1"` (11M parameters).
 #' @param conda_env character string; specifies a conda environment where JAX and related packages have been installed (see `?LinkOrgs::BuildBackend`). Used only when `algorithm='ml'` or `DistanceMeasure='ml'`.
 #' @param conda_env_required Boolean; specifies whether conda environment is required.
-#' @param ReturnDiagnostics logical; specifies whether various match-level diagnostics should be returned in the merged data frame.
+#' @param ExportEmbeddingsOnly Boolean; if TRUE with algorithm='ml' (or DistanceMeasure='ml'), return only ML embeddings for x and/or y without matching for offline linkage.
+#' @param ReturnDiagnostics Boolean; specifies whether various match-level diagnostics should be returned in the merged data frame.
 #' @param ... For additional specification options, see
 #'   ``Details''.
 #'
@@ -55,7 +56,7 @@
 #' @import reticulate
 #' @md
 
-LinkOrgs <- function(x, y, by = NULL, by.x = NULL,by.y = NULL,
+LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
                     embedx = NULL, embedy = NULL, embedDistMetric = NULL, 
                     algorithm = "ml",
                     conda_env = "CondaEnv_LinkOrgs", conda_env_required = T,
@@ -72,13 +73,19 @@ LinkOrgs <- function(x, y, by = NULL, by.x = NULL,by.y = NULL,
                     RelThresNetwork = 1.5,
                     ml_version = "v1",
                     openBrowser = F,
-                    ReturnDecomposition = F,
+                    ExportEmbeddingsOnly = FALSE,
+                    ReturnDecomposition = FALSE,
                     python_executable, 
                     nCores = NULL, 
                     deezyLoc = NULL){
   suppressPackageStartupMessages({
     library(plyr); library(dplyr);  library(data.table); library(fastmatch); library(stringdist); library(stringr)
 } )
+  # Allow users to pass only `by`
+  if (!is.null(by)) {
+    if (is.null(by.x)){ by.x <- by };  if (is.null(by.y)){ by.y <- by }
+  }
+  # define fast match
   `%fin%` <- function(x, table) {fmatch(x, table, nomatch = 0L) > 0L}
   if(DistanceMeasure != "ml"){ 
       suppressPackageStartupMessages({
@@ -186,20 +193,46 @@ LinkOrgs <- function(x, y, by = NULL, by.x = NULL,by.y = NULL,
         print2("Applying trained weights...")
         ModelList <- eq$tree_deserialise_leaves( WeightsLoc, list(ModelList, StateList, opt_state) )
         StateList <- ModelList[[2]]; ModelList <- ModelList[[1]]
-  
+
         print2(sprintf("Matching via name representations from ML models [%s]...", ml_version))
-        embedx <- NA2ColMean(
-                      GetAliasRep_BigBatch(gsub(pattern = "\\s+",
-                                               replacement = " ",
-                                               x = tolower(x[[by.x]])), # unnormalized spaces result in NA (so we normalize)
-                                       nBatch_BigBatch = 50))
-        embedy <- NA2ColMean(
-                      GetAliasRep_BigBatch(gsub(pattern = "\\s+",
-                                               replacement = " ",
-                                               x = tolower(y[[by.y]])),
-                                       nBatch_BigBatch = 50))
+        
+        # Compute embeddings only for the datasets that are present
+        embedx <- NULL
+        embedy <- NULL
+        if (!is.null(x) && !is.null(by.x)) {
+          embedx <- NA2ColMean(
+            GetAliasRep_BigBatch(
+              gsub(pattern = "\\s+", replacement = " ", x = tolower(x[[by.x]])),
+              nBatch_BigBatch = 50
+            ) )
+        }
+        if (!is.null(y) && !is.null(by.y)) {
+          embedy <- NA2ColMean(
+            GetAliasRep_BigBatch(
+              gsub(pattern = "\\s+", replacement = " ", x = tolower(y[[by.y]])),
+              nBatch_BigBatch = 50
+            ) )
+        }
+        
         pFuzzyMatchFxn_touse <- pFuzzyMatch_euclidean
         jax <<- jax; jnp <<- jnp; np <<- np
+        
+        # NEW: if the user only wants embeddings, return them now
+        if (isTRUE(ExportEmbeddingsOnly)) {
+          out <- list()
+          if (!is.null(embedx)) {
+            ex <- data.frame(x[[by.x]], embedx, check.names = FALSE)
+            colnames(ex)[1] <- by.x
+            out$embedx <- ex     # rows aligned to x input
+          }
+          if (!is.null(embedy)) {
+            ey <- data.frame(y[[by.y]], embedy, check.names = FALSE)
+            colnames(ey)[1] <- by.y
+            out$embedy <- ey     # rows aligned to y input
+          }
+          return(out)
+        }
+        
     }
     if(algorithm == "deezymatch"){
       library( reticulate )
