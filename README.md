@@ -25,7 +25,7 @@ The machine-learning based algorithm accessible via the `algorithm="ml"` option 
 
 ```
 # install ML backend  
-LinkOrs::BuildBackend(conda_env = "LinkOrgsEnv", conda = "auto")
+LinkOrs::BuildBackend(conda = "auto")
 ```
 
 Note that most package options require Internet access in order to download the saved machine learning model parameters and LinkedIn-based network information. 
@@ -87,7 +87,6 @@ z_linked_ml <- LinkOrgs(x  = x,
                      by.x = "orgnames_x", 
                      by.y = "orgnames_y",
                      AveMatchNumberPerAlias = 10, 
-                     conda_env = "LinkOrgsEnv",  
 		     algorithm = "ml", ml_version = "v4")
 # note: change "tensorflow" to name of conda environment where a version of tensorflow v2 lives
                      
@@ -99,9 +98,34 @@ z_linked_combined <- LinkOrgs(x  = x,
                      AveMatchNumberPerAlias = 10, 
                      AveMatchNumberPerAlias_network = 1, 
                      algorithm = "markov",
-                     conda_env = "LinkOrgsEnv", 
                      DistanceMeasure = "ml", ml_version = "v4")
-# note: change "tensorflow" to name of conda environment where a version of tensorflow v2 lives
+
+  # Perform a merge using the ML approach, just exporting the name
+  representations
+  
+  # returns list(embedx = ..., embedy = ...) for manual linkage.
+  rep_joint <- LinkOrgs( 
+    x = x, y = y,
+    by.x = "orgnames_x",
+	by.y = "orgnames_y",
+    algorithm = "ml",
+    ExportEmbeddingsOnly = TRUE
+  )
+  
+  # returns list(embedx = ...)
+  rep_x <- LinkOrgs( 
+    x = x, y = NULL,
+    by.x = "orgnames_x",
+    algorithm = "ml",
+    ExportEmbeddingsOnly = TRUE
+  ) 
+  
+  # returns list(embedy = ...)
+  rep_y <- LinkOrgs( 
+    x = NULL, y = y,
+    by.y = "orgnames_y",
+    algorithm = "ml",
+    ExportEmbeddingsOnly = TRUE) 
 ```
 
 ## Comparison of Results with Ground Truth 
