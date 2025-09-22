@@ -12,7 +12,7 @@
 [![Hugging Face
 Dataset](https://img.shields.io/badge/Hugging%20Face-View%20Dataset-orange?style=flat-square&logo=huggingface&logoColor=white)](https://huggingface.co/datasets/cjerzak/LinkOrgs)
 
-[![Hugging Face Spaces](https://img.shields.io/badge/Hugging%20Face-View%20Spaces-orange?style=flat-square&logo=huggingface&logoColor=white)](https://huggingface.co/spaces/cjerzak/LinkOrgs_Online)
+[![Hugging Face Space](https://img.shields.io/badge/%F0%9F%A4%96_Hugging%20Face-Launch%20Online%20Demo-purple?style=for-the-badge&logo=huggingface&logoColor=white)](https://huggingface.co/spaces/cjerzak/LinkOrgs_Online/)
 
 **NB: You can access a point-and-click implementation online [here](https://huggingface.co/spaces/cjerzak/LinkOrgs_Online/).**
 
