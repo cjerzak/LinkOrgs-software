@@ -9,7 +9,10 @@
 
 [<img src="https://img.shields.io/badge/Demo-View%20Demo-blue" alt="Demo Button">](https://connorjerzak.com/wp-content/uploads/2025/01/MainVignette.html)
 
-[![Hugging Face Dataset](https://img.shields.io/badge/Hugging%20Face-View%20Dataset-orange?style=flat-square&logo=huggingface&logoColor=white)](https://huggingface.co/datasets/cjerzak/LinkOrgs)
+[![Hugging Face
+Dataset](https://img.shields.io/badge/Hugging%20Face-View%20Dataset-orange?style=flat-square&logo=huggingface&logoColor=white)](https://huggingface.co/datasets/cjerzak/LinkOrgs)
+
+[![Hugging Face Spaces](https://img.shields.io/badge/Hugging%20Face-View%20Spaces-orange?style=flat-square&logo=huggingface&logoColor=white)](https://huggingface.co/spaces/cjerzak/LinkOrgs_Online)
 
 **NB: You can access a point-and-click implementation online [here](https://huggingface.co/spaces/cjerzak/LinkOrgs_Online/).**
 
