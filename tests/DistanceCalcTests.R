@@ -1,7 +1,7 @@
 # Instructions for package installation + use
 {
   # clear workspace
-  rm( list = ls())
+  rm( list = ls()); options(error = NULL)
 
   # Download package via github if needed
   # devtools::install_github("cjerzak/LinkOrgs-software/LinkOrgs")
@@ -34,7 +34,8 @@
 
   # apply fxns
   AveMatchNumberPerAlias <- 5L
-  CalibratedThres <- LinkOrgs::GetCalibratedDistThres(x, y, AveMatchNumberPerAlias = AveMatchNumberPerAlias)
+  CalibratedThres <- LinkOrgs::GetCalibratedDistThres(x, y, 
+                                                      AveMatchNumberPerAlias = AveMatchNumberPerAlias)
   joined_xy_hashed <- zoomerjoin::euclidean_inner_join(x, y,
                                                 threshold = CalibratedThres, # distribution of projection weights depend on task
                                                 # band_width = 10000, #  makes it more difficult for things to match

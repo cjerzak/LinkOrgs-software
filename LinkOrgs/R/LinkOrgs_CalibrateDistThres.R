@@ -38,8 +38,8 @@
 #' @export
 #' @md
 
-GetCalibratedDistThres <- function(x = NULL, by.x = NULL,
-                                   y = NULL, by.y = NULL,
+GetCalibratedDistThres <- function(x = NULL, y = NULL,
+                                   by.x = NULL, by.y = NULL,
                                    AveMatchNumberPerAlias = 5L,
                                    qgram = 2L, DistanceMeasure = "jaccard", nCores = NULL, 
                                    mode = "euclidean"){
