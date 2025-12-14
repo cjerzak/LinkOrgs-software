@@ -95,25 +95,20 @@ dropboxURL2downloadURL <- function( url ){
   return( url )
 }
 
-#!/usr/bin/env Rscript
-#' url2dt
-#'
 #' print2
 #'
-#' @param text Text
+#' Prints a message with a timestamp prefix.
 #'
-#' @return `...` Prints...
-#' @export
+#' @param text Character string to print.
+#' @param quiet Logical; if TRUE, suppress output. Default is FALSE.
 #'
-#' @details ...
+#' @return Invisibly returns NULL. Called for its side effect of printing.
 #'
 #' @examples
 #'
-#' # Example download
 #' print2("Hello world!")
 #'
 #' @export
-#'
 #' @md
 print2 <- function(text, quiet = F){
   if(!quiet){ print( sprintf("[%s] %s" ,format(Sys.time(), "%Y-%m-%d %H:%M:%S"),text) ) }
@@ -121,22 +116,20 @@ print2 <- function(text, quiet = F){
 
 f2n <- function(.){as.numeric(as.character(.))}
 
-trigram_index <- function(phrase,phrasename='phrase.no',openBrowser=F){
-  library(plyr)
-
-  DT=data.table(phrase,phrase.no=1:length(phrase))
-  t = DT[,.(phrase,phrase.no,phrase.length = nchar(phrase))][
-    data.table(start_pos=1:100),
-    .(phrase,phrase.no,start_pos),
-    on="phrase.length>=start_pos",
-    nomatch=0,allow.cartesian=T][
+trigram_index <- function(phrase, phrasename = 'phrase.no', openBrowser = F){
+  DT <- data.table(phrase, phrase.no = 1:length(phrase))
+  t <- DT[, .(phrase, phrase.no, phrase.length = nchar(phrase))][
+    data.table(start_pos = 1:100),
+    .(phrase, phrase.no, start_pos),
+    on = "phrase.length>=start_pos",
+    nomatch = 0, allow.cartesian = T][
       order(phrase.no)]
-  t[,end_pos := pmin(start_pos+2,nchar(phrase))]
-  directory_trigrams= t[start_pos==1 | start_pos+2 == end_pos,
-                        .( trigram=substr(phrase,start_pos,end_pos),
-                           phrase.no )]
-  setkey(directory_trigrams,trigram)
-  colnames(directory_trigrams) = c("trigram",phrasename)
+  t[, end_pos := pmin(start_pos + 2, nchar(phrase))]
+  directory_trigrams <- t[start_pos == 1 | start_pos + 2 == end_pos,
+                          .(trigram = substr(phrase, start_pos, end_pos),
+                            phrase.no)]
+  setkey(directory_trigrams, trigram)
+  colnames(directory_trigrams) <- c("trigram", phrasename)
   return(directory_trigrams)
 }
 

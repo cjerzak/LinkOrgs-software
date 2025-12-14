@@ -5,8 +5,8 @@
 \title{LinkOrgs}
 \usage{
 LinkOrgs(
-  x,
-  y,
+  x = NULL,
+  y = NULL,
   by = NULL,
   by.x = NULL,
   by.y = NULL,
@@ -14,7 +14,7 @@ LinkOrgs(
   embedy = NULL,
   embedDistMetric = NULL,
   algorithm = "ml",
-  conda_env = "CondaEnv_LinkOrgs",
+  conda_env = "LinkOrgs_env",
   conda_env_required = T,
   ReturnDiagnostics = F,
   ReturnProgress = T,
@@ -28,9 +28,10 @@ LinkOrgs(
   DistanceMeasure = "jaccard",
   qgram = 2,
   RelThresNetwork = 1.5,
-  ml_version = "v4",
+  ml_version = "v1",
   openBrowser = F,
-  ReturnDecomposition = F,
+  ExportEmbeddingsOnly = FALSE,
+  ReturnDecomposition = FALSE,
   python_executable,
   nCores = NULL,
   deezyLoc = NULL
@@ -47,9 +48,11 @@ LinkOrgs(
 
 \item{conda_env_required}{Boolean; specifies whether conda environment is required.}
 
-\item{ReturnDiagnostics}{logical; specifies whether various match-level diagnostics should be returned in the merged data frame.}
+\item{ReturnDiagnostics}{Boolean; specifies whether various match-level diagnostics should be returned in the merged data frame.}
 
-\item{ml_version}{character; specifies which version of the ML algorithm should be used. Options are of the form \code{"v1"}, \code{"v2"}, \code{"v3"}.... Highest version currently supported is \code{"v1"} (11M parameters).}
+\item{ml_version}{character; specifies which version of the ML algorithm should be used. Options are of the form \code{"v0"} and \code{"v1"}. Highest version currently supported is \code{"v1"} (11M parameters).}
+
+\item{ExportEmbeddingsOnly}{Boolean; if TRUE with algorithm='ml' (or DistanceMeasure='ml'), return only ML embeddings for x and/or y without matching for offline linkage.}
 
 \item{...}{For additional specification options, see
 ``Details''.}

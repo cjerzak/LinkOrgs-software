@@ -49,6 +49,7 @@
 #' @import stringdist
 #' @import plyr
 #' @import data.table
+#' @importFrom foreach foreach %dopar%
 #'
 #' @export
 #' @md
@@ -56,9 +57,8 @@
 pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, embedDistMetric = NULL, 
                            return_stringdist = T, onlyUFT = T,
                            qgram =2, DistanceMeasure = "jaccard", MaxDist = 0.20,
-                           ReturnProgress=T, nCores = NULL, 
+                           ReturnProgress=T, nCores = NULL,
                            ReturnMaxDistThreshold = F){
-  library(stringdist)
   if(is.null(by.x) & is.null(by.y)){ by.x <- by.y <- by }
   if(swappedXY <- (nrow(y) < nrow(x))){
     # condition: y should be larger than x for efficient parallelization 
@@ -66,18 +66,18 @@ pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, embed
     x_old <- x; y_old <- y;
     by.y_old <- by.y;
     by.x_old <- by.x
-    x <- y_old; by.x = by.y_old; rm(y_old)
-    y <- x_old; by.y = by.x_old; rm(x_old)
+    x <- y_old; by.x <- by.y_old; rm(y_old, by.y_old)
+    y <- x_old; by.y <- by.x_old; rm(x_old, by.x_old)
   }
   if(by.x == by.y){
     colnames(x)[colnames(x) == by.x] <- paste(by.x, ".x", sep = "")
     colnames(y)[colnames(y) == by.y] <- paste(by.y, ".y", sep = "")
-    by.x = paste(by.x, ".x", sep = "");by.y = paste(by.y, ".y", sep = "")
+    by.x <- paste(by.x, ".x", sep = ""); by.y <- paste(by.y, ".y", sep = "")
   }
-  x = as.data.table(x); x$by.x_ORIG <- x[[by.x]]
-  y = as.data.table(y); y$by.y_ORIG <- y[[by.y]]
-  x_tri_index = trigram_index(x[[by.x]],"the.row")
-  y_tri_index = trigram_index(y[[by.y]],"the.row")
+  x <- as.data.table(x); x$by.x_ORIG <- x[[by.x]]
+  y <- as.data.table(y); y$by.y_ORIG <- y[[by.y]]
+  x_tri_index <- trigram_index(x[[by.x]], "the.row")
+  y_tri_index <- trigram_index(y[[by.y]], "the.row")
   
   # test 
   # trigram_index(c("hi","hiaer", "hi","hi"),"the.row")
@@ -86,9 +86,9 @@ pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, embed
   {
     split_list_x <- list(1:(n_iters <- nrow(x))) # # x is arbitrary reference (y is larger base)
     if(n_iters>50){
-      split_list_x = round(seq(0.5,n_iters,length.out = nCores + 1))
-      split_list_x = as.numeric(cut(1:n_iters,breaks=split_list_x))
-      split_list_x = sapply(1:nCores, function(as){ list(which(split_list_x ==as))})
+      split_list_x <- round(seq(0.5, n_iters, length.out = nCores + 1))
+      split_list_x <- as.numeric(cut(1:n_iters, breaks = split_list_x))
+      split_list_x <- sapply(1:nCores, function(as){ list(which(split_list_x == as))})
     }
     
     Export <- c("split_list_x", "DistanceMeasure", "qgram", "nCores", "ReturnProgress",
@@ -103,12 +103,13 @@ pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, embed
       counter_ <- 0
       my_matched_inner <- matrix(NA, nrow = 0,ncol=3)
       for(ix in split_list_x[[outer_ix]]){
-        counter_ = counter_ + 1
-        if(ix %% 100==0 & ReturnProgress){write.csv(data.frame("Current Split" = outer_ix,
-                                                   "Total Splits" = nCores,
-                                                   "Current Iters in Split" = counter_,
-                                                   "Total Iters in Split" = length(split_list_x[[outer_ix]])),
-                                                   file = './PROGRESS_pDistMatch_discrete.csv')}
+        counter_ <- counter_ + 1
+        # Commented out: hardcoded file path in progress tracking (Bug #7)
+        # if(ix %% 100==0 & ReturnProgress){write.csv(data.frame("Current Split" = outer_ix,
+        #                                            "Total Splits" = nCores,
+        #                                            "Current Iters in Split" = counter_,
+        #                                            "Total Iters in Split" = length(split_list_x[[outer_ix]])),
+        #                                            file = './PROGRESS_pDistMatch_discrete.csv')}
         
         # get the trigrams of the name, x[ix,][[by.x]]
         # find the set of entries in directory_LinkIt_red that have x% in common trigram
@@ -122,7 +123,7 @@ pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, embed
                                      method = DistanceMeasure, q = qgram)
           iy <- LT_entries[ belowThres_ <- which(dist_vec_red <= MaxDist) ]
         if(length(iy) > 0){
-          my_matched_inner = rbind(my_matched_inner,
+          my_matched_inner <- rbind(my_matched_inner,
                                     cbind(ix, matrix( c(iy, dist_vec_red[belowThres_]),
                                                       nrow = length(iy), ncol = 2L, byrow = F) ) )
         }
@@ -130,7 +131,7 @@ pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, embed
       }
       return( my_matched_inner )
                      }
-    myMatched = as.data.frame( do.call(rbind, loop_) )
+    myMatched <- as.data.frame( do.call(rbind, loop_) )
     colnames(myMatched) <- c("ix","iy","stringdist")
   }
   if(swappedXY){

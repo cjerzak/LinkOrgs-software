@@ -78,25 +78,27 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
                     python_executable, 
                     nCores = NULL, 
                     deezyLoc = NULL){
-  suppressPackageStartupMessages({
-    library(plyr); library(dplyr);  library(data.table); library(fastmatch); library(stringdist); library(stringr)
-} )
+  # Packages loaded via NAMESPACE imports
   # Allow users to pass only `by`
   if (!is.null(by)) {
     if (is.null(by.x)){ by.x <- by };  if (is.null(by.y)){ by.y <- by }
   }
   # define fast match
   `%fin%` <- function(x, table) {fmatch(x, table, nomatch = 0L) > 0L}
-  if(DistanceMeasure != "ml"){ 
-      suppressPackageStartupMessages({
-        library("foreach",quietly=T); library("doParallel",quietly=T); 
-      })
-    if(is.null(nCores)){ 
-      nCores <- ifelse(nrow(x)*nrow(y) > 500, 
-                       yes = max(c(1L,parallel::detectCores() - 2L)), 
+
+  # Initialize cluster variable for cleanup tracking
+  cl <- NULL
+
+  if(DistanceMeasure != "ml"){
+    if(is.null(nCores)){
+      nCores <- ifelse(nrow(x)*nrow(y) > 500,
+                       yes = max(c(1L,parallel::detectCores() - 2L)),
                        no = 1L)
     }
-    doParallel::registerDoParallel(  cl <- parallel::makeCluster(  nCores  ) )
+    cl <- parallel::makeCluster(nCores)
+    doParallel::registerDoParallel(cl)
+    # Ensure cluster is stopped on exit (error, early return, or normal completion)
+    on.exit(if(!is.null(cl)) try(parallel::stopCluster(cl), silent = TRUE), add = TRUE)
   }
 
   # change timeout for long download of large-scale data objects
@@ -235,7 +237,6 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
         
     }
     if(algorithm == "deezymatch"){
-      library( reticulate )
       reticulate::use_condaenv("py39deezy")
       DeezyMatch <- import("DeezyMatch")
       pd <- import("pandas")
@@ -289,8 +290,8 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
       setwd( orig_wd )
       pFuzzyMatchFxn_touse <- pFuzzyMatch_euclidean
       jax <<- jax; jnp <<- jnp; np <<- np
-      if(nrow(embedx) != nrow(x)){browser(); stop("DeezyMatch output mismatch!")}
-      if(nrow(embedy) != nrow(y)){browser(); stop("DeezyMatch output mismatch!")}
+      if(nrow(embedx) != nrow(x)){stop("DeezyMatch output mismatch!")}
+      if(nrow(embedy) != nrow(y)){stop("DeezyMatch output mismatch!")}
     }
     if(algorithm == "lookup"){
       # load lookup data - new way 
@@ -349,7 +350,10 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
       transferCoefs <- data.table::fread( TransferModelLoc )
   
       # build transfer learning platform
-      library(text); try(textrpp_initialize(),T)
+      if (!requireNamespace("text", quietly = TRUE)) {
+        stop("Package 'text' is required for transfer learning. Please install it.")
+      }
+      try(text::textrpp_initialize(), TRUE)
       BuildTransferText <- gsub(pattern = "function \\(\\)",
                                replacement = "",
                                x = deparse1(BuildTransfer, collapse = "\n"))
@@ -432,7 +436,7 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
           if(!file.exists(EmbedddingsLoc)){
             download.file(EmbeddingsURL, destfile = EmbedddingsLoc)
           }
-          linkedIn_embeddings <- NA2ColMean(as.matrix(data.table::fread(EmbedddingsLoc, showProgress = T))[,-1]); gc(); py_gc$collect()
+          linkedIn_embeddings <- NA2ColMean(as.matrix(data.table::fread(EmbedddingsLoc, showProgress = T))[,-1]); gc()
           # print(  sort( sapply(ls(),function(x){object.size(get(x))}))  )
         }
     }
@@ -442,13 +446,13 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
   # print(  sort( sapply(ls(),function(x){object.size(get(x))}))  )
 
   # save original names for later merging
-  by_x_orig = x[[by.x]]; by_y_orig = y[[by.y]]
+  by_x_orig <- x[[by.x]]; by_y_orig <- y[[by.y]]
 
   # process unique IDs
   if(!is.null(by)){ by.x <- by.y <- by }
 
-  x = cbind(sapply(x[[by.x]],digest::digest), x); colnames(x)[1] <- 'Xref__ID'
-  y = cbind(sapply(y[[by.y]],digest::digest),y); colnames(y)[1] <- 'Yref__ID'
+  x <- cbind(sapply(x[[by.x]], digest::digest), x); colnames(x)[1] <- 'Xref__ID'
+  y <- cbind(sapply(y[[by.y]], digest::digest), y); colnames(y)[1] <- 'Yref__ID'
   names(by_x_orig) <- x$Xref__ID;names(by_y_orig) <- y$Yref__ID
   y$UniversalMatchCol <- x$UniversalMatchCol <- NA
   colnames_x_orig <- colnames(x); colnames_y_orig <- colnames(y)
@@ -488,7 +492,7 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
     if(DistanceMeasure == "ml"){
       linkedIn_embeddings <- linkedIn_embeddings[keepAliases,]
     }
-    directory = directory[keepAliases,]
+    directory <- directory[keepAliases, ]
 
     #get trigrams
     directory_red <- directory[,c("alias_name","canonical_id")]
@@ -497,12 +501,12 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
     y_tri_index  <- trigram_index(y[[by.y]],'the.row')
 
     #drop components of the big corpus which don't share any trigrams with any entries in {x,y}
-    tmp = unique(c(unique(as.character(x_tri_index[,trigram])),unique(as.character(y_tri_index[,trigram]))))
-    dir_tri_index = dir_tri_index[trigram %fin% tmp,];rm(tmp);setkey(dir_tri_index, trigram)
+    tmp <- unique(c(unique(as.character(x_tri_index[, trigram])), unique(as.character(y_tri_index[, trigram]))))
+    dir_tri_index <- dir_tri_index[trigram %fin% tmp, ]; rm(tmp); setkey(dir_tri_index, trigram)
   }
 
   #specify ID_match for the exact/fuzzy matching
-  x$UniversalMatchCol <- as.character(x[[by.x]]); y$UniversalMatchCol = as.character( y[[by.y]] )
+  x$UniversalMatchCol <- as.character(x[[by.x]]); y$UniversalMatchCol <- as.character(y[[by.y]])
 
   print2("Searching for matches in the raw name space...")
   z_RawNames <- as.data.frame( pFuzzyMatchFxn_touse(
@@ -575,7 +579,7 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
   if(is.null(z_Network)){ z <- as.data.frame( z_RawNames ) }
   if(!is.null(z_Network)){
     z_Network$XYref__ID <- paste( z_Network$Xref__ID, z_Network$Yref__ID, sep="__LINKED__" )
-    z = rbind.fill(as.data.frame( z_RawNames ), as.data.frame( z_Network ) )
+    z <- rbind.fill(as.data.frame(z_RawNames), as.data.frame(z_Network))
   }
     
   print2("Dropping duplicates..."); if( nrow(z)>1 ){
@@ -615,8 +619,8 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
   #undo modifications to names for processing
   z[[by.y]] <- by_y_orig[z$Yref__ID]
   z[[by.x]] <- by_x_orig[z$Xref__ID]
-  z  = z[,!colnames(z) %fin% c("ID_MATCH.x", "ID_MATCH.y",
-                               'Yref__ID', 'Xref__ID')]
+  z <- z[, !colnames(z) %fin% c("ID_MATCH.x", "ID_MATCH.y",
+                                'Yref__ID', 'Xref__ID')]
   if(!(algorithm %in% c("markov", "bipartite"))){
     z <- z[,!colnames(z) %in% c("stringdist2network",
                                 "stringdist.y2network", "stringdist.x2network")]
@@ -624,17 +628,17 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
   }
 
   if( ReturnDiagnostics == F ){
-    z  = z[,colnames(z)[colnames(z) %fin% c(colnames(x ),colnames(y ),
-                                            grep(colnames(z),pattern="stringdist",value=T), "minDist")]]
-    z = z[,!colnames(z) %fin% "UniversalMatchCol"]
+    z <- z[, colnames(z)[colnames(z) %fin% c(colnames(x), colnames(y),
+                                             grep(colnames(z), pattern = "stringdist", value = T), "minDist")]]
+    z <- z[, !colnames(z) %fin% "UniversalMatchCol"]
   }
 
-  if(DistanceMeasure != "ml"){ doParallel::stopImplicitCluster() }
+  # Cluster cleanup handled by on.exit() registered at cluster creation
   # if(any(is.na( z[[by.x]] ))){browser()}; if(any(is.na( z[[by.y]] ))){browser()}
 
   print2("Returning matched dataset!")
   if(ReturnDecomposition == T){ z = list("z" = z,
                                          "z_RawNames" = z_RawNames,
-                                         "z_Network" = z_Networks)  }
+                                         "z_Network" = z_Network)  }
   gc(); return(  z )
 }

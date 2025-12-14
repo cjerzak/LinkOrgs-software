@@ -4,10 +4,10 @@
 \alias{BuildBackend}
 \title{Build the environment for LinkOrgs machine learning models. Builds a conda environment in which jax, optax, equinox, and jmp are installed.}
 \usage{
-BuildBackend(conda_env = "LinkOrgsEnv", conda = "auto", tryMetal = T)
+BuildBackend(conda_env = "LinkOrgs_env", conda = "auto", tryMetal = T)
 }
 \arguments{
-\item{conda_env}{(default = \code{"LinkOrgsEnv"}) Name of the conda environment in which to place the backends.}
+\item{conda_env}{(default = \code{"LinkOrgs_env"}) Name of the conda environment in which to place the backends.}
 
 \item{conda}{(default = \code{auto}) The path to a conda executable. Using \code{"auto"} allows reticulate to attempt to automatically find an appropriate conda binary.}
 }

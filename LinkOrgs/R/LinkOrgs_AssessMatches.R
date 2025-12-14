@@ -51,7 +51,6 @@ AssessMatchPerformance = function(x, y, z, z_true, by, by.x=by, by.y=by, openBro
   z_true[[by.y]] <- enc2utf8(z_true[[by.y]])
 
   if(openBrowser==T){browser()}
-  library(fastmatch)
   `%fin%` <- function(x, table) {fmatch(x, table, nomatch = 0L) > 0L}
   x <- as.matrix(x);y <- as.matrix(y);z <- as.matrix(z);z_true <- as.matrix(z_true);
   totalCombs <- length( unique(x[,by.x]) ) * length( unique(y[,by.y]) )

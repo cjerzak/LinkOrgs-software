@@ -103,10 +103,11 @@ pDistMatch_euclidean <- function(embedx, embedy, MaxDist = NULL, embedDistMetric
   }
 
   #gc(); distMat <- (foreach(ix = 1:nrow(embedx), .export = Export, .noexport = NoExport) %dopar% { # useful for small embedding dims
-  gc(); library(Rfast); distMat <- lapply(1:nrow(embedx), function(ix){ # useful for big embedding dims
-    if(ix %% 25 == 0 & ReturnProgress | ix < 10){ gc(); write.csv(data.frame("Current ix" = max(ix),
-                                                           "Total ix" = nrow(embedx)),
-                                                file = './PROGRESS_pDistMatch_euclidean.csv')}
+  gc(); distMat <- lapply(1:nrow(embedx), function(ix){ # useful for big embedding dims
+    # Commented out: hardcoded file path in progress tracking (Bug #7)
+    # if(ix %% 25 == 0 & ReturnProgress | ix < 10){ gc(); write.csv(data.frame("Current ix" = max(ix),
+    #                                                        "Total ix" = nrow(embedx)),
+    #                                             file = './PROGRESS_pDistMatch_euclidean.csv')}
 
     # calculate distances
     if(!"jax" %in% ls()){
