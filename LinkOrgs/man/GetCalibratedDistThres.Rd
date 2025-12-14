@@ -17,45 +17,40 @@ GetCalibratedDistThres(
 )
 }
 \arguments{
-\item{x, y}{data frames to be merged}
+\item{x}{Input data. For \code{mode = "euclidean"}: an embedding matrix where rows are observations
+and columns are embedding dimensions. For \code{mode = "discrete"}: a data frame containing
+the column specified by \code{by.x}.}
 
-\item{by, by.x, by.y}{specifications of the columns used for merging. We follow the general syntax of \code{base::merge}; see \code{?base::merge} for more details.}
+\item{by.x}{Column name in \code{x} to use for matching. Only used when \code{mode = "discrete"}.}
 
-\item{...}{For additional options, see ``Details''.}
+\item{y}{Input data. For \code{mode = "euclidean"}: an embedding matrix where rows are observations
+and columns are embedding dimensions. For \code{mode = "discrete"}: a data frame containing
+the column specified by \code{by.y}.}
+
+\item{by.y}{Column name in \code{y} to use for matching. Only used when \code{mode = "discrete"}.}
+
+\item{AveMatchNumberPerAlias}{Target average number of matches per observation.
+Used to calibrate the distance threshold. Default is 5.}
+
+\item{qgram}{The q-gram size for string distance calculation. Only used when
+\code{mode = "discrete"}. Default is 2.}
+
+\item{DistanceMeasure}{The string distance measure to use. Only used when
+\code{mode = "discrete"}. Options include "jaccard", "osa", "jw". See
+\code{?stringdist::stringdist} for all options. Default is "jaccard".}
+
+\item{nCores}{Number of CPU cores for parallel computation. Only used when
+\code{mode = "discrete"}. Default is NULL (auto-detect).}
+
+\item{mode}{Character string specifying the distance computation mode.
+Must be either "euclidean" (for embedding-based matching) or "discrete"
+(for string-based matching). Default is "euclidean".}
 }
 \value{
-z The merged data frame.
+A numeric value representing the calibrated distance threshold.
 }
 \description{
-Performs parallelized fuzzy matching of strings based on the string distance measure specified in \code{DistanceMeasure}. Matching is parallelized using all available CPU cores to increase execution speed.
-}
-\details{
-\code{pFuzzyMatch} can automatically process the \code{by} text for each dataset. Users may specify the following options:
-\itemize{
-\item Set \code{DistanceMeasure} to control algorithm for computing pairwise string distances. Options include "\code{osa}", "\code{jaccard}", "\code{jw}". See \code{?stringdist::stringdist} for all options. (Default is "\code{jaccard}")
-\item Set \code{MaxDist} to control the maximum allowed distance between two matched strings
-\item Set \code{AveMatchNumberPerAlias} to control the maximum allowed distance between two matched strings. Takes priority over \code{MaxDist} if both specified.
-\item Set \code{qgram} to control the character-level q-grams used in the distance measure. (Default is \code{2})
-\item Set \code{RemoveCommonWords} to TRUE to remove common words (those appearing in > 10\% of aliases). (Default is \code{FALSE})
-\item Set \code{NormalizeSpaces} to TRUE to remove hanging whitespaces. (Default is \code{TRUE})
-\item Set \code{RemovePunctuation} to TRUE to remove punctuation. (Default is \code{TRUE})
-\item Set \code{ToLower} to TRUE to ignore case. (Default is \code{TRUE})
-}
-}
-\examples{
-
-#Create synthetic data
-x_orgnames <- c("apple","oracle","enron inc.","mcdonalds corporation")
-y_orgnames <- c("apple corp","oracle inc","enron","mcdonalds co")
-x <- data.frame("orgnames_x"=x_orgnames)
-y <- data.frame("orgnames_y"=y_orgnames)
-z <- data.frame("orgnames_x"=x_orgnames[1:2], "orgnames_y"=y_orgnames[1:2])
-z_true <- data.frame("orgnames_x"=x_orgnames, "orgnames_y"=y_orgnames)
-
-# Perform merge
-linkedOrgs_fuzzy <- pFuzzyMatch(x = x,
-                       y = y,
-                       by.x = "orgnames_x",
-                       by.y = "orgnames_y")
-
+Calibrates a distance threshold based on a target average number of matches per alias.
+Samples pairwise distances from a subset of observations to determine the threshold
+that would yield approximately the desired number of matches.
 }

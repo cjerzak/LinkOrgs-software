@@ -32,14 +32,14 @@ pFuzzyMatch_euclidean <- function(
   if(!is.null(AveMatchNumberPerAlias)){
     MaxDist <- GetCalibratedDistThres(x = embedy,
                                       y = embedx,
-                                      AveMatchNumberPerAlias = AveMatchNumberPerAlias)
+                                      AveMatchNumberPerAlias = AveMatchNumberPerAlias,
+                                      mode = "euclidean")
   }
 
   z_indices <- pDistMatch_euclidean(embedx, embedy,
                                     MaxDist = MaxDist)
   colnames(y) <- paste(colnames(y), '.y', sep = "")
   colnames(x) <- paste(colnames(x), '.x', sep = "")
-  z <- cbind( x[z_indices$ix,], y[z_indices$iy,] )
   z <- as.data.frame( cbind( x[z_indices[,"ix"],], y[z_indices[,"iy"],] ) )
   z$stringdist <- z_indices[,"stringdist"]
   gc(); return( DeconflictNames( z ) )

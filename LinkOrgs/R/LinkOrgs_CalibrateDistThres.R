@@ -1,54 +1,39 @@
 #' GetCalibratedDistThres
 #'
-#' Performs parallelized fuzzy matching of strings based on the string distance measure specified in `DistanceMeasure`. Matching is parallelized using all available CPU cores to increase execution speed.
+#' Calibrates a distance threshold based on a target average number of matches per alias.
+#' Samples pairwise distances from a subset of observations to determine the threshold
+#' that would yield approximately the desired number of matches.
 #'
-#' @param x,y data frames to be merged
+#' @param x Input data. For `mode = "euclidean"`: an embedding matrix where rows are observations
+#'   and columns are embedding dimensions. For `mode = "discrete"`: a data frame containing
+#'   the column specified by `by.x`.
 #'
-#' @param by,by.x,by.y specifications of the columns used for merging. We follow the general syntax of `base::merge`; see `?base::merge` for more details.
+#' @param y Input data. For `mode = "euclidean"`: an embedding matrix where rows are observations
+#'   and columns are embedding dimensions. For `mode = "discrete"`: a data frame containing
+#'   the column specified by `by.y`.
 #'
-#' @param ... For additional options, see ``Details''.
+#' @param by.x Column name in `x` to use for matching. Only used when `mode = "discrete"`.
 #'
-#' @return z The merged data frame.
-#' @export
+#' @param by.y Column name in `y` to use for matching. Only used when `mode = "discrete"`.
 #'
-#' @details
-#' `pFuzzyMatch` can automatically process the `by` text for each dataset. Users may specify the following options:
+#' @param AveMatchNumberPerAlias Target average number of matches per observation.
+#'   Used to calibrate the distance threshold. Default is 5.
 #'
-#' - Set `DistanceMeasure` to control algorithm for computing pairwise string distances. Options include "`osa`", "`jaccard`", "`jw`". See `?stringdist::stringdist` for all options. (Default is "`jaccard`")
+#' @param qgram The q-gram size for string distance calculation. Only used when
+#'   `mode = "discrete"`. Default is 2.
 #'
-#' - Set `MaxDist` to control the maximum allowed distance between two matched strings
+#' @param DistanceMeasure The string distance measure to use. Only used when
+#'   `mode = "discrete"`. Options include "jaccard", "osa", "jw". See
+#'   `?stringdist::stringdist` for all options. Default is "jaccard".
 #'
-#' - Set `AveMatchNumberPerAlias` to control the maximum allowed distance between two matched strings. Takes priority over `MaxDist` if both specified.
+#' @param nCores Number of CPU cores for parallel computation. Only used when
+#'   `mode = "discrete"`. Default is NULL (auto-detect).
 #'
-#' - Set `qgram` to control the character-level q-grams used in the distance measure. (Default is `2`)
+#' @param mode Character string specifying the distance computation mode.
+#'   Must be either "euclidean" (for embedding-based matching) or "discrete"
+#'   (for string-based matching). Default is "euclidean".
 #'
-#' - Set `RemoveCommonWords` to TRUE to remove common words (those appearing in > 10% of aliases). (Default is `FALSE`)
-#'
-#' - Set `NormalizeSpaces` to TRUE to remove hanging whitespaces. (Default is `TRUE`)
-#'
-#' - Set `RemovePunctuation` to TRUE to remove punctuation. (Default is `TRUE`)
-#'
-#' - Set `ToLower` to TRUE to ignore case. (Default is `TRUE`)
-#'
-#' @examples
-#'
-#' #Create synthetic data
-#' x_orgnames <- c("apple","oracle","enron inc.","mcdonalds corporation")
-#' y_orgnames <- c("apple corp","oracle inc","enron","mcdonalds co")
-#' x <- data.frame("orgnames_x"=x_orgnames)
-#' y <- data.frame("orgnames_y"=y_orgnames)
-#' z <- data.frame("orgnames_x"=x_orgnames[1:2], "orgnames_y"=y_orgnames[1:2])
-#' z_true <- data.frame("orgnames_x"=x_orgnames, "orgnames_y"=y_orgnames)
-#'
-#' # Perform merge
-#' linkedOrgs_fuzzy <- pFuzzyMatch(x = x,
-#'                        y = y,
-#'                        by.x = "orgnames_x",
-#'                        by.y = "orgnames_y")
-#'
-#' @import stringdist
-#' @import plyr
-#' @import data.table
+#' @return A numeric value representing the calibrated distance threshold.
 #'
 #' @export
 #' @md

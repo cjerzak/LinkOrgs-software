@@ -2,25 +2,23 @@
 % Please edit documentation in R/LinkOrgs_BuildHelpers.R
 \name{print2}
 \alias{print2}
-\title{url2dt}
+\title{print2}
 \usage{
 print2(text, quiet = F)
 }
 \arguments{
-\item{text}{Text}
+\item{text}{Character string to print.}
+
+\item{quiet}{Logical; if TRUE, suppress output. Default is FALSE.}
 }
 \value{
-\code{...} Prints...
+Invisibly returns NULL. Called for its side effect of printing.
 }
 \description{
-print2
-}
-\details{
-...
+Prints a message with a timestamp prefix.
 }
 \examples{
 
-# Example download
 print2("Hello world!")
 
 }

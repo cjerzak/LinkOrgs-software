@@ -83,6 +83,28 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
   if (!is.null(by)) {
     if (is.null(by.x)){ by.x <- by };  if (is.null(by.y)){ by.y <- by }
   }
+
+  # Input validation
+  if (!is.data.frame(x) && !is.null(x)) {
+    stop("'x' must be a data frame")
+  }
+  if (!is.data.frame(y) && !is.null(y)) {
+    stop("'y' must be a data frame")
+  }
+  if (!is.null(by.x) && !is.null(x) && !(by.x %in% colnames(x))) {
+    stop(sprintf("Column '%s' not found in 'x'. Available columns: %s",
+                 by.x, paste(colnames(x), collapse = ", ")))
+  }
+  if (!is.null(by.y) && !is.null(y) && !(by.y %in% colnames(y))) {
+    stop(sprintf("Column '%s' not found in 'y'. Available columns: %s",
+                 by.y, paste(colnames(y), collapse = ", ")))
+  }
+  valid_algorithms <- c("ml", "fuzzy", "bipartite", "markov", "transfer")
+  if (!tolower(algorithm) %in% valid_algorithms) {
+    stop(sprintf("Invalid algorithm '%s'. Must be one of: %s",
+                 algorithm, paste(valid_algorithms, collapse = ", ")))
+  }
+
   # define fast match
   `%fin%` <- function(x, table) {fmatch(x, table, nomatch = 0L) > 0L}
 
@@ -557,17 +579,36 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
     # merge into network - some redundancies may emerge due to multiple observations per name
     x2Network <- DeconflictNames( merge(x = as.matrix(x), by.x = by.x,
                        y = as.matrix(x2Network), by.y = by.x, all = F) )
-    colnames(x2Network)[colnames(x2Network) %in% 'stringdist'] <- "stringdist.x2network"
-    x2Network$canonical_id <- as.character(x2Network$canonical_id);
+
+    # Check for empty x2Network before operating on it
+    if (!is.null(x2Network) && nrow(x2Network) > 0) {
+      colnames(x2Network)[colnames(x2Network) %in% 'stringdist'] <- "stringdist.x2network"
+      x2Network$canonical_id <- as.character(x2Network$canonical_id)
+    }
 
     y2Network <- DeconflictNames( merge(x = as.matrix(y), by.x = by.y,
                       y = as.matrix(y2Network), by.y = by.y, all = F) )
-    colnames(y2Network)[colnames(y2Network) %in% 'stringdist'] <- "stringdist.y2network"
-    y2Network$canonical_id <- as.character(y2Network$canonical_id)
 
-    # merge network into network
-    z_Network <- DeconflictNames( as.data.frame(merge(x2Network, y2Network, by="canonical_id", all=F)) )
-    colnames(z_Network)[colnames(z_Network) == "canonical_id"] <- "ID_MATCH"
+    # Check for empty y2Network before operating on it
+    if (!is.null(y2Network) && nrow(y2Network) > 0) {
+      colnames(y2Network)[colnames(y2Network) %in% 'stringdist'] <- "stringdist.y2network"
+      y2Network$canonical_id <- as.character(y2Network$canonical_id)
+    }
+
+    # merge network into network (only if both x2Network and y2Network have data)
+    if (!is.null(x2Network) && nrow(x2Network) > 0 &&
+        !is.null(y2Network) && nrow(y2Network) > 0) {
+      z_Network <- DeconflictNames( as.data.frame(merge(x2Network, y2Network, by="canonical_id", all=F)) )
+
+      # Handle empty merge result - set to NULL so downstream NULL checks work correctly
+      if (is.null(z_Network) || nrow(z_Network) == 0) {
+        z_Network <- NULL
+      } else {
+        colnames(z_Network)[colnames(z_Network) == "canonical_id"] <- "ID_MATCH"
+      }
+    } else {
+      z_Network <- NULL
+    }
 
     # bring back distances to 0 (after random jitter to avoid problems with deconflict names for lookup)
     #if(algorithm == "lookup"){ z_Network$stringdist.x2network <- z_Network$stringdist.y2network <- 0. }
@@ -575,11 +616,27 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
 
   print2("Combining with fuzzy matches...")
   {
-  z_RawNames$XYref__ID <- paste( z_RawNames$Xref__ID, z_RawNames$Yref__ID, sep="__LINKED__" )
-  if(is.null(z_Network)){ z <- as.data.frame( z_RawNames ) }
-  if(!is.null(z_Network)){
+  # Check if z_RawNames has data before operating on it
+  has_raw_matches <- !is.null(z_RawNames) && nrow(z_RawNames) > 0
+  has_network_matches <- !is.null(z_Network) && nrow(z_Network) > 0
+
+  if (has_raw_matches) {
+    z_RawNames$XYref__ID <- paste( z_RawNames$Xref__ID, z_RawNames$Yref__ID, sep="__LINKED__" )
+  }
+
+  if (!has_raw_matches && !has_network_matches) {
+    # No matches found from either method - return empty data frame
+    print2("Warning: No matches found")
+    z <- data.frame()
+  } else if (!has_network_matches) {
+    z <- as.data.frame( z_RawNames )
+  } else {
     z_Network$XYref__ID <- paste( z_Network$Xref__ID, z_Network$Yref__ID, sep="__LINKED__" )
-    z <- rbind.fill(as.data.frame(z_RawNames), as.data.frame(z_Network))
+    if (has_raw_matches) {
+      z <- rbind.fill(as.data.frame(z_RawNames), as.data.frame(z_Network))
+    } else {
+      z <- as.data.frame(z_Network)
+    }
   }
     
   print2("Dropping duplicates..."); if( nrow(z)>1 ){
@@ -637,8 +694,8 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
   # if(any(is.na( z[[by.x]] ))){browser()}; if(any(is.na( z[[by.y]] ))){browser()}
 
   print2("Returning matched dataset!")
-  if(ReturnDecomposition == T){ z = list("z" = z,
-                                         "z_RawNames" = z_RawNames,
-                                         "z_Network" = z_Network)  }
+  if(ReturnDecomposition == T){ z <- list("z" = z,
+                                          "z_RawNames" = z_RawNames,
+                                          "z_Network" = z_Network) }
   gc(); return(  z )
 }

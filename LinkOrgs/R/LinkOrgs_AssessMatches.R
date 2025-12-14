@@ -40,7 +40,7 @@
 #' @export
 #' @md
 
-AssessMatchPerformance = function(x, y, z, z_true, by, by.x=by, by.y=by, openBrowser=F){
+AssessMatchPerformance <- function(x, y, z, z_true, by, by.x = by, by.y = by, openBrowser = F){
   x[[by.x]] <- enc2utf8(x[[by.x]])
   y[[by.y]] <- enc2utf8(y[[by.y]])
 
@@ -54,7 +54,7 @@ AssessMatchPerformance = function(x, y, z, z_true, by, by.x=by, by.y=by, openBro
   `%fin%` <- function(x, table) {fmatch(x, table, nomatch = 0L) > 0L}
   x <- as.matrix(x);y <- as.matrix(y);z <- as.matrix(z);z_true <- as.matrix(z_true);
   totalCombs <- length( unique(x[,by.x]) ) * length( unique(y[,by.y]) )
-  ResultsMatrix =  c(matrix(0,nrow=1,ncol=5) )
+  ResultsMatrix <- c(matrix(0, nrow = 1, ncol = 5))
   names(ResultsMatrix) <- c("TruePositives",
                             "FalsePositives",
                             "FalseNegatives",
@@ -68,7 +68,7 @@ AssessMatchPerformance = function(x, y, z, z_true, by, by.x=by, by.y=by, openBro
   if( length(dup_z_) > 0 & nrow(z_true)>1 ){ z_true <- z_true[!dup_zhuman_,]  }
 
   {
-    z_vec = paste(z[,by.x], z[,by.y], sep="____LINKED____")
+    z_vec <- paste(z[, by.x], z[, by.y], sep = "____LINKED____")
     z_true_vec <- paste(z_true[,by.x],z_true[,by.y],sep="____LINKED____")
     z_in_truth <- table(  z_vec %fin% z_true_vec )
     truth_in_z <- table(  z_true_vec %fin% z_vec )
@@ -76,7 +76,7 @@ AssessMatchPerformance = function(x, y, z, z_true, by, by.x=by, by.y=by, openBro
     ResultsMatrix["TruePositives"] <- NA20(z_in_truth["TRUE"])
     ResultsMatrix["FalsePositives"] <- NA20(z_in_truth["FALSE"])
     ResultsMatrix["FalseNegatives"] <- NA20(truth_in_z["FALSE"])
-    ResultsMatrix["TrueNegatives"] <- totalCombs -  ResultsMatrix["TruePositives"] - ResultsMatrix["FalsePositives"]
+    ResultsMatrix["TrueNegatives"] <- totalCombs - ResultsMatrix["TruePositives"] - ResultsMatrix["FalsePositives"] - ResultsMatrix["FalseNegatives"]
   }
   ResultsMatrix["MatchedDatasetSize"] <- nrow(z)
   return( ResultsMatrix  )
