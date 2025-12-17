@@ -2,7 +2,7 @@
 % Please edit documentation in R/LinkOrgs_PFuzzyEuclideanFullFxn.R
 \name{pFuzzyMatch_euclidean}
 \alias{pFuzzyMatch_euclidean}
-\title{pFuzzyMatch_euclidean}
+\title{Fuzzy Match with Euclidean Distance on Embeddings}
 \usage{
 pFuzzyMatch_euclidean(
   x = NULL,
@@ -18,22 +18,66 @@ pFuzzyMatch_euclidean(
 )
 }
 \arguments{
-\item{x, y}{data frames to be merged}
+\item{x, y}{Data frames to be merged.}
+
+\item{by.x}{Character string; column name in \code{x} containing organization names.}
+
+\item{embedx, embedy}{Numeric matrices containing embeddings for records in \code{x} and \code{y}
+respectively. Rows correspond to observations and columns to embedding dimensions.
+These are typically produced by the ML backend (see \code{\link[=LinkOrgs]{LinkOrgs()}} with \code{algorithm = "ml"}).}
+
+\item{by.y}{Character string; column name in \code{y} containing organization names.}
+
+\item{embedDistMetric}{Optional custom distance metric function for computing distances
+between embeddings. If \code{NULL}, Euclidean distance is used.}
+
+\item{MaxDist}{Numeric; maximum allowed Euclidean distance between matched embeddings.
+Pairs with distances greater than this threshold are excluded. If
+\code{AveMatchNumberPerAlias} is specified, it takes priority.}
+
+\item{AveMatchNumberPerAlias}{Numeric; target average number of matches per alias.
+If specified, automatically calibrates \code{MaxDist} using \code{\link[=GetCalibratedDistThres]{GetCalibratedDistThres()}}.}
+
+\item{...}{Additional arguments (currently unused).}
 }
 \value{
-...
+A data frame containing matched records from \code{x} and \code{y}, with columns from
+both data frames (suffixed with \code{.x} and \code{.y} respectively) and a \code{stringdist}
+column indicating the Euclidean distance between each matched pair's embeddings.
 }
 \description{
-Implements
+Performs fuzzy matching between two data frames using Euclidean distance on
+pre-computed embeddings. This is a wrapper around \code{\link[=pDistMatch_euclidean]{pDistMatch_euclidean()}}
+that returns the merged data frame with matched records.
 }
 \details{
-...
+This function is typically used internally by \code{\link[=LinkOrgs]{LinkOrgs()}} when
+\code{algorithm = "ml"} or \code{DistanceMeasure = "ml"}. It computes Euclidean distances
+between embedding vectors rather than string distances.
 }
 \examples{
-#' #Create synthetic data
-x_orgnames <- c("apple","oracle","enron inc.","mcdonalds corporation")
-y_orgnames <- c("apple corp","oracle inc","enron","mcdonalds co")
-x <- data.frame("orgnames_x"=x_orgnames)
-y <- data.frame("orgnames_y"=y_orgnames)
+\dontrun{
+# Create synthetic data with embeddings
+x <- data.frame("orgnames_x" = c("apple", "oracle"))
+y <- data.frame("orgnames_y" = c("apple corp", "oracle inc"))
 
+# Assume embedx and embedy are pre-computed embedding matrices
+# (typically produced by LinkOrgs ML backend)
+embedx <- matrix(rnorm(2 * 256), nrow = 2)
+embedy <- matrix(rnorm(2 * 256), nrow = 2)
+
+matched <- pFuzzyMatch_euclidean(x = x,
+                                 y = y,
+                                 by.x = "orgnames_x",
+                                 by.y = "orgnames_y",
+                                 embedx = embedx,
+                                 embedy = embedy,
+                                 MaxDist = 5.0)
+}
+
+}
+\seealso{
+\code{\link[=pDistMatch_euclidean]{pDistMatch_euclidean()}} for the underlying distance computation,
+\code{\link[=GetCalibratedDistThres]{GetCalibratedDistThres()}} for automatic threshold calibration,
+\code{\link[=pFuzzyMatch_discrete]{pFuzzyMatch_discrete()}} for string-distance-based matching.
 }

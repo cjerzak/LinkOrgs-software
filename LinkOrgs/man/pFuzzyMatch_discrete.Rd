@@ -2,7 +2,7 @@
 % Please edit documentation in R/LinkOrgs_PFuzzyDiscreteFullFxn.R
 \name{pFuzzyMatch_discrete}
 \alias{pFuzzyMatch_discrete}
-\title{pFuzzyMatch_discrete}
+\title{Fuzzy Match with Discrete String Distances}
 \usage{
 pFuzzyMatch_discrete(
   x = NULL,
@@ -21,23 +21,67 @@ pFuzzyMatch_discrete(
 )
 }
 \arguments{
-\item{x, y}{data frames to be merged}
+\item{x, y}{Data frames to be merged.}
+
+\item{by.x}{Character string; column name in \code{x} containing organization names.}
+
+\item{embedx, embedy}{Optional embedding matrices (not used in discrete matching,
+included for API consistency).}
+
+\item{by.y}{Character string; column name in \code{y} containing organization names.}
+
+\item{embedDistMetric}{Optional custom distance metric (not used in discrete matching).}
+
+\item{MaxDist}{Numeric; maximum allowed distance between matched strings. Pairs with
+distances greater than this threshold are excluded. If \code{AveMatchNumberPerAlias} is
+specified, it takes priority.}
+
+\item{qgram}{Integer; the q-gram size for string distance calculation. Default is \code{2}.}
+
+\item{DistanceMeasure}{Character; algorithm for computing pairwise string distances.
+Options include \code{"jaccard"}, \code{"osa"}, \code{"jw"}. See \code{?stringdist::stringdist} for
+all options. Default is \code{"jaccard"}.}
+
+\item{AveMatchNumberPerAlias}{Numeric; target average number of matches per alias.
+If specified, automatically calibrates \code{MaxDist} using \code{\link[=GetCalibratedDistThres]{GetCalibratedDistThres()}}.}
+
+\item{nCores}{Integer; number of CPU cores for parallel processing. Default is \code{NULL}
+(uses single core).}
+
+\item{...}{Additional arguments (currently unused).}
 }
 \value{
-...
+A data frame containing matched records from \code{x} and \code{y}, with columns from
+both data frames (suffixed with \code{.x} and \code{.y} respectively) and a \code{stringdist}
+column indicating the distance between each matched pair.
 }
 \description{
-Implements
+Performs fuzzy matching between two data frames using string distance measures
+(e.g., Jaccard, OSA, Jaro-Winkler). This is a wrapper around \code{\link[=pDistMatch_discrete]{pDistMatch_discrete()}}
+that returns the merged data frame with matched records.
 }
 \details{
-...
+This function uses trigram indexing to efficiently filter candidate matches
+before computing exact string distances. This approach significantly speeds up
+matching for large datasets.
 }
 \examples{
+# Create synthetic data
+x_orgnames <- c("apple", "oracle", "enron inc.", "mcdonalds corporation")
+y_orgnames <- c("apple corp", "oracle inc", "enron", "mcdonalds co")
+x <- data.frame("orgnames_x" = x_orgnames)
+y <- data.frame("orgnames_y" = y_orgnames)
 
-#Create synthetic data
-x_orgnames <- c("apple","oracle","enron inc.","mcdonalds corporation")
-y_orgnames <- c("apple corp","oracle inc","enron","mcdonalds co")
-x <- data.frame("orgnames_x"=x_orgnames)
-y <- data.frame("orgnames_y"=y_orgnames)
+# Perform fuzzy matching
+matched <- pFuzzyMatch_discrete(x = x,
+                                y = y,
+                                by.x = "orgnames_x",
+                                by.y = "orgnames_y",
+                                MaxDist = 0.5)
 
+}
+\seealso{
+\code{\link[=pDistMatch_discrete]{pDistMatch_discrete()}} for the underlying distance computation,
+\code{\link[=GetCalibratedDistThres]{GetCalibratedDistThres()}} for automatic threshold calibration,
+\code{\link[=pFuzzyMatch_euclidean]{pFuzzyMatch_euclidean()}} for embedding-based matching.
 }

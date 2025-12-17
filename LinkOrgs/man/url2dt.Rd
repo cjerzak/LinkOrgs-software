@@ -2,28 +2,39 @@
 % Please edit documentation in R/LinkOrgs_BuildHelpers.R
 \name{url2dt}
 \alias{url2dt}
-\title{url2dt}
+\title{Download CSV from URL to data.table}
 \usage{
 url2dt(url)
 }
 \arguments{
-\item{url}{character string with the URL housing the data object.}
-
-\item{target_extension}{(default = \code{".csv"}) character string describing
-the target extension of the file in the downloaded .zip folder.}
+\item{url}{Character string; the URL pointing to a \code{.csv.zip} or \code{.csv.gz} file.
+Dropbox share links are automatically converted to direct download URLs.}
 }
 \value{
-\code{z} The downloaded data object from the URL.
+A data.table containing the downloaded data.
 }
 \description{
-Downloads a .zip file from a URL as a data.table from a URL.
+Downloads a zipped CSV file from a URL and loads it into memory as a data.table.
+Automatically handles Dropbox URLs by converting them to direct download links.
 }
 \details{
-\code{url2dt} downloads a zipped \code{.csv} file and loads it into memory based on the input URL.
+This function:
+\enumerate{
+\item Converts Dropbox share links to direct download URLs using \code{\link[=dropboxURL2downloadURL]{dropboxURL2downloadURL()}}
+\item Downloads the file to a temporary directory
+\item Unzips (if \code{.zip}) or decompresses (if \code{.gz}) the file
+\item Reads the CSV file using \code{\link[data.table:fread]{data.table::fread()}}
+\item Cleans up the temporary file
+}
 }
 \examples{
+\dontrun{
+# Download from Dropbox
+my_dt <- url2dt("https://www.dropbox.com/s/example/data.csv.zip?dl=0")
+}
 
-# Example download
-my_dt <- url2dt(url="https://www.dropbox.com/s/iqf9ids77dckopf/Directory_LinkIt_bipartite_Embeddings.csv.zip?dl=0")
-
+}
+\seealso{
+\code{\link[=dropboxURL2downloadURL]{dropboxURL2downloadURL()}} for URL conversion, \code{\link[data.table:fread]{data.table::fread()}}
+for the underlying CSV reader.
 }

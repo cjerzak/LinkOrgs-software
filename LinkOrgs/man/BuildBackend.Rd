@@ -2,24 +2,59 @@
 % Please edit documentation in R/LinkOrgs_BuildBackend.R
 \name{BuildBackend}
 \alias{BuildBackend}
-\title{Build the environment for LinkOrgs machine learning models. Builds a conda environment in which jax, optax, equinox, and jmp are installed.}
+\title{Build Backend for LinkOrgs Machine Learning Models}
 \usage{
 BuildBackend(conda_env = "LinkOrgs_env", conda = "auto", tryMetal = T)
 }
 \arguments{
-\item{conda_env}{(default = \code{"LinkOrgs_env"}) Name of the conda environment in which to place the backends.}
+\item{conda_env}{Character string; name of the conda environment to create.
+Default is \code{"LinkOrgs_env"}.}
 
-\item{conda}{(default = \code{auto}) The path to a conda executable. Using \code{"auto"} allows reticulate to attempt to automatically find an appropriate conda binary.}
+\item{conda}{Character string; path to a conda executable, or \code{"auto"} to let
+reticulate automatically find an appropriate conda binary. Default is \code{"auto"}.}
+
+\item{tryMetal}{Logical; if \code{TRUE} and running on Apple Silicon (arm64 macOS),
+attempts to install \code{jax-metal} for GPU acceleration. Default is \code{TRUE}.}
 }
 \value{
-Builds the computational environment for \code{LinkOrgs}. This function requires an Internet connection.
-You may find out a list of conda Python paths via: \code{system("which python")}
+Invisibly returns \code{NULL}. Called for its side effect of creating and
+configuring the conda environment. Prints "Done building LinkOrgs backend!"
+upon successful completion.
 }
 \description{
-Build the environment for LinkOrgs machine learning models. Builds a conda environment in which jax, optax, equinox, and jmp are installed.
+Creates and configures a conda environment with all necessary Python packages
+(JAX, TensorFlow, Optax, Equinox, JMP) for running the machine learning
+components of LinkOrgs.
+}
+\details{
+This function requires an Internet connection to download packages.
+The conda environment will include:
+\itemize{
+\item TensorFlow 2.15
+\item TensorFlow Probability 0.23
+\item JAX 0.4.26 and JAXlib 0.4.26
+\item Optax 0.2.2
+\item Equinox 0.11.4
+\item JMP 0.0.4
+\item NumPy 1.26.4
+\item jax-metal 0.1.0 (Apple Silicon only, if \code{tryMetal = TRUE})
+}
+
+You can find available conda Python paths via: \code{system("which python")}
 }
 \examples{
-# For a tutorial, see
-# github.com/cjerzak/linkorgs-software/
+\dontrun{
+# Build with default settings
+BuildBackend()
 
+# Build with a specific conda path
+BuildBackend(conda = "/opt/miniconda3/bin/conda")
+
+# Build without attempting Metal support on macOS
+BuildBackend(tryMetal = FALSE)
+}
+
+}
+\seealso{
+\code{\link[=LinkOrgs]{LinkOrgs()}} for using the ML backend after setup.
 }

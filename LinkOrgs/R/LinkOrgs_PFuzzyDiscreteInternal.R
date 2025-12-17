@@ -1,67 +1,90 @@
-#' pFuzzyMatch_discrete
+#' Compute Discrete String Distances (Internal)
 #'
-#' Performs parallelized fuzzy matching of strings based on the string distance measure specified in `DistanceMeasure`. Matching is parallelized using all available CPU cores to increase execution speed.
+#' Computes pairwise string distances between organization names in two data frames
+#' using discrete distance measures (e.g., Jaccard, OSA, Jaro-Winkler). Uses trigram
+#' indexing for efficient candidate filtering and parallel processing for speed.
 #'
-#' @param x,y data frames to be merged
+#' @param x,y Data frames containing organization names to be matched.
+#' @param by Character string; column name for matching when both data frames use the
+#'   same column name. Overridden by `by.x` and `by.y` if specified.
+#' @param by.x Character string; column name in `x` containing organization names.
+#' @param by.y Character string; column name in `y` containing organization names.
+#' @param embedDistMetric Not used in discrete matching (included for API consistency).
+#' @param return_stringdist Logical; if `TRUE`, returns string distances. Default is `TRUE`.
+#' @param onlyUFT Logical; if `TRUE`, processes only UTF-8 strings. Default is `TRUE`.
+#' @param qgram Integer; the q-gram size for string distance calculation. Default is `2`.
+#' @param DistanceMeasure Character; algorithm for computing pairwise string distances.
+#'   Options include `"jaccard"`, `"osa"`, `"jw"`. See `?stringdist::stringdist` for
+#'   all options. Default is `"jaccard"`.
+#' @param MaxDist Numeric; maximum allowed distance between matched strings. Pairs with
+#'   distances greater than this threshold are excluded. Default is `0.20`.
+#' @param ReturnProgress Logical; if `TRUE`, progress information is available (currently
+#'   disabled). Default is `TRUE`.
+#' @param nCores Integer; number of CPU cores for parallel processing. Default is `NULL`
+#'   (uses single core).
+#' @param ReturnMaxDistThreshold Logical; if `TRUE`, returns the distance threshold used.
+#'   Default is `FALSE`.
 #'
-#' @param by,by.x,by.y specifications of the columns used for merging. We follow the general syntax of `base::merge`; see `?base::merge` for more details.
+#' @return A data frame with three columns:
+#' \describe{
+#'   \item{ix}{Integer; row index in `x` of the matched record.}
+#'   \item{iy}{Integer; row index in `y` of the matched record.}
+#'   \item{stringdist}{Numeric; the string distance between the matched pair.}
+#' }
+#' Returns an empty data frame if no matches are found below `MaxDist`.
 #'
-#' @param ... For additional options, see ``Details''.
+#' @details This function uses a two-stage approach for efficient matching:
 #'
-#' @return z The merged data frame.
-#' @export
+#' 1. **Trigram indexing**: Builds an index of character trigrams for each name,
+#'    then filters candidate pairs to those sharing at least 5% of trigrams.
 #'
-#' @details
-#' `pFuzzyMatch` can automatically process the `by` text for each dataset. Users may specify the following options:
+#' 2. **Distance computation**: Computes exact string distances only for filtered
+#'    candidates, returning pairs with distances at or below `MaxDist`.
 #'
-#' - Set `DistanceMeasure` to control algorithm for computing pairwise string distances. Options include "`osa`", "`jaccard`", "`jw`". See `?stringdist::stringdist` for all options. (Default is "`jaccard`")
-#'
-#' - Set `MaxDist` to control the maximum allowed distance between two matched strings
-#'
-#' - Set `AveMatchNumberPerAlias` to control the maximum allowed distance between two matched strings. Takes priority over `MaxDist` if both specified.
-#'
-#' - Set `qgram` to control the character-level q-grams used in the distance measure. (Default is `2`)
-#'
-#' - Set `RemoveCommonWords` to TRUE to remove common words (those appearing in > 10% of aliases). (Default is `FALSE`)
-#'
-#' - Set `NormalizeSpaces` to TRUE to remove hanging whitespaces. (Default is `TRUE`)
-#'
-#' - Set `RemovePunctuation` to TRUE to remove punctuation. (Default is `TRUE`)
-#'
-#' - Set `ToLower` to TRUE to ignore case. (Default is `TRUE`)
+#' The function automatically swaps `x` and `y` if `y` has fewer rows than `x`
+#' for more efficient parallelization.
 #'
 #' @examples
+#' # Create synthetic data
+#' x_orgnames <- c("apple", "oracle", "enron inc.", "mcdonalds corporation")
+#' y_orgnames <- c("apple corp", "oracle inc", "enron", "mcdonalds co")
+#' x <- data.frame("orgnames_x" = x_orgnames)
+#' y <- data.frame("orgnames_y" = y_orgnames)
 #'
-#' #Create synthetic data
-#' x_orgnames <- c("apple","oracle","enron inc.","mcdonalds corporation")
-#' y_orgnames <- c("apple corp","oracle inc","enron","mcdonalds co")
-#' x <- data.frame("orgnames_x"=x_orgnames)
-#' y <- data.frame("orgnames_y"=y_orgnames)
-#' z <- data.frame("orgnames_x"=x_orgnames[1:2], "orgnames_y"=y_orgnames[1:2])
-#' z_true <- data.frame("orgnames_x"=x_orgnames, "orgnames_y"=y_orgnames)
+#' # Compute distances
+#' distances <- pDistMatch_discrete(x = x,
+#'                                  y = y,
+#'                                  by.x = "orgnames_x",
+#'                                  by.y = "orgnames_y",
+#'                                  MaxDist = 0.5)
 #'
-#' # Perform merge
-#' linkedOrgs_fuzzy <- pFuzzyMatch(x = x,
-#'                        y = y,
-#'                        by.x = "orgnames_x",
-#'                        by.y = "orgnames_y")
-#'
+#' @seealso [pFuzzyMatch_discrete()] for the higher-level wrapper that returns
+#'   merged data, [stringdist::stringdist()] for available distance measures.
 #' @import stringdist
 #' @import plyr
 #' @import data.table
 #' @importFrom foreach foreach %dopar%
-#'
 #' @export
 #' @md
 
-pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, embedDistMetric = NULL, 
+pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, embedDistMetric = NULL,
                            return_stringdist = T, onlyUFT = T,
                            qgram =2, DistanceMeasure = "jaccard", MaxDist = 0.20,
                            ReturnProgress=T, nCores = NULL,
                            ReturnMaxDistThreshold = F){
   if(is.null(by.x) & is.null(by.y)){ by.x <- by.y <- by }
+
+
+  # Handle empty data frames early
+  if(nrow(x) == 0 || nrow(y) == 0){
+    return(data.frame(ix = integer(0), iy = integer(0), stringdist = numeric(0)))
+  }
+
+  # Set nCores to 1 if NULL
+  if(is.null(nCores)){ nCores <- 1L }
+
   if(swappedXY <- (nrow(y) < nrow(x))){
-    # condition: y should be larger than x for efficient parallelization 
+    # condition: y should be larger than x for efficient parallelization
     # if not, swap
     x_old <- x; y_old <- y;
     by.y_old <- by.y;
@@ -78,19 +101,28 @@ pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, embed
   y <- as.data.table(y); y$by.y_ORIG <- y[[by.y]]
   x_tri_index <- trigram_index(x[[by.x]], "the.row")
   y_tri_index <- trigram_index(y[[by.y]], "the.row")
-  
-  # test 
+
+  # Handle case where trigram indices are empty
+  if(nrow(x_tri_index) == 0 || nrow(y_tri_index) == 0){
+    return(data.frame(ix = integer(0), iy = integer(0), stringdist = numeric(0)))
+  }
+
+  # test
   # trigram_index(c("hi","hiaer", "hi","hi"),"the.row")
 
   # start pdist calc
   {
-    split_list_x <- list(1:(n_iters <- nrow(x))) # # x is arbitrary reference (y is larger base)
-    if(n_iters>50){
+    n_iters <- nrow(x)
+    # For small datasets, use single core
+    if(n_iters <= 50){
+      nCores <- 1L
+      split_list_x <- list(1:n_iters)
+    } else {
       split_list_x <- round(seq(0.5, n_iters, length.out = nCores + 1))
       split_list_x <- as.numeric(cut(1:n_iters, breaks = split_list_x))
       split_list_x <- sapply(1:nCores, function(as){ list(which(split_list_x == as))})
     }
-    
+
     Export <- c("split_list_x", "DistanceMeasure", "qgram", "nCores", "ReturnProgress",
                 "x_tri_index", "y_tri_index", "MaxDist",
                 "x", "by.x", "y", "by.y")
@@ -131,7 +163,12 @@ pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, embed
       }
       return( my_matched_inner )
                      }
-    myMatched <- as.data.frame( do.call(rbind, loop_) )
+    myMatched <- do.call(rbind, loop_)
+    # Handle empty results
+    if(is.null(myMatched) || nrow(myMatched) == 0){
+      return(data.frame(ix = integer(0), iy = integer(0), stringdist = numeric(0)))
+    }
+    myMatched <- as.data.frame(myMatched)
     colnames(myMatched) <- c("ix","iy","stringdist")
   }
   if(swappedXY){

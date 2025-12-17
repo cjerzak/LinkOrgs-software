@@ -6,8 +6,8 @@
 \usage{
 GetCalibratedDistThres(
   x = NULL,
-  by.x = NULL,
   y = NULL,
+  by.x = NULL,
   by.y = NULL,
   AveMatchNumberPerAlias = 5L,
   qgram = 2L,
@@ -21,11 +21,11 @@ GetCalibratedDistThres(
 and columns are embedding dimensions. For \code{mode = "discrete"}: a data frame containing
 the column specified by \code{by.x}.}
 
-\item{by.x}{Column name in \code{x} to use for matching. Only used when \code{mode = "discrete"}.}
-
 \item{y}{Input data. For \code{mode = "euclidean"}: an embedding matrix where rows are observations
 and columns are embedding dimensions. For \code{mode = "discrete"}: a data frame containing
 the column specified by \code{by.y}.}
+
+\item{by.x}{Column name in \code{x} to use for matching. Only used when \code{mode = "discrete"}.}
 
 \item{by.y}{Column name in \code{y} to use for matching. Only used when \code{mode = "discrete"}.}
 

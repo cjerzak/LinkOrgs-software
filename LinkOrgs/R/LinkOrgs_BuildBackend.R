@@ -1,16 +1,49 @@
 #!/usr/bin/env Rscript
-#' Build the environment for LinkOrgs machine learning models. Builds a conda environment in which jax, optax, equinox, and jmp are installed.
+#' Build Backend for LinkOrgs Machine Learning Models
 #'
-#' @param conda_env (default = `"LinkOrgs_env"`) Name of the conda environment in which to place the backends.
-#' @param conda (default = `auto`) The path to a conda executable. Using `"auto"` allows reticulate to attempt to automatically find an appropriate conda binary.
-
-#' @return Builds the computational environment for `LinkOrgs`. This function requires an Internet connection.
-#' You may find out a list of conda Python paths via: `system("which python")`
+#' Creates and configures a conda environment with all necessary Python packages
+#' (JAX, TensorFlow, Optax, Equinox, JMP) for running the machine learning
+#' components of LinkOrgs.
+#'
+#' @param conda_env Character string; name of the conda environment to create.
+#'   Default is `"LinkOrgs_env"`.
+#' @param conda Character string; path to a conda executable, or `"auto"` to let
+#'   reticulate automatically find an appropriate conda binary. Default is `"auto"`.
+#' @param tryMetal Logical; if `TRUE` and running on Apple Silicon (arm64 macOS),
+#'   attempts to install `jax-metal` for GPU acceleration. Default is `TRUE`.
+#'
+#' @return Invisibly returns `NULL`. Called for its side effect of creating and
+#'   configuring the conda environment. Prints "Done building LinkOrgs backend!"
+#'   upon successful completion.
+#'
+#' @details This function requires an Internet connection to download packages.
+#'   The conda environment will include:
+#'   \itemize{
+#'     \item TensorFlow 2.15
+#'     \item TensorFlow Probability 0.23
+#'     \item JAX 0.4.26 and JAXlib 0.4.26
+#'     \item Optax 0.2.2
+#'     \item Equinox 0.11.4
+#'     \item JMP 0.0.4
+#'     \item NumPy 1.26.4
+#'     \item jax-metal 0.1.0 (Apple Silicon only, if `tryMetal = TRUE`)
+#'   }
+#'
+#'   You can find available conda Python paths via: `system("which python")`
 #'
 #' @examples
-#' # For a tutorial, see
-#' # github.com/cjerzak/linkorgs-software/
+#' \dontrun{
+#' # Build with default settings
+#' BuildBackend()
 #'
+#' # Build with a specific conda path
+#' BuildBackend(conda = "/opt/miniconda3/bin/conda")
+#'
+#' # Build without attempting Metal support on macOS
+#' BuildBackend(tryMetal = FALSE)
+#' }
+#'
+#' @seealso [LinkOrgs()] for using the ML backend after setup.
 #' @export
 #' @md
 

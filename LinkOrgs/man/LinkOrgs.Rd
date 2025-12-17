@@ -38,62 +38,128 @@ LinkOrgs(
 )
 }
 \arguments{
-\item{x, y}{data frames to be merged}
+\item{x, y}{Data frames to be merged.}
 
-\item{by, by.x, by.y}{character vector(s) that specify the column names used for merging data frames \code{x} and \code{y}. The merging variables should be organizational names. See \code{?base::merge} for more details regarding syntax.}
+\item{by, by.x, by.y}{Character vector(s) that specify the column names used for merging
+data frames \code{x} and \code{y}. The merging variables should be organizational names.
+See \code{?base::merge} for more details regarding syntax.}
 
-\item{algorithm}{character; specifies which algorithm described in Libgober and Jerzak (2023+) should be used. Options are "\code{markov}", "\code{bipartite}", "\code{ml}", and "\code{transfer}". Default is "\code{ ml}", which uses a machine-learning approach using Transformer netes and 9 million parameters to predict match probabilities using half a billion open-collaborated recoreds as training data.}
+\item{embedx, embedy}{Optional pre-computed embedding matrices. If provided, these will
+be used instead of computing embeddings from names. Rows correspond to observations
+and columns to embedding dimensions.}
 
-\item{conda_env}{character string; specifies a conda environment where JAX and related packages have been installed (see \code{?LinkOrgs::BuildBackend}). Used only when \code{algorithm='ml'} or \code{DistanceMeasure='ml'}.}
+\item{embedDistMetric}{Optional custom distance metric function for embedding-based matching.}
 
-\item{conda_env_required}{Boolean; specifies whether conda environment is required.}
+\item{algorithm}{Character; specifies which algorithm should be used. Options are
+\code{"fuzzy"}, \code{"ml"}, \code{"bipartite"}, \code{"markov"}, and \code{"transfer"}. Default is \code{"ml"},
+which uses a machine-learning approach with Transformer networks and up to 11 million
+parameters to predict match probabilities using half a billion open-collaborated
+records as training data.}
 
-\item{ReturnDiagnostics}{Boolean; specifies whether various match-level diagnostics should be returned in the merged data frame.}
+\item{conda_env}{Character string; specifies a conda environment where JAX and related
+packages have been installed (see \code{?LinkOrgs::BuildBackend}). Used only when
+\code{algorithm='ml'} or \code{DistanceMeasure='ml'}. Default is \code{"LinkOrgs_env"}.}
 
-\item{ml_version}{character; specifies which version of the ML algorithm should be used. Options are of the form \code{"v0"} and \code{"v1"}. Highest version currently supported is \code{"v1"} (11M parameters).}
+\item{conda_env_required}{Logical; specifies whether conda environment is required.
+Default is \code{TRUE}.}
 
-\item{ExportEmbeddingsOnly}{Boolean; if TRUE with algorithm='ml' (or DistanceMeasure='ml'), return only ML embeddings for x and/or y without matching for offline linkage.}
+\item{ReturnDiagnostics}{Logical; if \code{TRUE}, various match-level diagnostics are
+returned in the merged data frame. Default is \code{FALSE}.}
 
-\item{...}{For additional specification options, see
-``Details''.}
+\item{ReturnProgress}{Logical; if \code{TRUE}, progress messages are printed during
+execution. Default is \code{TRUE}.}
+
+\item{ToLower}{Logical; if \code{TRUE}, converts names to lowercase before matching.
+Default is \code{TRUE}.}
+
+\item{NormalizeSpaces}{Logical; if \code{TRUE}, removes extra whitespace from names.
+Default is \code{TRUE}.}
+
+\item{RemovePunctuation}{Logical; if \code{TRUE}, removes punctuation from names.
+Default is \code{TRUE}.}
+
+\item{MaxDist}{Numeric; maximum allowed distance between two matched strings.
+If \code{AveMatchNumberPerAlias} is specified, it takes priority over this parameter.}
+
+\item{MaxDist_network}{Numeric; maximum allowed distance for network-based matching
+when using \code{algorithm = "bipartite"} or \code{"markov"}.}
+
+\item{AveMatchNumberPerAlias}{Numeric; target average number of matches per alias.
+Used to automatically calibrate \code{MaxDist}. Takes priority over \code{MaxDist} if both
+are specified. Default is \code{10}.}
+
+\item{AveMatchNumberPerAlias_network}{Numeric; target average number of matches per
+alias for network-based candidate selection. Default is \code{2}.}
+
+\item{DistanceMeasure}{Character; algorithm for computing pairwise string distances.
+Options include \code{"osa"}, \code{"jaccard"}, \code{"jw"}, or \code{"ml"} for embedding-based distance.
+See \code{?stringdist::stringdist} for all string distance options. Default is \code{"jaccard"}.}
+
+\item{qgram}{Integer; the q-gram size used in string distance measures. Default is \code{2}.}
+
+\item{RelThresNetwork}{Numeric; relative threshold multiplier for network distances.
+Default is \code{1.5}.}
+
+\item{ml_version}{Character; specifies which version of the ML algorithm to use.
+Options are \code{"v0"} (9M parameters) through \code{"v4"}. Default is \code{"v1"} (11M parameters).}
+
+\item{openBrowser}{Logical; if \code{TRUE}, opens browser for debugging. Default is \code{FALSE}.}
+
+\item{ExportEmbeddingsOnly}{Logical; if \code{TRUE} with \code{algorithm='ml'} (or
+\code{DistanceMeasure='ml'}), returns only ML embeddings for x and/or y without
+matching, for offline linkage. Default is \code{FALSE}.}
+
+\item{ReturnDecomposition}{Logical; if \code{TRUE}, returns a list containing the merged
+data frame along with intermediate results. Default is \code{FALSE}.}
+
+\item{python_executable}{Path to Python executable. Usually not needed if
+\code{conda_env} is specified.}
+
+\item{nCores}{Integer; number of CPU cores to use for parallel processing.
+Default is \code{NULL} (auto-detect based on data size).}
+
+\item{deezyLoc}{Path to DeezyMatch installation (for \code{algorithm = "deezymatch"}).}
+
+\item{...}{Additional arguments passed to internal functions.}
 }
 \value{
-\code{z} The merged data frame.
+If \code{ExportEmbeddingsOnly = TRUE}, returns a list with \code{embedx} and/or \code{embedy}
+data frames containing the input names and their embeddings. If
+\code{ReturnDecomposition = TRUE}, returns a list with \code{z} (merged data), \code{z_RawNames}
+(raw name matches), and \code{z_Network} (network matches). Otherwise, returns the
+merged data frame \code{z}.
 }
 \description{
-Implements the organizational record linkage algorithms of Libgober and Jerzak (2023+) using half-a-billion open-collaborated records.
+Implements the organizational record linkage algorithms of Libgober and Jerzak (2023+)
+using half-a-billion open-collaborated records.
 }
 \details{
-\code{LinkOrgs} automatically processes the name text for each dataset (specified by \code{by} or \code{by.x}, and \code{by.y}. Users may specify the following options:
+\code{LinkOrgs} automatically processes the name text for each dataset
+(specified by \code{by} or \code{by.x} and \code{by.y}). Text preprocessing includes:
 \itemize{
-\item Set \code{DistanceMeasure} to control algorithm for computing pairwise string distances. Options include "\code{osa}", "\code{jaccard}", "\code{jw}". See \code{?stringdist::stringdist} for all options. Default is \code{"jaccard"}. To use the combined machine learning and network  methods, set \code{algorithm} to \code{"bipartite"} or \code{"markov"}, and \code{DistanceMeasure} to \code{"ml"}.
-\item Set \code{MaxDist} to control the maximum allowed distance between two matched strings
-\item Set \code{MaxDist_network} to control the maximum allowed distance between two matched strings in the integration with the LinkedIn network representation.
-\item Set \code{AveMatchNumberPerAlias} to control the maximum allowed distance between two matched strings. Takes priority over \code{MaxDist} if both specified.
-\item Set \code{AveMatchNumberPerAlias_network} to control the maximum allowed distance between two matched strings in the integration with the LinkedIn network representation. Takes priority over \code{MaxDist_network} if both specified.
-\item Set \code{qgram} to control the character-level q-grams used in the distance measure. Default is \code{2}.
-\item Set \code{RemoveCommonWords} to \code{TRUE} to remove common words (those appearing in >
-10\% of aliases). Default is \code{FALSE}.
-\item Set \code{NormalizeSpaces} to \code{TRUE} to remove hanging whitespaces. Default is \code{TRUE}.
-\item Set \code{RemovePunctuation} to \code{TRUE} to remove punctuation. Default is \code{TRUE}.
-\item Set \code{ToLower} to \code{TRUE} to ignore case. Default is \code{TRUE}.
+\item \strong{Case normalization}: Set \code{ToLower = FALSE} to preserve case sensitivity.
+\item \strong{Space normalization}: Set \code{NormalizeSpaces = FALSE} to preserve whitespace.
+\item \strong{Punctuation removal}: Set \code{RemovePunctuation = FALSE} to preserve punctuation.
 }
+
+To use combined machine learning and network methods, set \code{algorithm} to
+\code{"bipartite"} or \code{"markov"}, and \code{DistanceMeasure} to \code{"ml"}.
 }
 \examples{
+# Create synthetic data
+x_orgnames <- c("apple", "oracle", "enron inc.", "mcdonalds corporation")
+y_orgnames <- c("apple corp", "oracle inc", "enron", "mcdonalds co")
+x <- data.frame("orgnames_x" = x_orgnames)
+y <- data.frame("orgnames_y" = y_orgnames)
 
-#Create synthetic data
-x_orgnames <- c("apple","oracle","enron inc.","mcdonalds corporation")
-y_orgnames <- c("apple corp","oracle inc","enron","mcdonalds co")
-x <- data.frame("orgnames_x"=x_orgnames)
-y <- data.frame("orgnames_y"=y_orgnames)
-
-# Perform merge
+# Perform merge with fuzzy matching
 linkedOrgs <- LinkOrgs(x = x,
                        y = y,
                        by.x = "orgnames_x",
                        by.y = "orgnames_y",
+                       algorithm = "fuzzy",
                        MaxDist = 0.6)
 
-print( linkedOrgs )
+print(linkedOrgs)
 
 }

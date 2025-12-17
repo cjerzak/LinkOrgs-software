@@ -1,47 +1,67 @@
-#' pDistMatch_euclidean
+#' Compute Euclidean Distances Between Embeddings (Internal)
 #'
-#' Performs parallelized distance computation strings based on the string distance measure specified in `DistanceMeasure`. Matching is parallelized using all available CPU cores to increase execution speed.
+#' Computes pairwise Euclidean distances between embedding vectors from two sets of
+#' observations. This function is used internally for ML-based matching where
+#' organization names have been converted to numeric embeddings.
 #'
-#' @param x,y data frames to be merged
+#' @param embedx Numeric matrix; embeddings for the first set of observations. Rows
+#'   correspond to observations and columns to embedding dimensions.
+#' @param embedy Numeric matrix; embeddings for the second set of observations. Rows
+#'   correspond to observations and columns to embedding dimensions.
+#' @param MaxDist Numeric; maximum allowed Euclidean distance. Pairs with distances
+#'   greater than this threshold are excluded. If `NULL`, all pairs are returned.
+#' @param embedDistMetric Optional function; custom distance metric. If `NULL`,
+#'   Euclidean distance is computed. The function should take two arguments
+#'   (expanded x vector and transposed y matrix) and return a distance vector.
+#' @param ReturnProgress Logical; if `TRUE`, progress information is available
+#'   (currently disabled). Default is `TRUE`.
 #'
-#' @param by,by.x,by.y specifications of the columns used for merging. We follow the general syntax of `base::merge`; see `?base::merge` for more details.
+#' @return A data frame with three columns:
+#' \describe{
+#'   \item{ix}{Integer; row index in `embedx` of the matched record.}
+#'   \item{iy}{Integer; row index in `embedy` of the matched record.}
+#'   \item{stringdist}{Numeric; the Euclidean distance between the matched pair's
+#'     embeddings (named `stringdist` for consistency with discrete matching).}
+#' }
+#' Returns an empty data frame if no matches are found below `MaxDist`.
 #'
-#' @param ... For additional options, see ``Details''.
+#' @details This function computes Euclidean distances between all pairs of
+#' embedding vectors. For efficiency:
 #'
-#' @return z The merged data frame.
-#' @export
+#' - Automatically swaps `embedx` and `embedy` if `embedy` has fewer rows for
+#'   better vectorization.
+#' - Uses JAX for GPU acceleration when available (detected automatically).
+#' - Rounds embeddings to reduce precision overhead when embedding precision differs.
 #'
-#' @details
-#' `pDistMatch_euclidean` can automatically process the `by` text for each dataset. Users may specify the following options:
-#'
-#' - Set `DistanceMeasure` to control algorithm for computing pairwise string distances. Options include "`osa`", "`jaccard`", "`jw`". See `?stringdist::stringdist` for all options. (Default is "`jaccard`")
+#' The function is typically called by [pFuzzyMatch_euclidean()] rather than
+#' directly by users.
 #'
 #' @examples
+#' \dontrun{
+#' # Create synthetic embeddings
+#' embedx <- matrix(rnorm(4 * 256), nrow = 4)
+#' embedy <- matrix(rnorm(4 * 256), nrow = 4)
 #'
-#' #Create synthetic data
-#' x_orgnames <- c("apple","oracle","enron inc.","mcdonalds corporation")
-#' y_orgnames <- c("apple corp","oracle inc","enron","mcdonalds co")
-#' x <- data.frame("orgnames_x"=x_orgnames)
-#' y <- data.frame("orgnames_y"=y_orgnames)
-#' z <- data.frame("orgnames_x"=x_orgnames[1:2], "orgnames_y"=y_orgnames[1:2])
-#' z_true <- data.frame("orgnames_x"=x_orgnames, "orgnames_y"=y_orgnames)
+#' # Compute distances
+#' distances <- pDistMatch_euclidean(embedx = embedx,
+#'                                   embedy = embedy,
+#'                                   MaxDist = 5.0)
+#' }
 #'
-#' # Perform merge
-#' linkedOrgs_fuzzy <- pFuzzyMatch(x = x,
-#'                        y = y,
-#'                        by.x = "orgnames_x",
-#'                        by.y = "orgnames_y")
-#'
-#' @import stringdist
+#' @seealso [pFuzzyMatch_euclidean()] for the higher-level wrapper that returns
+#'   merged data, [pDistMatch_discrete()] for string-distance-based matching.
 #' @import plyr
 #' @import doParallel
 #' @import data.table
-#'
 #' @export
 #' @md
-#'
 pDistMatch_euclidean <- function(embedx, embedy, MaxDist = NULL, embedDistMetric=NULL, ReturnProgress = T){
   # parallelized distance matching
+
+  # Handle empty inputs early
+  if(nrow(embedx) == 0 || nrow(embedy) == 0){
+    return(data.frame(ix = integer(0), iy = integer(0), stringdist = numeric(0)))
+  }
 
   # broadcast across larger matrix for fast vectorization
   if(swappedXY <- (nrow(embedy) < nrow(embedx))){
@@ -130,7 +150,14 @@ pDistMatch_euclidean <- function(embedx, embedy, MaxDist = NULL, embedDistMetric
     return( list( match_ ))
   })
   print2("Done with Euclidean distance calculations...")
-  gc(); distMat <- as.data.frame( do.call(rbind, unlist(distMat,recursive=F) ))
+  gc(); distMat <- do.call(rbind, unlist(distMat, recursive=F))
+
+  # Handle empty results
+  if(is.null(distMat) || length(distMat) == 0){
+    return(data.frame(ix = integer(0), iy = integer(0), stringdist = numeric(0)))
+  }
+
+  distMat <- as.data.frame(distMat)
   colnames(distMat) <- c("ix","iy","stringdist")
 
   print2("Wrapping up call to pDistMatch_euclidean()...")

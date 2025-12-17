@@ -2,7 +2,7 @@
 % Please edit documentation in R/LinkOrgs_PFuzzyDiscreteInternal.R
 \name{pDistMatch_discrete}
 \alias{pDistMatch_discrete}
-\title{pFuzzyMatch_discrete}
+\title{Compute Discrete String Distances (Internal)}
 \usage{
 pDistMatch_discrete(
   x,
@@ -22,45 +22,81 @@ pDistMatch_discrete(
 )
 }
 \arguments{
-\item{x, y}{data frames to be merged}
+\item{x, y}{Data frames containing organization names to be matched.}
 
-\item{by, by.x, by.y}{specifications of the columns used for merging. We follow the general syntax of \code{base::merge}; see \code{?base::merge} for more details.}
+\item{by}{Character string; column name for matching when both data frames use the
+same column name. Overridden by \code{by.x} and \code{by.y} if specified.}
 
-\item{...}{For additional options, see ``Details''.}
+\item{by.x}{Character string; column name in \code{x} containing organization names.}
+
+\item{by.y}{Character string; column name in \code{y} containing organization names.}
+
+\item{embedDistMetric}{Not used in discrete matching (included for API consistency).}
+
+\item{return_stringdist}{Logical; if \code{TRUE}, returns string distances. Default is \code{TRUE}.}
+
+\item{onlyUFT}{Logical; if \code{TRUE}, processes only UTF-8 strings. Default is \code{TRUE}.}
+
+\item{qgram}{Integer; the q-gram size for string distance calculation. Default is \code{2}.}
+
+\item{DistanceMeasure}{Character; algorithm for computing pairwise string distances.
+Options include \code{"jaccard"}, \code{"osa"}, \code{"jw"}. See \code{?stringdist::stringdist} for
+all options. Default is \code{"jaccard"}.}
+
+\item{MaxDist}{Numeric; maximum allowed distance between matched strings. Pairs with
+distances greater than this threshold are excluded. Default is \code{0.20}.}
+
+\item{ReturnProgress}{Logical; if \code{TRUE}, progress information is available (currently
+disabled). Default is \code{TRUE}.}
+
+\item{nCores}{Integer; number of CPU cores for parallel processing. Default is \code{NULL}
+(uses single core).}
+
+\item{ReturnMaxDistThreshold}{Logical; if \code{TRUE}, returns the distance threshold used.
+Default is \code{FALSE}.}
 }
 \value{
-z The merged data frame.
+A data frame with three columns:
+\describe{
+\item{ix}{Integer; row index in \code{x} of the matched record.}
+\item{iy}{Integer; row index in \code{y} of the matched record.}
+\item{stringdist}{Numeric; the string distance between the matched pair.}
+}
+Returns an empty data frame if no matches are found below \code{MaxDist}.
 }
 \description{
-Performs parallelized fuzzy matching of strings based on the string distance measure specified in \code{DistanceMeasure}. Matching is parallelized using all available CPU cores to increase execution speed.
+Computes pairwise string distances between organization names in two data frames
+using discrete distance measures (e.g., Jaccard, OSA, Jaro-Winkler). Uses trigram
+indexing for efficient candidate filtering and parallel processing for speed.
 }
 \details{
-\code{pFuzzyMatch} can automatically process the \code{by} text for each dataset. Users may specify the following options:
-\itemize{
-\item Set \code{DistanceMeasure} to control algorithm for computing pairwise string distances. Options include "\code{osa}", "\code{jaccard}", "\code{jw}". See \code{?stringdist::stringdist} for all options. (Default is "\code{jaccard}")
-\item Set \code{MaxDist} to control the maximum allowed distance between two matched strings
-\item Set \code{AveMatchNumberPerAlias} to control the maximum allowed distance between two matched strings. Takes priority over \code{MaxDist} if both specified.
-\item Set \code{qgram} to control the character-level q-grams used in the distance measure. (Default is \code{2})
-\item Set \code{RemoveCommonWords} to TRUE to remove common words (those appearing in > 10\% of aliases). (Default is \code{FALSE})
-\item Set \code{NormalizeSpaces} to TRUE to remove hanging whitespaces. (Default is \code{TRUE})
-\item Set \code{RemovePunctuation} to TRUE to remove punctuation. (Default is \code{TRUE})
-\item Set \code{ToLower} to TRUE to ignore case. (Default is \code{TRUE})
+This function uses a two-stage approach for efficient matching:
+\enumerate{
+\item \strong{Trigram indexing}: Builds an index of character trigrams for each name,
+then filters candidate pairs to those sharing at least 5\% of trigrams.
+\item \strong{Distance computation}: Computes exact string distances only for filtered
+candidates, returning pairs with distances at or below \code{MaxDist}.
 }
+
+The function automatically swaps \code{x} and \code{y} if \code{y} has fewer rows than \code{x}
+for more efficient parallelization.
 }
 \examples{
+# Create synthetic data
+x_orgnames <- c("apple", "oracle", "enron inc.", "mcdonalds corporation")
+y_orgnames <- c("apple corp", "oracle inc", "enron", "mcdonalds co")
+x <- data.frame("orgnames_x" = x_orgnames)
+y <- data.frame("orgnames_y" = y_orgnames)
 
-#Create synthetic data
-x_orgnames <- c("apple","oracle","enron inc.","mcdonalds corporation")
-y_orgnames <- c("apple corp","oracle inc","enron","mcdonalds co")
-x <- data.frame("orgnames_x"=x_orgnames)
-y <- data.frame("orgnames_y"=y_orgnames)
-z <- data.frame("orgnames_x"=x_orgnames[1:2], "orgnames_y"=y_orgnames[1:2])
-z_true <- data.frame("orgnames_x"=x_orgnames, "orgnames_y"=y_orgnames)
+# Compute distances
+distances <- pDistMatch_discrete(x = x,
+                                 y = y,
+                                 by.x = "orgnames_x",
+                                 by.y = "orgnames_y",
+                                 MaxDist = 0.5)
 
-# Perform merge
-linkedOrgs_fuzzy <- pFuzzyMatch(x = x,
-                       y = y,
-                       by.x = "orgnames_x",
-                       by.y = "orgnames_y")
-
+}
+\seealso{
+\code{\link[=pFuzzyMatch_discrete]{pFuzzyMatch_discrete()}} for the higher-level wrapper that returns
+merged data, \code{\link[stringdist:stringdist]{stringdist::stringdist()}} for available distance measures.
 }

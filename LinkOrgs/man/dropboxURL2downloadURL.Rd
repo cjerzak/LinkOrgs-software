@@ -2,28 +2,39 @@
 % Please edit documentation in R/LinkOrgs_BuildHelpers.R
 \name{dropboxURL2downloadURL}
 \alias{dropboxURL2downloadURL}
-\title{dropboxURL2downloadURL}
+\title{Convert Dropbox Share URL to Direct Download URL}
 \usage{
 dropboxURL2downloadURL(url)
 }
 \arguments{
-\item{url}{character string with the URL housing the data object.}
-
-\item{target_extension}{(default = \code{".csv"}) character string describing
-the target extension of the file in the downloaded .zip folder.}
+\item{url}{Character string; a Dropbox share URL (e.g.,
+\code{"https://www.dropbox.com/s/..."} or \code{"https://dropbox.com/s/..."}).}
 }
 \value{
-\code{z} The
+Character string; the converted direct download URL. If the input
+is not a Dropbox URL, it is returned unchanged.
 }
 \description{
-Downloads
+Converts a Dropbox share link to a direct download URL by replacing the
+domain with \code{dl.dropboxusercontent.com}.
 }
 \details{
-\code{dropboxURL2downloadURL}
+Dropbox share links require modification to enable direct file
+downloads. This function replaces:
+\itemize{
+\item \verb{https://www.dropbox.com} with \verb{https://dl.dropboxusercontent.com}
+\item \code{www.dropbox.com} with \code{dl.dropboxusercontent.com}
+\item \code{dropbox.com} with \code{dl.dropboxusercontent.com}
+}
 }
 \examples{
+# Convert a Dropbox share link
+direct_url <- dropboxURL2downloadURL(
+  "https://www.dropbox.com/s/abc123/myfile.csv?dl=0"
+)
+# Returns: "https://dl.dropboxusercontent.com/s/abc123/myfile.csv?dl=0"
 
-# Example download
-my_dt <- dropboxURL2downloadURL(url="https://www.dropbox.com/s/iqf9ids77dckopf/Directory_LinkIt_bipartite_Embeddings.csv.zip?dl=0")
-
+}
+\seealso{
+\code{\link[=url2dt]{url2dt()}} which uses this function internally.
 }

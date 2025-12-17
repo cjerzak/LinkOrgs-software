@@ -1,41 +1,49 @@
 #' AssessMatchPerformance
 #'
-#' Automatically computes the true/false positive and true/false negative rates based on a ground-truth (preferably human-generated) matched dataset.
+#' Computes match performance metrics (true/false positive and true/false negative rates)
+#' by comparing predicted matches against a ground-truth dataset.
 #'
-#' @usage
+#' @param x,y Data frames that were merged to produce `z`. Used to determine the
+#'   universe of possible match pairs.
+#' @param z Data frame containing the predicted matches to be evaluated. Must contain
+#'   columns specified by `by.x` and `by.y`.
+#' @param z_true Data frame containing the ground-truth (reference) matches. Must contain
+#'   columns specified by `by.x` and `by.y`.
+#' @param by Character string specifying the column name for merging when both data
+#'   frames use the same column name.
+#' @param by.x Character string specifying the column name in `x` used for merging.
+#'   Defaults to `by` if not specified.
+#' @param by.y Character string specifying the column name in `y` used for merging.
+#'   Defaults to `by` if not specified.
+#' @param openBrowser Logical; if `TRUE`, opens browser for debugging. Default is `FALSE`.
 #'
-#' AssessMatchPerformance(x,y,by,...)
-#'
-#' @param x,y data frames to be merged
-#'
-#' @param by,by.x,by.y character strings specifying of the columns used for merging.
-#'
-#' @param z the merged data frame to be analyzed. Should contain `by`,`by.x`, and/or `by.y` as column names, depending on usage.
-#'
-#' @param z_true a reference data frame containing target/true matched dataset. Should contain `by`,`by.x`, and/or `by.y` as column names, depending on usage.
-#'
-#' @return `ResultsMatrix` A matrix containing the information on the true positive, false positive,
-#' true negative, and false negative rate, in addition to the matched dataset size.  These quantities are calculated based off
-#' all possible `nrow(x)*nrow(y)` match pairs.
+#' @return A named numeric vector with the following elements:
+#' \describe{
+#'   \item{TruePositives}{Number of matches in `z` that are also in `z_true`.}
+#'   \item{FalsePositives}{Number of matches in `z` that are not in `z_true`.}
+#'   \item{FalseNegatives}{Number of matches in `z_true` that are not in `z`.}
+#'   \item{TrueNegatives}{Number of non-matches correctly identified (total pairs minus
+#'     TP, FP, and FN).}
+#'   \item{MatchedDatasetSize}{Number of rows in the predicted matches `z`.}
+#' }
 #'
 #' @examples
 #' # Create synthetic data
-#' x_orgnames <- c("apple","oracle","enron inc.","mcdonalds corporation")
-#' y_orgnames <- c("apple corp","oracle inc","enron","mcdonalds co")
-#' x <- data.frame("orgnames_x"=x_orgnames)
-#' y <- data.frame("orgnames_y"=y_orgnames)
-#' z <- data.frame("orgnames_x"=x_orgnames[1:2], "orgnames_y"=y_orgnames[1:2])
-#' z_true <- data.frame("orgnames_x"=x_orgnames, "orgnames_y"=y_orgnames)
+#' x_orgnames <- c("apple", "oracle", "enron inc.", "mcdonalds corporation")
+#' y_orgnames <- c("apple corp", "oracle inc", "enron", "mcdonalds co")
+#' x <- data.frame("orgnames_x" = x_orgnames)
+#' y <- data.frame("orgnames_y" = y_orgnames)
+#' z <- data.frame("orgnames_x" = x_orgnames[1:2], "orgnames_y" = y_orgnames[1:2])
+#' z_true <- data.frame("orgnames_x" = x_orgnames, "orgnames_y" = y_orgnames)
 #'
 #' # Obtain match performance data
 #' PerformanceMatrix <- AssessMatchPerformance(x = x,
-#'                                    y = y,
-#'                                    z = z,
-#'                                    z_true = z_true,
-#'                                    by.x = "orgnames_x",
-#'                                    by.y = "orgnames_y")
-#' print( PerformanceMatrix )
-#'
+#'                                             y = y,
+#'                                             z = z,
+#'                                             z_true = z_true,
+#'                                             by.x = "orgnames_x",
+#'                                             by.y = "orgnames_y")
+#' print(PerformanceMatrix)
 #'
 #' @export
 #' @md

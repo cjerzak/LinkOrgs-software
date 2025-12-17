@@ -1,25 +1,55 @@
 #!/usr/bin/env Rscript
-#' pFuzzyMatch_discrete
+#' Fuzzy Match with Discrete String Distances
 #'
-#' Implements
+#' Performs fuzzy matching between two data frames using string distance measures
+#' (e.g., Jaccard, OSA, Jaro-Winkler). This is a wrapper around [pDistMatch_discrete()]
+#' that returns the merged data frame with matched records.
 #'
-#' @param x,y data frames to be merged
+#' @param x,y Data frames to be merged.
+#' @param by.x Character string; column name in `x` containing organization names.
+#' @param by.y Character string; column name in `y` containing organization names.
+#' @param embedx,embedy Optional embedding matrices (not used in discrete matching,
+#'   included for API consistency).
+#' @param embedDistMetric Optional custom distance metric (not used in discrete matching).
+#' @param MaxDist Numeric; maximum allowed distance between matched strings. Pairs with
+#'   distances greater than this threshold are excluded. If `AveMatchNumberPerAlias` is
+#'   specified, it takes priority.
+#' @param qgram Integer; the q-gram size for string distance calculation. Default is `2`.
+#' @param DistanceMeasure Character; algorithm for computing pairwise string distances.
+#'   Options include `"jaccard"`, `"osa"`, `"jw"`. See `?stringdist::stringdist` for
+#'   all options. Default is `"jaccard"`.
+#' @param AveMatchNumberPerAlias Numeric; target average number of matches per alias.
+#'   If specified, automatically calibrates `MaxDist` using [GetCalibratedDistThres()].
+#' @param nCores Integer; number of CPU cores for parallel processing. Default is `NULL`
+#'   (uses single core).
+#' @param ... Additional arguments (currently unused).
 #'
-#' @return ...
-#' @export
+#' @return A data frame containing matched records from `x` and `y`, with columns from
+#'   both data frames (suffixed with `.x` and `.y` respectively) and a `stringdist`
+#'   column indicating the distance between each matched pair.
 #'
-#' @details ...
+#' @details This function uses trigram indexing to efficiently filter candidate matches
+#'   before computing exact string distances. This approach significantly speeds up
+#'   matching for large datasets.
 #'
 #' @examples
+#' # Create synthetic data
+#' x_orgnames <- c("apple", "oracle", "enron inc.", "mcdonalds corporation")
+#' y_orgnames <- c("apple corp", "oracle inc", "enron", "mcdonalds co")
+#' x <- data.frame("orgnames_x" = x_orgnames)
+#' y <- data.frame("orgnames_y" = y_orgnames)
 #'
-#' #Create synthetic data
-#' x_orgnames <- c("apple","oracle","enron inc.","mcdonalds corporation")
-#' y_orgnames <- c("apple corp","oracle inc","enron","mcdonalds co")
-#' x <- data.frame("orgnames_x"=x_orgnames)
-#' y <- data.frame("orgnames_y"=y_orgnames)
+#' # Perform fuzzy matching
+#' matched <- pFuzzyMatch_discrete(x = x,
+#'                                 y = y,
+#'                                 by.x = "orgnames_x",
+#'                                 by.y = "orgnames_y",
+#'                                 MaxDist = 0.5)
 #'
+#' @seealso [pDistMatch_discrete()] for the underlying distance computation,
+#'   [GetCalibratedDistThres()] for automatic threshold calibration,
+#'   [pFuzzyMatch_euclidean()] for embedding-based matching.
 #' @export
-#'
 #' @md
 
 pFuzzyMatch_discrete <- function(

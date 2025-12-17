@@ -1,25 +1,30 @@
 #!/usr/bin/env Rscript
-#' url2dt
+#' Download CSV from URL to data.table
 #'
-#' Downloads a .zip file from a URL as a data.table from a URL.
+#' Downloads a zipped CSV file from a URL and loads it into memory as a data.table.
+#' Automatically handles Dropbox URLs by converting them to direct download links.
 #'
-#' @param url character string with the URL housing the data object.
+#' @param url Character string; the URL pointing to a `.csv.zip` or `.csv.gz` file.
+#'   Dropbox share links are automatically converted to direct download URLs.
 #'
-#' @param target_extension (default = `".csv"`) character string describing
-#' the target extension of the file in the downloaded .zip folder.
+#' @return A data.table containing the downloaded data.
 #'
-#' @return `z` The downloaded data object from the URL.
-#' @export
-#'
-#' @details `url2dt` downloads a zipped `.csv` file and loads it into memory based on the input URL.
+#' @details This function:
+#' 1. Converts Dropbox share links to direct download URLs using [dropboxURL2downloadURL()]
+#' 2. Downloads the file to a temporary directory
+#' 3. Unzips (if `.zip`) or decompresses (if `.gz`) the file
+#' 4. Reads the CSV file using [data.table::fread()]
+#' 5. Cleans up the temporary file
 #'
 #' @examples
+#' \dontrun{
+#' # Download from Dropbox
+#' my_dt <- url2dt("https://www.dropbox.com/s/example/data.csv.zip?dl=0")
+#' }
 #'
-#' # Example download
-#' my_dt <- url2dt(url="https://www.dropbox.com/s/iqf9ids77dckopf/Directory_LinkIt_bipartite_Embeddings.csv.zip?dl=0")
-#'
+#' @seealso [dropboxURL2downloadURL()] for URL conversion, [data.table::fread()]
+#'   for the underlying CSV reader.
 #' @export
-#'
 #' @md
 
 url2dt <- function(url){
@@ -56,28 +61,32 @@ url2dt <- function(url){
 }
 
 
-#!/usr/bin/env Rscript
-#' dropboxURL2downloadURL
+#' Convert Dropbox Share URL to Direct Download URL
 #'
-#' Downloads
+#' Converts a Dropbox share link to a direct download URL by replacing the
+#' domain with `dl.dropboxusercontent.com`.
 #'
-#' @param url character string with the URL housing the data object.
+#' @param url Character string; a Dropbox share URL (e.g.,
+#'   `"https://www.dropbox.com/s/..."` or `"https://dropbox.com/s/..."`).
 #'
-#' @param target_extension (default = `".csv"`) character string describing
-#' the target extension of the file in the downloaded .zip folder.
+#' @return Character string; the converted direct download URL. If the input
+#'   is not a Dropbox URL, it is returned unchanged.
 #'
-#' @return `z` The
-#' @export
-#'
-#' @details `dropboxURL2downloadURL`
+#' @details Dropbox share links require modification to enable direct file
+#'   downloads. This function replaces:
+#'   - `https://www.dropbox.com` with `https://dl.dropboxusercontent.com`
+#'   - `www.dropbox.com` with `dl.dropboxusercontent.com`
+#'   - `dropbox.com` with `dl.dropboxusercontent.com`
 #'
 #' @examples
+#' # Convert a Dropbox share link
+#' direct_url <- dropboxURL2downloadURL(
+#'   "https://www.dropbox.com/s/abc123/myfile.csv?dl=0"
+#' )
+#' # Returns: "https://dl.dropboxusercontent.com/s/abc123/myfile.csv?dl=0"
 #'
-#' # Example download
-#' my_dt <- dropboxURL2downloadURL(url="https://www.dropbox.com/s/iqf9ids77dckopf/Directory_LinkIt_bipartite_Embeddings.csv.zip?dl=0")
-#'
+#' @seealso [url2dt()] which uses this function internally.
 #' @export
-#'
 #' @md
 dropboxURL2downloadURL <- function( url ){
   # clean URL if from dropbox

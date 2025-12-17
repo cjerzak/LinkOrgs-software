@@ -62,5 +62,4 @@
   hist(check2)
   sum(check1$stringdist <= CalibratedThres)
   sum(check2 <= CalibratedThres)
-
 }

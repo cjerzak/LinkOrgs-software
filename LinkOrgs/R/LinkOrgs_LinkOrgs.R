@@ -1,59 +1,106 @@
 #!/usr/bin/env Rscript
 #' LinkOrgs
 #'
-#' Implements the organizational record linkage algorithms of Libgober and Jerzak (2023+) using half-a-billion open-collaborated records.
+#' Implements the organizational record linkage algorithms of Libgober and Jerzak (2023+)
+#' using half-a-billion open-collaborated records.
 #'
-#' @param x,y data frames to be merged
-#' @param by,by.x,by.y character vector(s) that specify the column names used for merging data frames `x` and `y`. The merging variables should be organizational names. See `?base::merge` for more details regarding syntax.
-#' @param algorithm character; specifies which algorithm described in Libgober and Jerzak (2023+) should be used. Options are "`markov`", "`bipartite`", "`ml`", and "`transfer`". Default is "` ml`", which uses a machine-learning approach using Transformer netes and 9 million parameters to predict match probabilities using half a billion open-collaborated recoreds as training data.
-#' @param ml_version character; specifies which version of the ML algorithm should be used. Options are of the form `"v0"` and `"v1"`. Highest version currently supported is `"v1"` (11M parameters).
-#' @param conda_env character string; specifies a conda environment where JAX and related packages have been installed (see `?LinkOrgs::BuildBackend`). Used only when `algorithm='ml'` or `DistanceMeasure='ml'`.
-#' @param conda_env_required Boolean; specifies whether conda environment is required.
-#' @param ExportEmbeddingsOnly Boolean; if TRUE with algorithm='ml' (or DistanceMeasure='ml'), return only ML embeddings for x and/or y without matching for offline linkage.
-#' @param ReturnDiagnostics Boolean; specifies whether various match-level diagnostics should be returned in the merged data frame.
-#' @param ... For additional specification options, see
-#'   ``Details''.
+#' @param x,y Data frames to be merged.
+#' @param by,by.x,by.y Character vector(s) that specify the column names used for merging
+#'   data frames `x` and `y`. The merging variables should be organizational names.
+#'   See `?base::merge` for more details regarding syntax.
+#' @param embedx,embedy Optional pre-computed embedding matrices. If provided, these will
+#'   be used instead of computing embeddings from names. Rows correspond to observations
+#'   and columns to embedding dimensions.
+#' @param embedDistMetric Optional custom distance metric function for embedding-based matching.
+#' @param algorithm Character; specifies which algorithm should be used. Options are
+#'   `"fuzzy"`, `"ml"`, `"bipartite"`, `"markov"`, and `"transfer"`. Default is `"ml"`,
+#'   which uses a machine-learning approach with Transformer networks and up to 11 million
+#'   parameters to predict match probabilities using half a billion open-collaborated
+#'   records as training data.
+#' @param conda_env Character string; specifies a conda environment where JAX and related
+#'   packages have been installed (see `?LinkOrgs::BuildBackend`). Used only when
+#'   `algorithm='ml'` or `DistanceMeasure='ml'`. Default is `"LinkOrgs_env"`.
+#' @param conda_env_required Logical; specifies whether conda environment is required.
+#'   Default is `TRUE`.
+#' @param ReturnDiagnostics Logical; if `TRUE`, various match-level diagnostics are
+#'   returned in the merged data frame. Default is `FALSE`.
+#' @param ReturnProgress Logical; if `TRUE`, progress messages are printed during
+#'   execution. Default is `TRUE`.
+#' @param ToLower Logical; if `TRUE`, converts names to lowercase before matching.
+#'   Default is `TRUE`.
+#' @param NormalizeSpaces Logical; if `TRUE`, removes extra whitespace from names.
+#'   Default is `TRUE`.
+#' @param RemovePunctuation Logical; if `TRUE`, removes punctuation from names.
+#'   Default is `TRUE`.
+#' @param MaxDist Numeric; maximum allowed distance between two matched strings.
+#'   If `AveMatchNumberPerAlias` is specified, it takes priority over this parameter.
+#' @param MaxDist_network Numeric; maximum allowed distance for network-based matching
+#'   when using `algorithm = "bipartite"` or `"markov"`.
+#' @param AveMatchNumberPerAlias Numeric; target average number of matches per alias.
+#'   Used to automatically calibrate `MaxDist`. Takes priority over `MaxDist` if both
+#'   are specified. Default is `10`.
+#' @param AveMatchNumberPerAlias_network Numeric; target average number of matches per
+#'   alias for network-based candidate selection. Default is `2`.
+#' @param DistanceMeasure Character; algorithm for computing pairwise string distances.
+#'   Options include `"osa"`, `"jaccard"`, `"jw"`, or `"ml"` for embedding-based distance.
+#'   See `?stringdist::stringdist` for all string distance options. Default is `"jaccard"`.
+#' @param qgram Integer; the q-gram size used in string distance measures. Default is `2`.
+#' @param RelThresNetwork Numeric; relative threshold multiplier for network distances.
+#'   Default is `1.5`.
+#' @param ml_version Character; specifies which version of the ML algorithm to use.
+#'   Options are `"v0"` (9M parameters) through `"v4"`. Default is `"v1"` (11M parameters).
+#' @param openBrowser Logical; if `TRUE`, opens browser for debugging. Default is `FALSE`.
+#' @param ExportEmbeddingsOnly Logical; if `TRUE` with `algorithm='ml'` (or
+#'   `DistanceMeasure='ml'`), returns only ML embeddings for x and/or y without
+#'   matching, for offline linkage. Default is `FALSE`.
+#' @param ReturnDecomposition Logical; if `TRUE`, returns a list containing the merged
+#'   data frame along with intermediate results. Default is `FALSE`.
+#' @param python_executable Path to Python executable. Usually not needed if
+#'   `conda_env` is specified.
+#' @param nCores Integer; number of CPU cores to use for parallel processing.
+#'   Default is `NULL` (auto-detect based on data size).
+#' @param deezyLoc Path to DeezyMatch installation (for `algorithm = "deezymatch"`).
+#' @param ... Additional arguments passed to internal functions.
 #'
-#' @return `z` The merged data frame.
-#' @export
+#' @return If `ExportEmbeddingsOnly = TRUE`, returns a list with `embedx` and/or `embedy`
+#'   data frames containing the input names and their embeddings. If
+#'   `ReturnDecomposition = TRUE`, returns a list with `z` (merged data), `z_RawNames`
+#'   (raw name matches), and `z_Network` (network matches). Otherwise, returns the
+#'   merged data frame `z`.
 #'
-#' @details `LinkOrgs` automatically processes the name text for each dataset (specified by `by` or `by.x`, and `by.y`. Users may specify the following options:
-#' - Set `DistanceMeasure` to control algorithm for computing pairwise string distances. Options include "`osa`", "`jaccard`", "`jw`". See `?stringdist::stringdist` for all options. Default is `"jaccard"`. To use the combined machine learning and network  methods, set `algorithm` to `"bipartite"` or `"markov"`, and `DistanceMeasure` to `"ml"`.
-#' - Set `MaxDist` to control the maximum allowed distance between two matched strings
-#' - Set `MaxDist_network` to control the maximum allowed distance between two matched strings in the integration with the LinkedIn network representation.
-#' - Set `AveMatchNumberPerAlias` to control the maximum allowed distance between two matched strings. Takes priority over `MaxDist` if both specified.
-#' - Set `AveMatchNumberPerAlias_network` to control the maximum allowed distance between two matched strings in the integration with the LinkedIn network representation. Takes priority over `MaxDist_network` if both specified.
-#' - Set `qgram` to control the character-level q-grams used in the distance measure. Default is `2`.
-#' - Set `RemoveCommonWords` to `TRUE` to remove common words (those appearing in >
-#' 10% of aliases). Default is `FALSE`.
-#' - Set `NormalizeSpaces` to `TRUE` to remove hanging whitespaces. Default is `TRUE`.
-#' - Set `RemovePunctuation` to `TRUE` to remove punctuation. Default is `TRUE`.
-#' - Set `ToLower` to `TRUE` to ignore case. Default is `TRUE`.
+#' @details `LinkOrgs` automatically processes the name text for each dataset
+#'   (specified by `by` or `by.x` and `by.y`). Text preprocessing includes:
+#'
+#' - **Case normalization**: Set `ToLower = FALSE` to preserve case sensitivity.
+#' - **Space normalization**: Set `NormalizeSpaces = FALSE` to preserve whitespace.
+#' - **Punctuation removal**: Set `RemovePunctuation = FALSE` to preserve punctuation.
+#'
+#' To use combined machine learning and network methods, set `algorithm` to
+#' `"bipartite"` or `"markov"`, and `DistanceMeasure` to `"ml"`.
 #'
 #' @examples
+#' # Create synthetic data
+#' x_orgnames <- c("apple", "oracle", "enron inc.", "mcdonalds corporation")
+#' y_orgnames <- c("apple corp", "oracle inc", "enron", "mcdonalds co")
+#' x <- data.frame("orgnames_x" = x_orgnames)
+#' y <- data.frame("orgnames_y" = y_orgnames)
 #'
-#' #Create synthetic data
-#' x_orgnames <- c("apple","oracle","enron inc.","mcdonalds corporation")
-#' y_orgnames <- c("apple corp","oracle inc","enron","mcdonalds co")
-#' x <- data.frame("orgnames_x"=x_orgnames)
-#' y <- data.frame("orgnames_y"=y_orgnames)
-#'
-#' # Perform merge
+#' # Perform merge with fuzzy matching
 #' linkedOrgs <- LinkOrgs(x = x,
 #'                        y = y,
 #'                        by.x = "orgnames_x",
 #'                        by.y = "orgnames_y",
+#'                        algorithm = "fuzzy",
 #'                        MaxDist = 0.6)
 #'
-#' print( linkedOrgs )
-#'
-#' @export
+#' print(linkedOrgs)
 #'
 #' @importFrom data.table ":="
 #' @import Rfast
 #' @import fastmatch
 #' @import doParallel
 #' @import reticulate
+#' @export
 #' @md
 
 LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
@@ -493,18 +540,18 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
   }
   if(NormalizeSpaces == T){
     for(it_ in c("x","y")){
-      eval(parse(text = sprintf('set(%s,NULL,by.%s, str_replace_all( %s[[by.%s]], pattern="\\\\s+", replace=" "))', it_, it_, it_, it_)))
+      eval(parse(text = sprintf('set(%s,NULL,by.%s, stringr::str_replace_all( %s[[by.%s]], pattern="\\\\s+", replacement=" "))', it_, it_, it_, it_)))
     }
     if(algorithm %in% c("bipartite","markov")){
-      directory[["alias_name"]] <- str_replace_all(directory[["alias_name"]],pattern="\\s+", replace = " ")
+      directory[["alias_name"]] <- stringr::str_replace_all(directory[["alias_name"]], pattern="\\s+", replacement = " ")
     }
   }
   if(RemovePunctuation == T){
     for(it_ in c("x","y")){
-      eval(parse(text = sprintf('set(%s,NULL,by.%s, str_replace_all(%s[[by.%s]],"\\\\p{P}",""))', it_, it_,it_, it_)))
+      eval(parse(text = sprintf('set(%s,NULL,by.%s, stringr::str_replace_all(%s[[by.%s]],"\\\\p{P}",""))', it_, it_,it_, it_)))
     }
     if(algorithm %in% c("bipartite","markov")){
-      directory[["alias_name"]] <- str_replace_all(directory[["alias_name"]],"\\p{P}","")
+      directory[["alias_name"]] <- stringr::str_replace_all(directory[["alias_name"]],"\\p{P}","")
     }
   }
 

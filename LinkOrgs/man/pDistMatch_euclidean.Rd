@@ -2,7 +2,7 @@
 % Please edit documentation in R/LinkOrgs_PFuzzyEuclideanInternal.R
 \name{pDistMatch_euclidean}
 \alias{pDistMatch_euclidean}
-\title{pDistMatch_euclidean}
+\title{Compute Euclidean Distances Between Embeddings (Internal)}
 \usage{
 pDistMatch_euclidean(
   embedx,
@@ -13,38 +13,64 @@ pDistMatch_euclidean(
 )
 }
 \arguments{
-\item{x, y}{data frames to be merged}
+\item{embedx}{Numeric matrix; embeddings for the first set of observations. Rows
+correspond to observations and columns to embedding dimensions.}
 
-\item{by, by.x, by.y}{specifications of the columns used for merging. We follow the general syntax of \code{base::merge}; see \code{?base::merge} for more details.}
+\item{embedy}{Numeric matrix; embeddings for the second set of observations. Rows
+correspond to observations and columns to embedding dimensions.}
 
-\item{...}{For additional options, see ``Details''.}
+\item{MaxDist}{Numeric; maximum allowed Euclidean distance. Pairs with distances
+greater than this threshold are excluded. If \code{NULL}, all pairs are returned.}
+
+\item{embedDistMetric}{Optional function; custom distance metric. If \code{NULL},
+Euclidean distance is computed. The function should take two arguments
+(expanded x vector and transposed y matrix) and return a distance vector.}
+
+\item{ReturnProgress}{Logical; if \code{TRUE}, progress information is available
+(currently disabled). Default is \code{TRUE}.}
 }
 \value{
-z The merged data frame.
+A data frame with three columns:
+\describe{
+\item{ix}{Integer; row index in \code{embedx} of the matched record.}
+\item{iy}{Integer; row index in \code{embedy} of the matched record.}
+\item{stringdist}{Numeric; the Euclidean distance between the matched pair's
+embeddings (named \code{stringdist} for consistency with discrete matching).}
+}
+Returns an empty data frame if no matches are found below \code{MaxDist}.
 }
 \description{
-Performs parallelized distance computation strings based on the string distance measure specified in \code{DistanceMeasure}. Matching is parallelized using all available CPU cores to increase execution speed.
+Computes pairwise Euclidean distances between embedding vectors from two sets of
+observations. This function is used internally for ML-based matching where
+organization names have been converted to numeric embeddings.
 }
 \details{
-\code{pDistMatch_euclidean} can automatically process the \code{by} text for each dataset. Users may specify the following options:
+This function computes Euclidean distances between all pairs of
+embedding vectors. For efficiency:
 \itemize{
-\item Set \code{DistanceMeasure} to control algorithm for computing pairwise string distances. Options include "\code{osa}", "\code{jaccard}", "\code{jw}". See \code{?stringdist::stringdist} for all options. (Default is "\code{jaccard}")
+\item Automatically swaps \code{embedx} and \code{embedy} if \code{embedy} has fewer rows for
+better vectorization.
+\item Uses JAX for GPU acceleration when available (detected automatically).
+\item Rounds embeddings to reduce precision overhead when embedding precision differs.
 }
+
+The function is typically called by \code{\link[=pFuzzyMatch_euclidean]{pFuzzyMatch_euclidean()}} rather than
+directly by users.
 }
 \examples{
+\dontrun{
+# Create synthetic embeddings
+embedx <- matrix(rnorm(4 * 256), nrow = 4)
+embedy <- matrix(rnorm(4 * 256), nrow = 4)
 
-#Create synthetic data
-x_orgnames <- c("apple","oracle","enron inc.","mcdonalds corporation")
-y_orgnames <- c("apple corp","oracle inc","enron","mcdonalds co")
-x <- data.frame("orgnames_x"=x_orgnames)
-y <- data.frame("orgnames_y"=y_orgnames)
-z <- data.frame("orgnames_x"=x_orgnames[1:2], "orgnames_y"=y_orgnames[1:2])
-z_true <- data.frame("orgnames_x"=x_orgnames, "orgnames_y"=y_orgnames)
+# Compute distances
+distances <- pDistMatch_euclidean(embedx = embedx,
+                                  embedy = embedy,
+                                  MaxDist = 5.0)
+}
 
-# Perform merge
-linkedOrgs_fuzzy <- pFuzzyMatch(x = x,
-                       y = y,
-                       by.x = "orgnames_x",
-                       by.y = "orgnames_y")
-
+}
+\seealso{
+\code{\link[=pFuzzyMatch_euclidean]{pFuzzyMatch_euclidean()}} for the higher-level wrapper that returns
+merged data, \code{\link[=pDistMatch_discrete]{pDistMatch_discrete()}} for string-distance-based matching.
 }

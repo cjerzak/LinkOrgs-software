@@ -55,11 +55,16 @@ GetCalibratedDistThres <- function(x = NULL, y = NULL,
   }
 
   if(mode == "discrete"){
-    DistMat <- pDistMatch_discrete(x = x[cal_x_indices,], by.x = by.x,
-                                   y = y[cal_y_indices,], by.y = by.y,
-                                   qgram = qgram, DistanceMeasure = DistanceMeasure, 
-                                   MaxDist = Inf, 
+    DistMat <- pDistMatch_discrete(x = x[cal_x_indices, , drop = FALSE], by.x = by.x,
+                                   y = y[cal_y_indices, , drop = FALSE], by.y = by.y,
+                                   qgram = qgram, DistanceMeasure = DistanceMeasure,
+                                   MaxDist = Inf,
                                    nCores = 1L)
+  }
+
+  # Handle case where DistMat is NULL or has no rows
+  if(is.null(DistMat) || !is.data.frame(DistMat)){
+    DistMat <- data.frame(ix = integer(0), iy = integer(0), stringdist = numeric(0))
   }
 
   IMPLIED_MATCH_DIST_THRES <- Inf; if(nrow(DistMat) > 0){
