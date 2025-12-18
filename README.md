@@ -177,10 +177,20 @@ Brian Libgober, Connor T. Jerzak. "Linking Datasets on Organizations Using Half-
 ## Related work
 Green, Beniamino. "Zoomerjoin: Superlatively-Fast Fuzzy Joins." *Journal of Open Source Software* 8:89 5693-5698, 2023. [[PDF]](https://joss.theoj.org/papers/10.21105/joss.05693.pdf)
 
-[<img src="https://i0.wp.com/connorjerzak.com/wp-content/uploads/2023/07/f1.png?w=738&ssl=1" width="400" height="400">](https://doi.org/10.1017/psrm.2024.55)
+<a href="https://doi.org/10.1017/psrm.2024.55#gh-light-mode-only">
+  <img src="https://i0.wp.com/connorjerzak.com/wp-content/uploads/2025/12/linkorgs1_light.webp#gh-light-mode-only" alt="Figure 1 – light" width="400" height="400">
+</a>
 
-[<img src="https://i0.wp.com/connorjerzak.com/wp-content/uploads/2024/09/Screenshot-2024-09-01-at-8.37.04%E2%80%AFPM.png?w=1280&ssl=1" width="900" height="300">](https://doi.org/10.1017/psrm.2024.55)
+<a href="https://doi.org/10.1017/psrm.2024.55#gh-dark-mode-only">
+  <img src="https://i0.wp.com/connorjerzak.com/wp-content/uploads/2025/12/linkorgs1_dark.webp#gh-dark-mode-only" alt="Figure 1 – dark" width="400" height="400">
+</a>
 
-[<img src="https://i0.wp.com/connorjerzak.com/wp-content/uploads/2024/09/Screenshot-2024-09-03-at-2.32.26%E2%80%AFPM.png?w=944&ssl=1" width="600" height="600">](https://doi.org/10.1017/psrm.2024.55)
+<a href="https://doi.org/10.1017/psrm.2024.55#gh-light-mode-only">
+  <img src="https://i0.wp.com/connorjerzak.com/wp-content/uploads/2025/12/linkorgs2_light.webp#gh-light-mode-only" alt="Figure 2 – light" width="900" height="300">
+</a>
+
+<a href="https://doi.org/10.1017/psrm.2024.55#gh-dark-mode-only">
+  <img src="https://i0.wp.com/connorjerzak.com/wp-content/uploads/2025/12/linkorgs2_dark.webp#gh-dark-mode-only" alt="Figure 2 – dark" width="900" height="300">
+</a>
 
 

@@ -13,7 +13,6 @@
   
   # local install for development team
   # install.packages("~/Documents/LinkOrgs-software/LinkOrgs",repos = NULL, type = "source",force = F)
-  
 
   # Load package
   library(LinkOrgs)
