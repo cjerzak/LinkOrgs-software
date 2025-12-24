@@ -7,34 +7,27 @@
 #' @param x Input data. For `mode = "euclidean"`: an embedding matrix where rows are observations
 #'   and columns are embedding dimensions. For `mode = "discrete"`: a data frame containing
 #'   the column specified by `by.x`.
-#'
 #' @param y Input data. For `mode = "euclidean"`: an embedding matrix where rows are observations
 #'   and columns are embedding dimensions. For `mode = "discrete"`: a data frame containing
 #'   the column specified by `by.y`.
-#'
 #' @param by.x Column name in `x` to use for matching. Only used when `mode = "discrete"`.
-#'
 #' @param by.y Column name in `y` to use for matching. Only used when `mode = "discrete"`.
-#'
 #' @param AveMatchNumberPerAlias Target average number of matches per observation.
 #'   Used to calibrate the distance threshold. Default is 5.
-#'
 #' @param qgram The q-gram size for string distance calculation. Only used when
 #'   `mode = "discrete"`. Default is 2.
-#'
 #' @param DistanceMeasure The string distance measure to use. Only used when
 #'   `mode = "discrete"`. Options include "jaccard", "osa", "jw". See
 #'   `?stringdist::stringdist` for all options. Default is "jaccard".
-#'
 #' @param nCores Number of CPU cores for parallel computation. Only used when
 #'   `mode = "discrete"`. Default is NULL (auto-detect).
-#'
 #' @param mode Character string specifying the distance computation mode.
 #'   Must be either "euclidean" (for embedding-based matching) or "discrete"
 #'   (for string-based matching). Default is "euclidean".
 #'
 #' @return A numeric value representing the calibrated distance threshold.
 #'
+#' @importFrom stats quantile
 #' @export
 #' @md
 

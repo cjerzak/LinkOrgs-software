@@ -103,16 +103,16 @@ Here:
 
 The real power of LinkOrgs is the advanced ML-based approach that uses a learned embedding space. If you ran `BuildBackend()` and have a suitable conda environment, you can do:
 
-```{r}
+```{r, eval = FALSE}
 linkedOrgs_ml <- LinkOrgs(x = x,
                           y = y,
                           by.x = "orgnames_x",
                           by.y = "orgnames_y",
                           MaxDist = 2.0,  # Euclidean distance in embedding space
                           algorithm = "ml",
-                          conda_env = "LinkOrgsEnv", 
+                          conda_env = "LinkOrgsEnv",
                           conda_env_required = T)
-                          
+
 linkedOrgs_ml
 ```
 
@@ -123,7 +123,7 @@ linkedOrgs_ml
 
 The “ensemble” approach merges the strengths of ML embeddings and the LinkedIn network. You can access it by setting:
 
-```{r}
+```{r, eval = FALSE}
 linkedOrgs_ensemble <- LinkOrgs(x = x,
                                 y = y,
                                 by.x = "orgnames_x",
@@ -131,7 +131,7 @@ linkedOrgs_ensemble <- LinkOrgs(x = x,
                                 MaxDist_network = 2.0,
                                 algorithm = "bipartite",  # or "markov"
                                 DistanceMeasure = "ml",
-                                conda_env = "LinkOrgsEnv", 
+                                conda_env = "LinkOrgsEnv",
                                 conda_env_required = T)
 ```
 
@@ -188,7 +188,7 @@ These statistics are especially helpful when systematically adjusting match thre
 
 If you store large CSVs or ZIP files of data (possibly for replication) on Dropbox, the LinkOrgs package provides convenience functions for automatic downloading and importing into R:
 
-```{r}
+```{r, eval = FALSE}
 # Download a zipped CSV from a Dropbox link and read it as a data.table
 my_dt <- url2dt(url = "https://www.dropbox.com/s/iqf9ids77dckopf/Directory_LinkIt_bipartite_Embeddings.csv.zip?dl=0")
 
@@ -216,7 +216,7 @@ A few additional utility functions included in LinkOrgs:
 
 Below is a more fully featured example that shows a typical workflow using LinkOrgs. It uses fuzzy matching, then tries an ML-based approach, compares performances, and picks a threshold that balances false positives and false negatives:
 
-```{r}
+```{r, eval = FALSE}
 library(LinkOrgs)
 
 ### 1. Suppose we have two large data frames:

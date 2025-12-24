@@ -1,0 +1,139 @@
+
+R version 4.5.2 (2025-10-31) -- "[Not] Part in a Rumble"
+Copyright (C) 2025 The R Foundation for Statistical Computing
+Platform: aarch64-apple-darwin20
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> # This file is part of the standard testthat setup for R packages.
+> # It is automatically run by R CMD check.
+> library(testthat)
+> library(LinkOrgs)
+Warning messages:
+1: replacing previous import 'Rfast::transpose' by 'data.table::transpose' when loading 'LinkOrgs' 
+2: replacing previous import 'plyr::mutate' by 'dplyr::mutate' when loading 'LinkOrgs' 
+> 
+> test_check("LinkOrgs")
+[1] "[2025-12-23 21:36:12] Calibrating via AveMatchNumberPerAlias..."
+[1] "[2025-12-23 21:36:12] Casting to matrix"
+[1] "[2025-12-23 21:36:12] Starting parallel Euclidean distance calculations with dim(x) = [100, 20] and dim(y) = [100, 20]..."
+[1] "[2025-12-23 21:36:12] Done with Euclidean distance calculations..."
+[1] "[2025-12-23 21:36:12] Wrapping up call to pDistMatch_euclidean()..."
+[1] "[2025-12-23 21:36:12] Calibrated accept match dist threshold: 4.633211"
+[1] "[2025-12-23 21:36:12] Calibrating via AveMatchNumberPerAlias..."
+[1] "[2025-12-23 21:36:12] Calibrated accept match dist threshold: 0.200000"
+[1] "[2025-12-23 21:36:12] Calibrating via AveMatchNumberPerAlias..."
+[1] "[2025-12-23 21:36:12] Casting to matrix"
+[1] "[2025-12-23 21:36:12] Starting parallel Euclidean distance calculations with dim(x) = [100, 20] and dim(y) = [100, 20]..."
+[1] "[2025-12-23 21:36:12] Done with Euclidean distance calculations..."
+[1] "[2025-12-23 21:36:12] Wrapping up call to pDistMatch_euclidean()..."
+[1] "[2025-12-23 21:36:12] Calibrated accept match dist threshold: 4.044640"
+[1] "[2025-12-23 21:36:12] Calibrating via AveMatchNumberPerAlias..."
+[1] "[2025-12-23 21:36:12] Casting to matrix"
+[1] "[2025-12-23 21:36:12] Starting parallel Euclidean distance calculations with dim(x) = [100, 20] and dim(y) = [100, 20]..."
+[1] "[2025-12-23 21:36:12] Done with Euclidean distance calculations..."
+[1] "[2025-12-23 21:36:13] Wrapping up call to pDistMatch_euclidean()..."
+[1] "[2025-12-23 21:36:13] Calibrated accept match dist threshold: 5.354731"
+[1] "[2025-12-23 21:36:13] Calibrating via AveMatchNumberPerAlias..."
+[1] "[2025-12-23 21:36:13] Casting to matrix"
+[1] "[2025-12-23 21:36:13] Starting parallel Euclidean distance calculations with dim(x) = [100, 20] and dim(y) = [100, 20]..."
+[1] "[2025-12-23 21:36:13] Done with Euclidean distance calculations..."
+[1] "[2025-12-23 21:36:13] Wrapping up call to pDistMatch_euclidean()..."
+[1] "[2025-12-23 21:36:13] Calibrated accept match dist threshold: 3.000710"
+[1] "[2025-12-23 21:36:13] Calibrating via AveMatchNumberPerAlias..."
+[1] "[2025-12-23 21:36:13] Casting to matrix"
+[1] "[2025-12-23 21:36:13] Starting parallel Euclidean distance calculations with dim(x) = [5, 20] and dim(y) = [5, 20]..."
+[1] "[2025-12-23 21:36:13] Done with Euclidean distance calculations..."
+[1] "[2025-12-23 21:36:13] Wrapping up call to pDistMatch_euclidean()..."
+[1] "[2025-12-23 21:36:13] Calibrated accept match dist threshold: 5.838570"
+[1] "[2025-12-23 21:36:13] Calibrating via AveMatchNumberPerAlias..."
+[1] "[2025-12-23 21:36:13] Casting to matrix"
+[1] "[2025-12-23 21:36:13] Starting parallel Euclidean distance calculations with dim(x) = [100, 49] and dim(y) = [100, 49]..."
+[1] "[2025-12-23 21:36:13] Done with Euclidean distance calculations..."
+[1] "[2025-12-23 21:36:13] Wrapping up call to pDistMatch_euclidean()..."
+[1] "[2025-12-23 21:36:13] Calibrated accept match dist threshold: 8.282744"
+[1] "[2025-12-23 21:36:13] Casting to matrix"
+[1] "[2025-12-23 21:36:13] Starting parallel Euclidean distance calculations with dim(x) = [100, 49] and dim(y) = [100, 49]..."
+[1] "[2025-12-23 21:36:13] Done with Euclidean distance calculations..."
+[1] "[2025-12-23 21:36:13] Wrapping up call to pDistMatch_euclidean()..."
+[1] "[2025-12-23 21:36:13] Casting to matrix"
+[1] "[2025-12-23 21:36:13] Starting parallel Euclidean distance calculations with dim(x) = [5, 10] and dim(y) = [5, 10]..."
+[1] "[2025-12-23 21:36:13] Done with Euclidean distance calculations..."
+[1] "[2025-12-23 21:36:13] Wrapping up call to pDistMatch_euclidean()..."
+[1] "[2025-12-23 21:36:13] Calibrating via AveMatchNumberPerAlias..."
+[1] "[2025-12-23 21:36:13] Casting to matrix"
+[1] "[2025-12-23 21:36:13] Starting parallel Euclidean distance calculations with dim(x) = [20, 10] and dim(y) = [20, 10]..."
+[1] "[2025-12-23 21:36:13] Done with Euclidean distance calculations..."
+[1] "[2025-12-23 21:36:14] Wrapping up call to pDistMatch_euclidean()..."
+[1] "[2025-12-23 21:36:14] Calibrated accept match dist threshold: 3.277262"
+[1] "[2025-12-23 21:36:14] Casting to matrix"
+[1] "[2025-12-23 21:36:14] Starting parallel Euclidean distance calculations with dim(x) = [20, 10] and dim(y) = [20, 10]..."
+[1] "[2025-12-23 21:36:14] Done with Euclidean distance calculations..."
+[1] "[2025-12-23 21:36:14] Wrapping up call to pDistMatch_euclidean()..."
+[1] "[2025-12-23 21:36:15] Casting to matrix"
+[1] "[2025-12-23 21:36:15] Starting parallel Euclidean distance calculations with dim(x) = [1, 10] and dim(y) = [1, 10]..."
+[1] "[2025-12-23 21:36:15] Done with Euclidean distance calculations..."
+[1] "[2025-12-23 21:36:15] Wrapping up call to pDistMatch_euclidean()..."
+[1] "[2025-12-23 21:36:15] Casting to matrix"
+[1] "[2025-12-23 21:36:15] Starting parallel Euclidean distance calculations with dim(x) = [1, 10] and dim(y) = [1, 10]..."
+[1] "[2025-12-23 21:36:15] Done with Euclidean distance calculations..."
+[1] "[2025-12-23 21:36:15] Wrapping up call to pDistMatch_euclidean()..."
+[1] "[2025-12-23 21:36:15] Casting to matrix"
+[1] "[2025-12-23 21:36:15] Starting parallel Euclidean distance calculations with dim(x) = [5, 10] and dim(y) = [5, 10]..."
+[1] "[2025-12-23 21:36:15] Done with Euclidean distance calculations..."
+[1] "[2025-12-23 21:36:15] Casting to matrix"
+[1] "[2025-12-23 21:36:15] Starting parallel Euclidean distance calculations with dim(x) = [5, 10] and dim(y) = [5, 10]..."
+[1] "[2025-12-23 21:36:15] Done with Euclidean distance calculations..."
+[1] "[2025-12-23 21:36:15] Wrapping up call to pDistMatch_euclidean()..."
+[1] "[2025-12-23 21:36:15] Casting to matrix"
+[1] "[2025-12-23 21:36:15] Starting parallel Euclidean distance calculations with dim(x) = [100, 10] and dim(y) = [100, 10]..."
+[1] "[2025-12-23 21:36:15] Done with Euclidean distance calculations..."
+[1] "[2025-12-23 21:36:15] Wrapping up call to pDistMatch_euclidean()..."
+[1] "[2025-12-23 21:36:16] Pre-processing strings..."
+[1] "[2025-12-23 21:36:16] Searching for matches in the raw name space..."
+[1] "[2025-12-23 21:36:16] Calibrating via AveMatchNumberPerAlias..."
+[1] "[2025-12-23 21:36:16] Calibrated accept match dist threshold: 0.846154"
+[1] "[2025-12-23 21:36:16] Combining with fuzzy matches..."
+[1] "[2025-12-23 21:36:16] Dropping duplicates..."
+[1] "[2025-12-23 21:36:16] Checking for redundant name matches..."
+[1] "[2025-12-23 21:36:16] Returning matched dataset!"
+[1] "[2025-12-23 21:36:16] Pre-processing strings..."
+[1] "[2025-12-23 21:36:16] Searching for matches in the raw name space..."
+[1] "[2025-12-23 21:36:16] Calibrating via AveMatchNumberPerAlias..."
+[1] "[2025-12-23 21:36:16] Calibrated accept match dist threshold: 0.846154"
+[1] "[2025-12-23 21:36:17] Combining with fuzzy matches..."
+[1] "[2025-12-23 21:36:17] Dropping duplicates..."
+[1] "[2025-12-23 21:36:17] Checking for redundant name matches..."
+[1] "[2025-12-23 21:36:17] Returning matched dataset!"
+[1] "[2025-12-23 21:36:17] Pre-processing strings..."
+[1] "[2025-12-23 21:36:17] Searching for matches in the raw name space..."
+[1] "[2025-12-23 21:36:17] Calibrating via AveMatchNumberPerAlias..."
+[1] "[2025-12-23 21:36:17] Calibrated accept match dist threshold: 0.846154"
+[1] "[2025-12-23 21:36:17] Combining with fuzzy matches..."
+[1] "[2025-12-23 21:36:17] Dropping duplicates..."
+[1] "[2025-12-23 21:36:17] Checking for redundant name matches..."
+[1] "[2025-12-23 21:36:17] Returning matched dataset!"
+[1] "[2025-12-23 21:36:17] Pre-processing strings..."
+[1] "[2025-12-23 21:36:17] Searching for matches in the raw name space..."
+[1] "[2025-12-23 21:36:17] Calibrating via AveMatchNumberPerAlias..."
+[1] "[2025-12-23 21:36:17] Calibrated accept match dist threshold: 0.454545"
+[1] "[2025-12-23 21:36:17] Combining with fuzzy matches..."
+[1] "[2025-12-23 21:36:17] Dropping duplicates..."
+[1] "[2025-12-23 21:36:17] Checking for redundant name matches..."
+[1] "[2025-12-23 21:36:17] Returning matched dataset!"
+[1] "[2025-12-23 21:36:18] Test message"
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 78 ]
+> 
+> proc.time()
+   user  system elapsed 
+  5.892   0.138   6.644 

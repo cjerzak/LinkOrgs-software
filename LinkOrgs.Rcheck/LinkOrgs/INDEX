@@ -1,0 +1,18 @@
+AssessMatchPerformance
+                        AssessMatchPerformance
+BuildBackend            Build Backend for LinkOrgs Machine Learning
+                        Models
+GetCalibratedDistThres
+                        GetCalibratedDistThres
+LinkOrgs                LinkOrgs
+dropboxURL2downloadURL
+                        Convert Dropbox Share URL to Direct Download
+                        URL
+pDistMatch_discrete     Compute Discrete String Distances (Internal)
+pDistMatch_euclidean    Compute Euclidean Distances Between Embeddings
+                        (Internal)
+pFuzzyMatch_discrete    Fuzzy Match with Discrete String Distances
+pFuzzyMatch_euclidean   Fuzzy Match with Euclidean Distance on
+                        Embeddings
+print2                  print2
+url2dt                  Download CSV from URL to data.table

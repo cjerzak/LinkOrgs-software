@@ -50,6 +50,7 @@
 #'
 #' @seealso [pFuzzyMatch_euclidean()] for the higher-level wrapper that returns
 #'   merged data, [pDistMatch_discrete()] for string-distance-based matching.
+#' @importFrom stats median
 #' @import plyr
 #' @import doParallel
 #' @import data.table

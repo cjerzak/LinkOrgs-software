@@ -1,20 +1,27 @@
 Package: LinkOrgs
 Title: LinkOrgs: Algorithms for Organizational Record Linkage 
 Version: 0.01
-Authors@R: c(person(given = "Connor", family = "Jerzak", 
-		    role = c("aut", "cre"),
-                    email = "connor.jerzak@gmail.com", 
-	            comment = c(ORCID = "0000-0003-1914-8905")),
-             person(given = "Libgober", family = "Brian", role = "aut", 
-	           comment = c(ORCID = "0000-0001-9638-0228")))
-Description: An R package for organizational records using the algorithms of Jerzak & Libgober  (2023+). The linkage is done based on organizational names and using half a billion open collaborated records on those names from LinkedIn users. It also contains functions implementing string matching performance metrics, as well as a fast, parallized version of fuzzy string matching. 
-Depends: R (>= 3.3.3)
-License: Creative Commons Attribution-Noncommercial-No Derivative Works 4.0, for academic use only.
+Authors@R: c(person(given = "Connor", family = "Jerzak",
+                    role = c("aut", "cre"),
+                    email = "connor.jerzak@gmail.com",
+                    comment = c(ORCID = "0000-0003-1914-8905")),
+             person(given = "Brian", family = "Libgober", role = "aut",
+                    comment = c(ORCID = "0000-0001-9638-0228")))
+Author: Connor Jerzak [aut, cre] (<https://orcid.org/0000-0003-1914-8905>),
+    Brian Libgober [aut] (<https://orcid.org/0000-0001-9638-0228>)
+Maintainer: Connor Jerzak <connor.jerzak@gmail.com>
+Description: An R package for organizational records using the algorithms of
+    Jerzak & Libgober (2023+). The linkage is done based on organizational
+    names and using half a billion open collaborated records on those names
+    from LinkedIn users. It also contains functions implementing string
+    matching performance metrics, as well as a fast, parallized version of
+    fuzzy string matching.
+Depends: R (>= 3.5.0)
+License: CC BY-NC-ND 4.0
 Encoding: UTF-8
 LazyData: true
-Maintainer: 'Connor Jerzak' <connor.jerzak@gmail.com>
-Imports: data.table,plyr,Rfast,stringdist,parallel,glmnet,stringr,dplyr,fastmatch,reticulate,R.utils,foreach,doParallel
+Imports: data.table,plyr,Rfast,stringdist,parallel,stringr,dplyr,fastmatch,reticulate,foreach,doParallel,digest
+Suggests: testthat (>= 3.0.0), knitr, rmarkdown, text
+VignetteBuilder: knitr
+Config/testthat/edition: 3
 RoxygenNote: 7.3.3
-RemoteType: local
-RemotePkgRef: local::~/Documents/LinkOrgs-software/LinkOrgs
-RemoteUrl: /Users/cjerzak/Documents/LinkOrgs-software/LinkOrgs

@@ -60,7 +60,6 @@
 #' @param nCores Integer; number of CPU cores to use for parallel processing.
 #'   Default is `NULL` (auto-detect based on data size).
 #' @param deezyLoc Path to DeezyMatch installation (for `algorithm = "deezymatch"`).
-#' @param ... Additional arguments passed to internal functions.
 #'
 #' @return If `ExportEmbeddingsOnly = TRUE`, returns a list with `embedx` and/or `embedy`
 #'   data frames containing the input names and their embeddings. If
@@ -96,6 +95,9 @@
 #' print(linkedOrgs)
 #'
 #' @importFrom data.table ":="
+#' @importFrom stats runif
+#' @importFrom utils download.file unzip View
+#' @importFrom dplyr %>% distinct group_by mutate n_distinct filter ungroup
 #' @import Rfast
 #' @import fastmatch
 #' @import doParallel
@@ -163,6 +165,11 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
       nCores <- ifelse(nrow(x)*nrow(y) > 500,
                        yes = max(c(1L,parallel::detectCores() - 2L)),
                        no = 1L)
+    }
+    # Respect CRAN check limits (usually 2 cores max during R CMD check)
+    chk <- tolower(Sys.getenv("_R_CHECK_LIMIT_CORES_", ""))
+    if (nzchar(chk) && chk == "true") {
+      nCores <- min(nCores, 2L)
     }
     cl <- parallel::makeCluster(nCores)
     doParallel::registerDoParallel(cl)
@@ -382,29 +389,6 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
   
       # define matching metric
       pFuzzyMatchFxn_touse <- pFuzzyMatch_discrete; DistanceMeasure <- "jaccard"
-  
-      # descriptive stats -  to remove in future version 
-      if(T == F){
-        library(dplyr)
-  
-        # Step 1: Combine into a data frame
-        df <- as.data.frame(data.frame("x" = directory[,1], "y"=directory[,2]))
-        #x <- c("a", "b", "c", "d", "e"); y <- c(1, 1, 2, 2, 2)
-        #df <- as.data.frame(data.frame("x" = x, "y"=y))
-  
-        # Step 2: Process the data
-        result <- df %>%
-          distinct() %>% # Remove exact duplicates
-          group_by(y) %>%
-          mutate(unique_x = n_distinct(x)) %>% # Count unique x values per group
-          filter(unique_x > 1) %>% # Keep only groups with more than one unique x
-          ungroup() %>%
-          count('y') # Count occurrences
-  
-        # To count the number of pairs where x are not equal but have the same y
-        sum(result$freq) - nrow(result)
-        total_pairs <- nrow(result)
-      }
     }
     if(algorithm == "transfer" | DistanceMeasure == "transfer"){
       TransferModelLoc <- sprintf("%s/TransferLCoefs_tokenizer_parallelism_FALSE_model_bert-base-multilingual-uncased_layers_-1_device_cpu_logging_level_error_FullTRUE.csv", DownloadFolder)

@@ -24,6 +24,7 @@
 #'
 #' @seealso [dropboxURL2downloadURL()] for URL conversion, [data.table::fread()]
 #'   for the underlying CSV reader.
+#' @importFrom utils download.file unzip
 #' @export
 #' @md
 

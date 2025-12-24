@@ -123,26 +123,13 @@ pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, embed
       split_list_x <- sapply(1:nCores, function(as){ list(which(split_list_x == as))})
     }
 
-    Export <- c("split_list_x", "DistanceMeasure", "qgram", "nCores", "ReturnProgress",
-                "x_tri_index", "y_tri_index", "MaxDist",
-                "x", "by.x", "y", "by.y")
-    NoExport <- c(ls(), ls(parent.env(environment())), ls(globalenv()))
-    NoExport <- NoExport[!NoExport %in% Export]
-    loop_ <- foreach::foreach(outer_ix = 1:nCores,
-                     .export = Export,
-                     .noexport = NoExport
-                     ) %dopar% {
+    # Define the worker function
+    worker_fn <- function(outer_ix) {
       counter_ <- 0
-      my_matched_inner <- matrix(NA, nrow = 0,ncol=3)
+      my_matched_inner <- matrix(NA, nrow = 0, ncol = 3)
       for(ix in split_list_x[[outer_ix]]){
         counter_ <- counter_ + 1
-        # Commented out: hardcoded file path in progress tracking (Bug #7)
-        # if(ix %% 100==0 & ReturnProgress){write.csv(data.frame("Current Split" = outer_ix,
-        #                                            "Total Splits" = nCores,
-        #                                            "Current Iters in Split" = counter_,
-        #                                            "Total Iters in Split" = length(split_list_x[[outer_ix]])),
-        #                                            file = './PROGRESS_pDistMatch_discrete.csv')}
-        
+
         # get the trigrams of the name, x[ix,][[by.x]]
         # find the set of entries in directory_LinkIt_red that have x% in common trigram
         MinNumSharedTriGrams <- ceiling( length(
@@ -150,7 +137,7 @@ pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, embed
         LT_entries <- table( y_tri_index[trigram %fin% my_entry_trigrams, the.row] )
         if( length(LT_entries) > 0 ){
           LT_entries <- f2n(names(LT_entries[LT_entries >= MinNumSharedTriGrams]))
-          dist_vec_red <- stringdist(x[ix,][[by.x]], # match my entry 
+          dist_vec_red <- stringdist(x[ix,][[by.x]], # match my entry
                                      y[LT_entries,][[by.y]],
                                      method = DistanceMeasure, q = qgram)
           iy <- LT_entries[ belowThres_ <- which(dist_vec_red <= MaxDist) ]
@@ -162,7 +149,36 @@ pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, embed
         }
       }
       return( my_matched_inner )
-                     }
+    }
+
+    # Respect CRAN check limits (usually 2 cores max during R CMD check)
+    chk <- tolower(Sys.getenv("_R_CHECK_LIMIT_CORES_", ""))
+    if (nzchar(chk) && chk == "true") {
+      nCores <- min(nCores, 2L)
+    }
+
+    # Use sequential or parallel execution based on nCores
+    if(nCores == 1L){
+      # Sequential execution - no cluster needed
+      loop_ <- lapply(1:nCores, worker_fn)
+    } else {
+      # Parallel execution - register cluster
+      cl <- parallel::makeCluster(nCores)
+      doParallel::registerDoParallel(cl)
+      on.exit(try(parallel::stopCluster(cl), silent = TRUE), add = TRUE)
+
+      Export <- c("split_list_x", "DistanceMeasure", "qgram", "nCores", "ReturnProgress",
+                  "x_tri_index", "y_tri_index", "MaxDist",
+                  "x", "by.x", "y", "by.y", "worker_fn")
+      NoExport <- c(ls(), ls(parent.env(environment())), ls(globalenv()))
+      NoExport <- NoExport[!NoExport %in% Export]
+      loop_ <- foreach::foreach(outer_ix = 1:nCores,
+                       .export = Export,
+                       .noexport = NoExport
+                       ) %dopar% {
+        worker_fn(outer_ix)
+      }
+    }
     myMatched <- do.call(rbind, loop_)
     # Handle empty results
     if(is.null(myMatched) || nrow(myMatched) == 0){

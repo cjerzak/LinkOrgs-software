@@ -119,8 +119,6 @@ data frame along with intermediate results. Default is \code{FALSE}.}
 Default is \code{NULL} (auto-detect based on data size).}
 
 \item{deezyLoc}{Path to DeezyMatch installation (for \code{algorithm = "deezymatch"}).}
-
-\item{...}{Additional arguments passed to internal functions.}
 }
 \value{
 If \code{ExportEmbeddingsOnly = TRUE}, returns a list with \code{embedx} and/or \code{embedy}
