@@ -20,9 +20,19 @@ Type 'q()' to quit R.
 > pkgname <- "LinkOrgs"
 > source(file.path(R.home("share"), "R", "examples-header.R"))
 > options(warn = 1)
+> base::assign(".ExTimings", "LinkOrgs-Ex.timings", pos = 'CheckExEnv')
+> base::cat("name\tuser\tsystem\telapsed\n", file=base::get(".ExTimings", pos = 'CheckExEnv'))
+> base::assign(".format_ptime",
++ function(x) {
++   if(!is.na(x[4L])) x[1L] <- x[1L] + x[4L]
++   if(!is.na(x[5L])) x[2L] <- x[2L] + x[5L]
++   options(OutDec = '.')
++   format(x[1L:3L], digits = 7L)
++ },
++ pos = 'CheckExEnv')
+> 
+> ### * </HEADER>
 > library('LinkOrgs')
-Warning: replacing previous import ‘Rfast::transpose’ by ‘data.table::transpose’ when loading ‘LinkOrgs’
-Warning: replacing previous import ‘plyr::mutate’ by ‘dplyr::mutate’ when loading ‘LinkOrgs’
 > 
 > base::assign(".oldSearch", base::search(), pos = 'CheckExEnv')
 > base::assign(".old_wd", base::getwd(), pos = 'CheckExEnv')
@@ -32,6 +42,7 @@ Warning: replacing previous import ‘plyr::mutate’ by ‘dplyr::mutate’ whe
 > 
 > flush(stderr()); flush(stdout())
 > 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
 > ### Name: AssessMatchPerformance
 > ### Title: AssessMatchPerformance
 > ### Aliases: AssessMatchPerformance
@@ -62,12 +73,15 @@ MatchedDatasetSize
 > 
 > 
 > 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("AssessMatchPerformance", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
 > cleanEx()
 > nameEx("BuildBackend")
 > ### * BuildBackend
 > 
 > flush(stderr()); flush(stdout())
 > 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
 > ### Name: BuildBackend
 > ### Title: Build Backend for LinkOrgs Machine Learning Models
 > ### Aliases: BuildBackend
@@ -88,12 +102,15 @@ MatchedDatasetSize
 > 
 > 
 > 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("BuildBackend", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
 > cleanEx()
 > nameEx("LinkOrgs")
 > ### * LinkOrgs
 > 
 > flush(stderr()); flush(stdout())
 > 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
 > ### Name: LinkOrgs
 > ### Title: LinkOrgs
 > ### Aliases: LinkOrgs
@@ -113,14 +130,14 @@ MatchedDatasetSize
 +                        by.y = "orgnames_y",
 +                        algorithm = "fuzzy",
 +                        MaxDist = 0.6)
-[1] "[2025-12-23 21:36:11] Pre-processing strings..."
-[1] "[2025-12-23 21:36:11] Searching for matches in the raw name space..."
-[1] "[2025-12-23 21:36:11] Calibrating via AveMatchNumberPerAlias..."
-[1] "[2025-12-23 21:36:11] Calibrated accept match dist threshold: 0.920000"
-[1] "[2025-12-23 21:36:11] Combining with fuzzy matches..."
-[1] "[2025-12-23 21:36:11] Dropping duplicates..."
-[1] "[2025-12-23 21:36:11] Checking for redundant name matches..."
-[1] "[2025-12-23 21:36:11] Returning matched dataset!"
+[1] "[2025-12-23 22:30:42] Pre-processing strings..."
+[1] "[2025-12-23 22:30:42] Searching for matches in the raw name space..."
+[1] "[2025-12-23 22:30:42] Calibrating via AveMatchNumberPerAlias..."
+[1] "[2025-12-23 22:30:42] Calibrated accept match dist threshold: 0.920000"
+[1] "[2025-12-23 22:30:42] Combining with fuzzy matches..."
+[1] "[2025-12-23 22:30:42] Dropping duplicates..."
+[1] "[2025-12-23 22:30:42] Checking for redundant name matches..."
+[1] "[2025-12-23 22:30:42] Returning matched dataset!"
 > 
 > print(linkedOrgs)
              orgnames_x   orgnames_y stringdist   minDist
@@ -135,12 +152,15 @@ MatchedDatasetSize
 > 
 > 
 > 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("LinkOrgs", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
 > cleanEx()
 > nameEx("dropboxURL2downloadURL")
 > ### * dropboxURL2downloadURL
 > 
 > flush(stderr()); flush(stdout())
 > 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
 > ### Name: dropboxURL2downloadURL
 > ### Title: Convert Dropbox Share URL to Direct Download URL
 > ### Aliases: dropboxURL2downloadURL
@@ -156,12 +176,15 @@ MatchedDatasetSize
 > 
 > 
 > 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("dropboxURL2downloadURL", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
 > cleanEx()
 > nameEx("pDistMatch_discrete")
 > ### * pDistMatch_discrete
 > 
 > flush(stderr()); flush(stdout())
 > 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
 > ### Name: pDistMatch_discrete
 > ### Title: Compute Discrete String Distances (Internal)
 > ### Aliases: pDistMatch_discrete
@@ -184,12 +207,15 @@ MatchedDatasetSize
 > 
 > 
 > 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("pDistMatch_discrete", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
 > cleanEx()
 > nameEx("pDistMatch_euclidean")
 > ### * pDistMatch_euclidean
 > 
 > flush(stderr()); flush(stdout())
 > 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
 > ### Name: pDistMatch_euclidean
 > ### Title: Compute Euclidean Distances Between Embeddings (Internal)
 > ### Aliases: pDistMatch_euclidean
@@ -210,12 +236,15 @@ MatchedDatasetSize
 > 
 > 
 > 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("pDistMatch_euclidean", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
 > cleanEx()
 > nameEx("pFuzzyMatch_discrete")
 > ### * pFuzzyMatch_discrete
 > 
 > flush(stderr()); flush(stdout())
 > 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
 > ### Name: pFuzzyMatch_discrete
 > ### Title: Fuzzy Match with Discrete String Distances
 > ### Aliases: pFuzzyMatch_discrete
@@ -238,12 +267,15 @@ MatchedDatasetSize
 > 
 > 
 > 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("pFuzzyMatch_discrete", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
 > cleanEx()
 > nameEx("pFuzzyMatch_euclidean")
 > ### * pFuzzyMatch_euclidean
 > 
 > flush(stderr()); flush(stdout())
 > 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
 > ### Name: pFuzzyMatch_euclidean
 > ### Title: Fuzzy Match with Euclidean Distance on Embeddings
 > ### Aliases: pFuzzyMatch_euclidean
@@ -272,12 +304,15 @@ MatchedDatasetSize
 > 
 > 
 > 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("pFuzzyMatch_euclidean", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
 > cleanEx()
 > nameEx("print2")
 > ### * print2
 > 
 > flush(stderr()); flush(stdout())
 > 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
 > ### Name: print2
 > ### Title: print2
 > ### Aliases: print2
@@ -286,17 +321,20 @@ MatchedDatasetSize
 > 
 > 
 > print2("Hello world!")
-[1] "[2025-12-23 21:36:11] Hello world!"
+[1] "[2025-12-23 22:30:42] Hello world!"
 > 
 > 
 > 
 > 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("print2", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
 > cleanEx()
 > nameEx("url2dt")
 > ### * url2dt
 > 
 > flush(stderr()); flush(stdout())
 > 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
 > ### Name: url2dt
 > ### Title: Download CSV from URL to data.table
 > ### Aliases: url2dt
@@ -311,12 +349,14 @@ MatchedDatasetSize
 > 
 > 
 > 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("url2dt", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
 > ### * <FOOTER>
 > ###
 > cleanEx()
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  0.927 0.037 1.105 0.003 0.004 
+Time elapsed:  1.738 0.063 1.96 0.004 0.005 
 > grDevices::dev.off()
 null device 
           1 

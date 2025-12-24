@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+<meta name="date" content="2025-12-23" />
+
+<title>LinkOrgs Package Tutorial</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">LinkOrgs Package Tutorial</h1>
+<h4 class="date">2025-12-23</h4>
+
+
+
+<div id="linkorgs-tutorial" class="section level1">
+<h1>LinkOrgs Tutorial</h1>
+<p>Organizations can appear in different datasets under slightly
+different names, or with substantially different aliases. Manually
+linking records can be time-consuming, especially when the datasets
+become large. <strong>LinkOrgs</strong> is an R package designed to
+automate much of this process. It leverages both string-based methods
+(e.g., fuzzy string matching), and machine-learning or network-based
+approaches trained on half a billion open-collaborated records from
+LinkedIn.</p>
+<p>In this tutorial, we will show you how to:</p>
+<ul>
+<li><strong>Install and set up the necessary environment for advanced
+ML-based matching</strong> (using the <code>BuildBackend()</code>
+function).</li>
+<li><strong>Use various matching techniques</strong> (fuzzy string
+distance, transfer learning, network-based matching, etc.) with the main
+<code>LinkOrgs()</code> function.</li>
+<li><strong>Assess your match quality</strong> with
+<code>AssessMatchPerformance()</code>.</li>
+<li><strong>Download and load remote data</strong> using convenience
+functions like <code>url2dt()</code>.</li>
+</ul>
+<p>Throughout, we will provide practical examples you can run
+immediately. For a broader explanation and academic references behind
+these methods, please see the GitHub repository and associated
+paper.</p>
+</div>
+<div id="installation" class="section level1">
+<h1>Installation</h1>
+<p>You can install LinkOrgs directly from the GitHub repository as
+follows:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># install.packages(&quot;remotes&quot;) # if you haven&#39;t installed &#39;remotes&#39; previously</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="co"># remotes::install_github(&quot;cjerzak/LinkOrgs-software/LinkOrgs&quot;)</span></span></code></pre></div>
+<p>This will install the package along with its R-based
+dependencies.</p>
+<p>However, if you plan on using the machine learning (ML) linkage
+methods (<code>algorithm = &quot;ml&quot;</code> in <code>LinkOrgs()</code>), you
+also need Python packages such as JAX, Optax, equinox, and jmp. We
+bundle everything in a conda environment for convenience, so you should
+run <code>BuildBackend()</code> (described below) first.</p>
+</div>
+<div id="building-the-conda-backend-optional-for-ml-based-matching" class="section level1">
+<h1>Building the Conda Backend (Optional, for ML-Based Matching)</h1>
+<p>If you plan to rely only on fuzzy or network-based matching (as
+opposed to embedding-based ML matching), you can skip this step. But if
+you want to get the best performance from the advanced ML-based model,
+follow these steps to create a conda environment that has all the
+required Python dependencies:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">library</span>(LinkOrgs)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co"># This function calls reticulate::conda_create() under the hood to create a new conda env</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="co">#LinkOrgs::BuildBackend(conda_env = &quot;LinkOrgsEnv&quot;,  # or choose custom name</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>             <span class="co">#conda = &quot;auto&quot;, tryMetal = TRUE)</span></span></code></pre></div>
+<ul>
+<li><code>conda_env = &quot;LinkOrgsEnv&quot;</code> sets the name of your
+environment.</li>
+<li><code>conda = &quot;auto&quot;</code> tries to automatically find a conda
+binary.</li>
+<li><code>tryMetal = TRUE</code> attempts to install Metal acceleration
+on Apple Silicon machines.</li>
+</ul>
+<p><strong>Tip:</strong> If you see any errors about “Conda environment
+not found,” check that you have conda properly installed and that
+reticulate can locate it.</p>
+<div id="core-matching-via-linkorgs" class="section level2">
+<h2>Core Matching via LinkOrgs()</h2>
+<p>The main workhorse function for linking two datasets by organization
+names is <code>LinkOrgs()</code>. It provides multiple methods under the
+hood:</p>
+<ul>
+<li><strong>Fuzzy String Distance:</strong> For example, Jaccard or
+other stringdist measures.</li>
+<li><strong>ML:</strong> A neural model that transforms each
+organization name into an embedding, then uses Euclidean distances to
+find matches.</li>
+<li><strong>Network-based:</strong> Markov or Bipartite-based matching
+using a directory of tens of millions of aliases from LinkedIn.</li>
+<li><strong>Ensemble:</strong> A combination of ML and network-based
+approaches for best performance, albeit with heavier computation.</li>
+</ul>
+<div id="minimal-example-fuzzy-matching" class="section level3">
+<h3>Minimal Example (Fuzzy Matching)</h3>
+<p>If you just want to do a quick fuzzy match on two small data frames,
+run:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Let&#39;s create two synthetic datasets:</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>x_orgnames <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;apple&quot;</span>,<span class="st">&quot;oracle&quot;</span>,<span class="st">&quot;enron inc.&quot;</span>,<span class="st">&quot;mcdonalds corporation&quot;</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>y_orgnames <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;apple corp&quot;</span>,<span class="st">&quot;oracle inc&quot;</span>,<span class="st">&quot;enron&quot;</span>,<span class="st">&quot;mcdonalds co&quot;</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="st">&quot;orgnames_x&quot;</span> <span class="ot">=</span> x_orgnames)</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="st">&quot;orgnames_y&quot;</span> <span class="ot">=</span> y_orgnames)</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co"># A straightforward fuzzy match with default settings:</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>linkedOrgs_fuzzy <span class="ot">&lt;-</span> <span class="fu">LinkOrgs</span>(<span class="at">x =</span> x,</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>                             <span class="at">y =</span> y,</span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>                             <span class="at">by.x =</span> <span class="st">&quot;orgnames_x&quot;</span>,</span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>                             <span class="at">by.y =</span> <span class="st">&quot;orgnames_y&quot;</span>,</span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>                             <span class="co"># MaxDist is a maximum allowed fuzzy distance</span></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>                             <span class="at">MaxDist =</span> <span class="fl">0.5</span>,</span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>                             <span class="at">DistanceMeasure =</span> <span class="st">&quot;jaccard&quot;</span>,</span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>                             <span class="at">algorithm =</span> <span class="st">&quot;fuzzy&quot;</span>)</span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-12-23 22:29:58] Pre-processing strings...&quot;</span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-12-23 22:29:58] Searching for matches in the raw name space...&quot;</span></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-12-23 22:29:58] Calibrating via AveMatchNumberPerAlias...&quot;</span></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-12-23 22:29:58] Calibrated accept match dist threshold: 0.920000&quot;</span></span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-12-23 22:29:58] Combining with fuzzy matches...&quot;</span></span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-12-23 22:29:58] Dropping duplicates...&quot;</span></span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-12-23 22:29:58] Checking for redundant name matches...&quot;</span></span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="co">#&gt; [1] &quot;[2025-12-23 22:29:58] Returning matched dataset!&quot;</span></span>
+<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a></span>
+<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a>linkedOrgs_fuzzy</span>
+<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a><span class="co">#&gt;              orgnames_x   orgnames_y stringdist   minDist</span></span>
+<span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a><span class="co">#&gt; 1                 apple   apple corp  0.5555556 0.5555556</span></span>
+<span id="cb3-29"><a href="#cb3-29" tabindex="-1"></a><span class="co">#&gt; 2                oracle   oracle inc  0.4444444 0.4444444</span></span>
+<span id="cb3-30"><a href="#cb3-30" tabindex="-1"></a><span class="co">#&gt; 3            enron inc.   oracle inc  0.7857143 0.7857143</span></span>
+<span id="cb3-31"><a href="#cb3-31" tabindex="-1"></a><span class="co">#&gt; 4            enron inc.        enron  0.5000000 0.5000000</span></span>
+<span id="cb3-32"><a href="#cb3-32" tabindex="-1"></a><span class="co">#&gt; 5 mcdonalds corporation   apple corp  0.8260870 0.8260870</span></span>
+<span id="cb3-33"><a href="#cb3-33" tabindex="-1"></a><span class="co">#&gt; 6 mcdonalds corporation   oracle inc  0.9200000 0.9200000</span></span>
+<span id="cb3-34"><a href="#cb3-34" tabindex="-1"></a><span class="co">#&gt; 7 mcdonalds corporation mcdonalds co  0.3888889 0.3888889</span></span></code></pre></div>
+<p>Here:</p>
+<ul>
+<li><code>DistanceMeasure = &quot;jaccard&quot;</code> controls the string
+distance measure used.</li>
+<li><code>MaxDist = 0.5</code> sets the maximum “distance” for which a
+match is still acceptable. Adjust as needed.</li>
+<li><code>algorithm = &quot;fuzzy&quot;</code> ensures we use purely string-based
+matching.</li>
+</ul>
+</div>
+<div id="ml-embedding-approach" class="section level3">
+<h3>ML Embedding Approach</h3>
+<p>The real power of LinkOrgs is the advanced ML-based approach that
+uses a learned embedding space. If you ran <code>BuildBackend()</code>
+and have a suitable conda environment, you can do:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>linkedOrgs_ml <span class="ot">&lt;-</span> <span class="fu">LinkOrgs</span>(<span class="at">x =</span> x,</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>                          <span class="at">y =</span> y,</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>                          <span class="at">by.x =</span> <span class="st">&quot;orgnames_x&quot;</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>                          <span class="at">by.y =</span> <span class="st">&quot;orgnames_y&quot;</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>                          <span class="at">MaxDist =</span> <span class="fl">2.0</span>,  <span class="co"># Euclidean distance in embedding space</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>                          <span class="at">algorithm =</span> <span class="st">&quot;ml&quot;</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>                          <span class="at">conda_env =</span> <span class="st">&quot;LinkOrgsEnv&quot;</span>,</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>                          <span class="at">conda_env_required =</span> T)</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>linkedOrgs_ml</span></code></pre></div>
+<ul>
+<li><code>algorithm = &quot;ml&quot;</code> instructs <code>LinkOrgs()</code> to
+use ML-based distance computations.</li>
+<li><code>MaxDist = 2.0</code> is an approximate threshold in the
+learned embedding space. You can experiment with different values or
+rely on the built-in calibration <code>AveMatchNumberPerAlias</code> to
+set a more automatic threshold.</li>
+</ul>
+</div>
+<div id="network-ml-ensemble" class="section level3">
+<h3>Network + ML (Ensemble)</h3>
+<p>The “ensemble” approach merges the strengths of ML embeddings and the
+LinkedIn network. You can access it by setting:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>linkedOrgs_ensemble <span class="ot">&lt;-</span> <span class="fu">LinkOrgs</span>(<span class="at">x =</span> x,</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>                                <span class="at">y =</span> y,</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>                                <span class="at">by.x =</span> <span class="st">&quot;orgnames_x&quot;</span>,</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>                                <span class="at">by.y =</span> <span class="st">&quot;orgnames_y&quot;</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>                                <span class="at">MaxDist_network =</span> <span class="fl">2.0</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>                                <span class="at">algorithm =</span> <span class="st">&quot;bipartite&quot;</span>,  <span class="co"># or &quot;markov&quot;</span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>                                <span class="at">DistanceMeasure =</span> <span class="st">&quot;ml&quot;</span>,</span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>                                <span class="at">conda_env =</span> <span class="st">&quot;LinkOrgsEnv&quot;</span>,</span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>                                <span class="at">conda_env_required =</span> T)</span></code></pre></div>
+<p>This can be more computationally heavy because:</p>
+<ul>
+<li>Each observation in <code>x</code> and <code>y</code> is first
+matched to the LinkedIn directory.</li>
+<li>We find the best canonical “community” or “alias ID.”</li>
+<li>We also rely on the ML embeddings to refine link quality.</li>
+</ul>
+<p>In small tasks, the difference might be minor, but in larger tasks
+with trickier alias issues, the ensemble often yields higher recall at
+the same precision.</p>
+</div>
+</div>
+<div id="checking-match-performance-via-assessmatchperformance" class="section level2">
+<h2>Checking Match Performance via AssessMatchPerformance()</h2>
+<p>If you have a ground truth set of matches (often from manual or
+expert-coded data), you can easily assess how well your new algorithmic
+matches did with:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># Synthetic example: </span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>x_orgnames <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;apple&quot;</span>,<span class="st">&quot;oracle&quot;</span>,<span class="st">&quot;enron inc.&quot;</span>,<span class="st">&quot;mcdonalds corporation&quot;</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>y_orgnames <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;apple corp&quot;</span>,<span class="st">&quot;oracle inc&quot;</span>,<span class="st">&quot;enron&quot;</span>,<span class="st">&quot;mcdonalds co&quot;</span>)</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="st">&quot;orgnames_x&quot;</span><span class="ot">=</span>x_orgnames)</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="st">&quot;orgnames_y&quot;</span><span class="ot">=</span>y_orgnames)</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co"># Suppose z is your matched dataset from LinkOrgs (or anything else)</span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>z <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="st">&quot;orgnames_x&quot;</span><span class="ot">=</span>x_orgnames[<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>], </span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>                <span class="st">&quot;orgnames_y&quot;</span><span class="ot">=</span>y_orgnames[<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>])</span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a></span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co"># Suppose z_true is your best ground truth:</span></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a>z_true <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="st">&quot;orgnames_x&quot;</span><span class="ot">=</span>x_orgnames, </span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a>                     <span class="st">&quot;orgnames_y&quot;</span><span class="ot">=</span>y_orgnames)</span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a></span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="co"># Evaluate:</span></span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a>PerformanceMatrix <span class="ot">&lt;-</span> <span class="fu">AssessMatchPerformance</span>(<span class="at">x =</span> x,</span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a>                                           <span class="at">y =</span> y,</span>
+<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a>                                           <span class="at">z =</span> z,</span>
+<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a>                                           <span class="at">z_true =</span> z_true,</span>
+<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a>                                           <span class="at">by.x =</span> <span class="st">&quot;orgnames_x&quot;</span>,</span>
+<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a>                                           <span class="at">by.y =</span> <span class="st">&quot;orgnames_y&quot;</span>)</span>
+<span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a></span>
+<span id="cb6-24"><a href="#cb6-24" tabindex="-1"></a>PerformanceMatrix</span>
+<span id="cb6-25"><a href="#cb6-25" tabindex="-1"></a><span class="co">#&gt;      TruePositives     FalsePositives     FalseNegatives      TrueNegatives </span></span>
+<span id="cb6-26"><a href="#cb6-26" tabindex="-1"></a><span class="co">#&gt;                  2                  0                  2                 12 </span></span>
+<span id="cb6-27"><a href="#cb6-27" tabindex="-1"></a><span class="co">#&gt; MatchedDatasetSize </span></span>
+<span id="cb6-28"><a href="#cb6-28" tabindex="-1"></a><span class="co">#&gt;                  2</span></span></code></pre></div>
+<p>The output is a named vector with:</p>
+<ul>
+<li><code>TruePositives</code></li>
+<li><code>FalsePositives</code></li>
+<li><code>FalseNegatives</code></li>
+<li><code>TrueNegatives</code></li>
+<li><code>MatchedDatasetSize</code></li>
+</ul>
+<p>These statistics are especially helpful when systematically adjusting
+match thresholds (e.g., <code>MaxDist</code>) to see how the false
+positive / false negative tradeoffs vary.</p>
+</div>
+<div id="downloading-and-loading-remote-data-url2dt-and-dropboxurl2downloadurl" class="section level2">
+<h2>Downloading and Loading Remote Data: url2dt() and
+dropboxURL2downloadURL()</h2>
+<p>If you store large CSVs or ZIP files of data (possibly for
+replication) on Dropbox, the LinkOrgs package provides convenience
+functions for automatic downloading and importing into R:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># Download a zipped CSV from a Dropbox link and read it as a data.table</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>my_dt <span class="ot">&lt;-</span> <span class="fu">url2dt</span>(<span class="at">url =</span> <span class="st">&quot;https://www.dropbox.com/s/iqf9ids77dckopf/Directory_LinkIt_bipartite_Embeddings.csv.zip?dl=0&quot;</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co"># Internally, url2dt uses dropboxURL2downloadURL() to fix the link so that</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co"># it becomes a direct download (dl.dropboxusercontent.com).</span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="co"># The function creates a temporary folder, downloads the file, unzips it, and returns a data.table.</span></span></code></pre></div>
+</div>
+<div id="utility-functions" class="section level2">
+<h2>Utility Functions</h2>
+<p>A few additional utility functions included in LinkOrgs:</p>
+<ul>
+<li><code>print2()</code>: A simple wrapper to print messages with
+timestamps. Handy for monitoring batch matching progress.</li>
+<li><code>f2n()</code>: Convert factors to numeric (commonly used
+internally).</li>
+<li><code>NA2ColMean()</code>: Impute missing numeric columns with
+column means.</li>
+</ul>
+</div>
+<div id="tips-for-large-scale-matching" class="section level2">
+<h2>Tips for Large-Scale Matching</h2>
+<ul>
+<li><strong>Parallelization:</strong> Some matching routines within
+<code>LinkOrgs()</code> (e.g., discrete fuzzy matching) automatically
+attempt to parallelize using <code>doParallel</code> if your dataset is
+large. You can override the number of cores with
+<code>nCores = &lt;number&gt;</code> in <code>LinkOrgs()</code> or
+inside the distance functions.</li>
+<li><strong>Threshold Tuning:</strong> If you do not specify
+<code>MaxDist</code> but do provide <code>AveMatchNumberPerAlias</code>,
+the package attempts to calibrate an appropriate threshold on a random
+sample of names from your data. This often speeds up the development
+workflow.</li>
+<li><strong>Network-based Approach:</strong> Linking to the massive
+LinkedIn directory can take time. If you have thousands of
+organizations, be prepared for a multi-hour process. Consider saving
+partial results or focusing on subsets of your data first.</li>
+</ul>
+</div>
+<div id="example-bringing-everything-together" class="section level2">
+<h2>Example: Bringing Everything Together</h2>
+<p>Below is a more fully featured example that shows a typical workflow
+using LinkOrgs. It uses fuzzy matching, then tries an ML-based approach,
+compares performances, and picks a threshold that balances false
+positives and false negatives:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">library</span>(LinkOrgs)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="do">### 1. Suppose we have two large data frames:</span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="do">###    lobbying_data (org name in col &quot;lobby_org&quot;) </span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="do">###    finance_data  (org name in col &quot;ticker_org&quot;)</span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co"># For illustration, use smaller synthetic ones</span></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>lobbying_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="st">&quot;lobby_org&quot;</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">&quot;International Business Machs&quot;</span>, </span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>                                            <span class="st">&quot;microsft&quot;</span>, </span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>                                            <span class="st">&quot;Oracle inc.&quot;</span>))</span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a>finance_data  <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="st">&quot;ticker_org&quot;</span>  <span class="ot">=</span> <span class="fu">c</span>(<span class="st">&quot;Microsoft Corporation&quot;</span>, </span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a>                                              <span class="st">&quot;International Business Machines&quot;</span>, </span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a>                                              <span class="st">&quot;Micron Tech&quot;</span>, </span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a>                                              <span class="st">&quot;Oracle corp&quot;</span>))</span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a></span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a><span class="do">### 2. Fuzzy matching approach:</span></span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a>fuzzy_matches <span class="ot">&lt;-</span> <span class="fu">LinkOrgs</span>(</span>
+<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a>  <span class="at">x =</span> lobbying_data,</span>
+<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a>  <span class="at">y =</span> finance_data,</span>
+<span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a>  <span class="at">by.x =</span> <span class="st">&quot;lobby_org&quot;</span>,</span>
+<span id="cb8-21"><a href="#cb8-21" tabindex="-1"></a>  <span class="at">by.y =</span> <span class="st">&quot;ticker_org&quot;</span>,</span>
+<span id="cb8-22"><a href="#cb8-22" tabindex="-1"></a>  <span class="at">algorithm =</span> <span class="st">&quot;fuzzy&quot;</span>,</span>
+<span id="cb8-23"><a href="#cb8-23" tabindex="-1"></a>  <span class="at">DistanceMeasure =</span> <span class="st">&quot;jaccard&quot;</span>,</span>
+<span id="cb8-24"><a href="#cb8-24" tabindex="-1"></a>  <span class="at">MaxDist =</span> <span class="fl">0.7</span></span>
+<span id="cb8-25"><a href="#cb8-25" tabindex="-1"></a>)</span>
+<span id="cb8-26"><a href="#cb8-26" tabindex="-1"></a></span>
+<span id="cb8-27"><a href="#cb8-27" tabindex="-1"></a><span class="do">### 3. ML approach (requires conda environment):</span></span>
+<span id="cb8-28"><a href="#cb8-28" tabindex="-1"></a><span class="co"># BuildBackend(conda_env = &quot;LinkOrgsEnv&quot;) # if not done yet</span></span>
+<span id="cb8-29"><a href="#cb8-29" tabindex="-1"></a>ml_matches <span class="ot">&lt;-</span> <span class="fu">LinkOrgs</span>(</span>
+<span id="cb8-30"><a href="#cb8-30" tabindex="-1"></a>  <span class="at">x =</span> lobbying_data,</span>
+<span id="cb8-31"><a href="#cb8-31" tabindex="-1"></a>  <span class="at">y =</span> finance_data,</span>
+<span id="cb8-32"><a href="#cb8-32" tabindex="-1"></a>  <span class="at">by.x =</span> <span class="st">&quot;lobby_org&quot;</span>,</span>
+<span id="cb8-33"><a href="#cb8-33" tabindex="-1"></a>  <span class="at">by.y =</span> <span class="st">&quot;ticker_org&quot;</span>,</span>
+<span id="cb8-34"><a href="#cb8-34" tabindex="-1"></a>  <span class="at">algorithm =</span> <span class="st">&quot;ml&quot;</span>,</span>
+<span id="cb8-35"><a href="#cb8-35" tabindex="-1"></a>  <span class="co"># We want an automatic threshold based on about 3 matches per name on average:</span></span>
+<span id="cb8-36"><a href="#cb8-36" tabindex="-1"></a>  <span class="at">AveMatchNumberPerAlias =</span> <span class="dv">3</span>,</span>
+<span id="cb8-37"><a href="#cb8-37" tabindex="-1"></a>  <span class="at">conda_env =</span> <span class="st">&quot;LinkOrgsEnv&quot;</span>, </span>
+<span id="cb8-38"><a href="#cb8-38" tabindex="-1"></a>  <span class="at">conda_env_required =</span> T</span>
+<span id="cb8-39"><a href="#cb8-39" tabindex="-1"></a>)</span>
+<span id="cb8-40"><a href="#cb8-40" tabindex="-1"></a></span>
+<span id="cb8-41"><a href="#cb8-41" tabindex="-1"></a><span class="do">### 4. Evaluate with a small ground truth set (hypothetical):</span></span>
+<span id="cb8-42"><a href="#cb8-42" tabindex="-1"></a>z_true <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb8-43"><a href="#cb8-43" tabindex="-1"></a>  <span class="st">&quot;lobby_org&quot;</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">&quot;International Business Machs&quot;</span>, <span class="st">&quot;microsft&quot;</span>, <span class="st">&quot;Oracle inc.&quot;</span>),</span>
+<span id="cb8-44"><a href="#cb8-44" tabindex="-1"></a>  <span class="st">&quot;ticker_org&quot;</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">&quot;International Business Machines&quot;</span>, <span class="st">&quot;Microsoft Corporation&quot;</span>, </span>
+<span id="cb8-45"><a href="#cb8-45" tabindex="-1"></a>                   <span class="st">&quot;Oracle corp&quot;</span>)</span>
+<span id="cb8-46"><a href="#cb8-46" tabindex="-1"></a>)</span>
+<span id="cb8-47"><a href="#cb8-47" tabindex="-1"></a></span>
+<span id="cb8-48"><a href="#cb8-48" tabindex="-1"></a>Perf_fuzzy <span class="ot">&lt;-</span> <span class="fu">AssessMatchPerformance</span>(</span>
+<span id="cb8-49"><a href="#cb8-49" tabindex="-1"></a>  <span class="at">x =</span> lobbying_data,</span>
+<span id="cb8-50"><a href="#cb8-50" tabindex="-1"></a>  <span class="at">y =</span> finance_data,</span>
+<span id="cb8-51"><a href="#cb8-51" tabindex="-1"></a>  <span class="at">z =</span> fuzzy_matches,</span>
+<span id="cb8-52"><a href="#cb8-52" tabindex="-1"></a>  <span class="at">z_true =</span> z_true,</span>
+<span id="cb8-53"><a href="#cb8-53" tabindex="-1"></a>  <span class="at">by.x =</span> <span class="st">&quot;lobby_org&quot;</span>,</span>
+<span id="cb8-54"><a href="#cb8-54" tabindex="-1"></a>  <span class="at">by.y =</span> <span class="st">&quot;ticker_org&quot;</span></span>
+<span id="cb8-55"><a href="#cb8-55" tabindex="-1"></a>)</span>
+<span id="cb8-56"><a href="#cb8-56" tabindex="-1"></a></span>
+<span id="cb8-57"><a href="#cb8-57" tabindex="-1"></a>Perf_ml <span class="ot">&lt;-</span> <span class="fu">AssessMatchPerformance</span>(</span>
+<span id="cb8-58"><a href="#cb8-58" tabindex="-1"></a>  <span class="at">x =</span> lobbying_data,</span>
+<span id="cb8-59"><a href="#cb8-59" tabindex="-1"></a>  <span class="at">y =</span> finance_data,</span>
+<span id="cb8-60"><a href="#cb8-60" tabindex="-1"></a>  <span class="at">z =</span> ml_matches,</span>
+<span id="cb8-61"><a href="#cb8-61" tabindex="-1"></a>  <span class="at">z_true =</span> z_true,</span>
+<span id="cb8-62"><a href="#cb8-62" tabindex="-1"></a>  <span class="at">by.x =</span> <span class="st">&quot;lobby_org&quot;</span>,</span>
+<span id="cb8-63"><a href="#cb8-63" tabindex="-1"></a>  <span class="at">by.y =</span> <span class="st">&quot;ticker_org&quot;</span></span>
+<span id="cb8-64"><a href="#cb8-64" tabindex="-1"></a>)</span>
+<span id="cb8-65"><a href="#cb8-65" tabindex="-1"></a></span>
+<span id="cb8-66"><a href="#cb8-66" tabindex="-1"></a>Perf_fuzzy</span>
+<span id="cb8-67"><a href="#cb8-67" tabindex="-1"></a>Perf_ml</span>
+<span id="cb8-68"><a href="#cb8-68" tabindex="-1"></a></span>
+<span id="cb8-69"><a href="#cb8-69" tabindex="-1"></a><span class="co"># Typically, the ML approach will better match &quot;microsft&quot; to &quot;Microsoft Corporation&quot;</span></span>
+<span id="cb8-70"><a href="#cb8-70" tabindex="-1"></a><span class="co"># and &quot;International Business Machs&quot; to &quot;International Business Machines&quot;.</span></span></code></pre></div>
+</div>
+</div>
+<div id="conclusion" class="section level1">
+<h1>Conclusion</h1>
+<p>You’ve seen how to install the LinkOrgs package, build a conda
+environment for advanced ML matching, run the main function with various
+algorithms, and evaluate your matches.</p>
+<p><strong>Key points to remember:</strong></p>
+<ul>
+<li>For purely string-based matching, setting
+<code>algorithm = &quot;fuzzy&quot;</code> is simplest.</li>
+<li>For advanced, learned embeddings (more robust but requires more
+setup), use <code>algorithm = &quot;ml&quot;</code>.</li>
+<li>For network-based matching, set <code>algorithm = &quot;bipartite&quot;</code>
+or <code>algorithm = &quot;markov&quot;</code>. These methods leverage
+half-a-billion open-collaborated records from LinkedIn to refine your
+matches, especially if you are matching large corpora.</li>
+<li>If you want both network-based and ML approaches at once, set
+<code>algorithm = &quot;bipartite&quot;</code> or <code>markov</code> and
+<code>DistanceMeasure = &quot;ml&quot;</code>.</li>
+<li>Use <code>AssessMatchPerformance()</code> to systematically analyze
+your match quality if you have a hand-coded or otherwise “ground truth”
+dataset.</li>
+</ul>
+<p>For more information, check out the package <a href="https://github.com/cjerzak/LinkOrgs-software/blob/master/LinkOrgs.pdf?raw=true">documentation</a>.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

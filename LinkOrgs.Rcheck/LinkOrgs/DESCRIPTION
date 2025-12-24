@@ -16,14 +16,15 @@ Description: An R package for organizational records using the algorithms of
     from LinkedIn users. It also contains functions implementing string
     matching performance metrics, as well as a fast, parallized version of
     fuzzy string matching.
-Depends: R (>= 3.3.3)
+Depends: R (>= 3.5.0)
 License: CC BY-NC-ND 4.0
 Encoding: UTF-8
-LazyData: true
 Imports:
-        data.table,plyr,Rfast,stringdist,parallel,stringr,dplyr,fastmatch,reticulate,foreach,doParallel,digest
+        data.table,plyr,stringdist,parallel,stringr,dplyr,fastmatch,reticulate,foreach,doParallel,digest
 Suggests: testthat (>= 3.0.0), knitr, rmarkdown, text
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 RoxygenNote: 7.3.3
-Built: R 4.5.2; ; 2025-12-24 02:35:43 UTC; unix
+NeedsCompilation: no
+Packaged: 2025-12-24 03:29:59 UTC; cjerzak
+Built: R 4.5.2; ; 2025-12-24 03:30:16 UTC; unix
