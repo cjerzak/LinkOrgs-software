@@ -31,7 +31,7 @@ LinkOrgs is an R package for organizational record linkage that leverages half-a
 
 - **Fuzzy matching** (`algorithm="fuzzy"`): Fast parallelized string distance matching using Jaccard, Jaro-Winkler, or other string distances
 - **Network-based** (`algorithm="bipartite"` or `"markov"`): Uses LinkedIn's organizational network structure for improved accuracy
-- **Machine learning** (`algorithm="ml"`): Transformer-based embeddings (requires TensorFlow backend setup via `BuildBackend()`)
+- **Machine learning** (`algorithm="ml"`): Transformer-based embeddings (requires JAX backend setup via `BuildBackend()`)
 - **Combined** (`algorithm="markov"` + `DistanceMeasure="ml"`): Network + ML hybrid approach
 
 ## Installation
@@ -42,7 +42,7 @@ The most recent version of `LinkOrgs` can be installed directly from the reposit
 devtools::install_github("cjerzak/LinkOrgs-software/LinkOrgs")
 ```
 
-The machine-learning based algorithm accessible via the `algorithm="ml"` option relies on `tensorflow` and `Rtensorflow`. For details about downloading, see `https://tensorflow.rstudio.com/installation/`. The network-based linkage approaches (`algorithm="bipartite"` and `algorithm = "markov"`) do not require these packages. To setup the machine learning backend, you can call 
+The machine-learning based algorithm accessible via the `algorithm="ml"` option relies on `jax`. The network-based linkage approaches (`algorithm="bipartite"` and `algorithm = "markov"`) do not require these packages. To setup the machine learning backend, you can call 
 
 ```
 # install ML backend  
