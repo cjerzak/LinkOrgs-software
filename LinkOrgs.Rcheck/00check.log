@@ -10,7 +10,7 @@
 * checking for file ‘LinkOrgs/DESCRIPTION’ ... OK
 * this is package ‘LinkOrgs’ version ‘0.01’
 * package encoding: UTF-8
-* checking CRAN incoming feasibility ... [2s/11s] NOTE
+* checking CRAN incoming feasibility ... NOTE
 Maintainer: ‘Connor Jerzak <connor.jerzak@gmail.com>’
 
 New submission
@@ -21,7 +21,7 @@ Non-FOSS package license (CC BY-NC-ND 4.0)
 
 The Title field starts with the package name.
 
-Size of tarball: 43016618 bytes
+Size of tarball: 43016636 bytes
 * checking package namespace information ... OK
 * checking package dependencies ... OK
 * checking if this is a source package ... OK

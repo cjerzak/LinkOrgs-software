@@ -130,14 +130,14 @@ MatchedDatasetSize
 +                        by.y = "orgnames_y",
 +                        algorithm = "fuzzy",
 +                        MaxDist = 0.6)
-[1] "[2025-12-23 22:30:42] Pre-processing strings..."
-[1] "[2025-12-23 22:30:42] Searching for matches in the raw name space..."
-[1] "[2025-12-23 22:30:42] Calibrating via AveMatchNumberPerAlias..."
-[1] "[2025-12-23 22:30:42] Calibrated accept match dist threshold: 0.920000"
-[1] "[2025-12-23 22:30:42] Combining with fuzzy matches..."
-[1] "[2025-12-23 22:30:42] Dropping duplicates..."
-[1] "[2025-12-23 22:30:42] Checking for redundant name matches..."
-[1] "[2025-12-23 22:30:42] Returning matched dataset!"
+[1] "[2025-12-24 10:34:58] Pre-processing strings..."
+[1] "[2025-12-24 10:34:58] Searching for matches in the raw name space..."
+[1] "[2025-12-24 10:34:58] Calibrating via AveMatchNumberPerAlias..."
+[1] "[2025-12-24 10:34:58] Calibrated accept match dist threshold: 0.920000"
+[1] "[2025-12-24 10:34:58] Combining with fuzzy matches..."
+[1] "[2025-12-24 10:34:58] Dropping duplicates..."
+[1] "[2025-12-24 10:34:58] Checking for redundant name matches..."
+[1] "[2025-12-24 10:34:58] Returning matched dataset!"
 > 
 > print(linkedOrgs)
              orgnames_x   orgnames_y stringdist   minDist
@@ -321,7 +321,7 @@ MatchedDatasetSize
 > 
 > 
 > print2("Hello world!")
-[1] "[2025-12-23 22:30:42] Hello world!"
+[1] "[2025-12-24 10:34:59] Hello world!"
 > 
 > 
 > 
@@ -356,7 +356,7 @@ MatchedDatasetSize
 > cleanEx()
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  1.738 0.063 1.96 0.004 0.005 
+Time elapsed:  1.587 0.069 2.011 0.004 0.01 
 > grDevices::dev.off()
 null device 
           1 
