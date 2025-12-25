@@ -1,9 +1,11 @@
-# `LinkOrgs`: An R package for linking linking records on organizations using half-a-billion open-collaborated records from LinkedIn 
+# `LinkOrgs`: An R package for linking records on organizations using half-a-billion open-collaborated records from LinkedIn
 
-[**What is LinkOrgs?**](#description)
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+
+[**What is LinkOrgs?**](#what-is-linkOrgs)
 | [**Installation**](#installation)
 | [**Tutorial**](#tutorial)
-| [**Comparison with Ground Truth**](#truth)
+| [**Comparison with Ground Truth**](#comparison-of-results-with-ground-truth)
 | [**References**](#references)
 | [**Documentation**](https://github.com/cjerzak/LinkOrgs-software/blob/master/LinkOrgs.pdf)
 
@@ -14,7 +16,23 @@ Dataset](https://img.shields.io/badge/Hugging%20Face-View%20Dataset-orange?style
 
 [![Hugging Face Space](https://img.shields.io/badge/%F0%9F%A4%96_Hugging%20Face-Launch%20Online%20App-purple?style=for-the-badge&logo=huggingface&logoColor=white)](https://huggingface.co/spaces/cjerzak/LinkOrgs_Online/)
 
-**NB: You can access a point-and-click implementation online [here](https://huggingface.co/spaces/cjerzak/LinkOrgs_Online/).**
+**Note:** You can access a point-and-click implementation online [here](https://huggingface.co/spaces/cjerzak/LinkOrgs_Online/).
+
+## What is LinkOrgs?
+
+LinkOrgs is an R package for organizational record linkage that leverages half-a-billion open-collaborated records from LinkedIn. It provides multiple matching algorithms optimized for different use cases:
+
+| Algorithm | Internet Required | TensorFlow Required | Speed | Best For |
+|-----------|------------------|---------------------|-------|----------|
+| `fuzzy` | No | No | Fast | Simple name matching |
+| `bipartite` | Yes | No | Medium | Network-informed matching best for organizations having LinkedIn presence, ~2017 |
+| `markov` | Yes | No | Medium | Network-informed matching best for organizations having LinkedIn presence, ~2017 |
+| `ml` | Yes | Yes | Slower | High-accuracy semantic matching |
+
+- **Fuzzy matching** (`algorithm="fuzzy"`): Fast parallelized string distance matching using Jaccard, Jaro-Winkler, or other string distances
+- **Network-based** (`algorithm="bipartite"` or `"markov"`): Uses LinkedIn's organizational network structure for improved accuracy
+- **Machine learning** (`algorithm="ml"`): Transformer-based embeddings (requires TensorFlow backend setup via `BuildBackend()`)
+- **Combined** (`algorithm="markov"` + `DistanceMeasure="ml"`): Network + ML hybrid approach
 
 ## Installation
 The most recent version of `LinkOrgs` can be installed directly from the repository using the `devtools` package
@@ -28,10 +46,25 @@ The machine-learning based algorithm accessible via the `algorithm="ml"` option 
 
 ```
 # install ML backend  
-LinkOrs::BuildBackend(conda = "auto")
+LinkOrgs::BuildBackend(conda = "auto")
 ```
 
-Note that most package options require Internet access in order to download the saved machine learning model parameters and LinkedIn-based network information. 
+Note that most package options require Internet access in order to download the saved machine learning model parameters and LinkedIn-based network information.
+
+## Quick Start
+
+```r
+library(LinkOrgs)
+
+# Sample data
+x <- data.frame(org = c("Apple Inc", "Microsoft Corp"))
+y <- data.frame(org = c("Apple", "Microsoft Corporation"))
+
+# Link organizations using fuzzy matching
+result <- LinkOrgs(x = x, y = y, by.x = "org", by.y = "org",
+                   algorithm = "fuzzy", AveMatchNumberPerAlias = 2)
+print(result)
+```
 
 ## Tutorial
 After installing the package, let's get some experience with it in an example. 
@@ -82,7 +115,11 @@ z_linked_markov <- LinkOrgs(x  = x,
                      DistanceMeasure = "jaccard")
 
 
-# Build backend for ML model (do this only once)# try(LinkOrgs::BuildBackend( conda_env = "LinkOrgsEnv", conda = "auto" ),T)# if conda = "auto" fails, try to specify the path to the correct conda # LinkOrgs::BuildBackend( conda_env = "LinkOrgsEnv", conda = "/Users/cjerzak/miniforge3/bin/python" )
+# Build backend for ML model (run once before using algorithm="ml")
+# LinkOrgs::BuildBackend(conda_env = "LinkOrgs_env", conda = "auto")
+# If conda = "auto" fails, specify the path explicitly:
+# LinkOrgs::BuildBackend(conda_env = "LinkOrgs_env",
+#                        conda = "/path/to/miniforge3/bin/python")
                      
 # perform merge using a machine learning approach
 z_linked_ml <- LinkOrgs(x  = x, 
@@ -90,7 +127,7 @@ z_linked_ml <- LinkOrgs(x  = x,
                      by.x = "orgnames_x", 
                      by.y = "orgnames_y",
                      AveMatchNumberPerAlias = 10, 
-		     algorithm = "ml", ml_version = "v4")
+                     algorithm = "ml", ml_version = "v1")
 # note: change "tensorflow" to name of conda environment where a version of tensorflow v2 lives
                      
 # perform merge using combined network + machine learning approach
@@ -101,12 +138,10 @@ z_linked_combined <- LinkOrgs(x  = x,
                      AveMatchNumberPerAlias = 10, 
                      AveMatchNumberPerAlias_network = 1, 
                      algorithm = "markov",
-                     DistanceMeasure = "ml", ml_version = "v4")
+                     DistanceMeasure = "ml", ml_version = "v1")
 
-  # Perform a merge using the ML approach, just exporting the name
-  representations
-  
-  # returns list(embedx = ..., embedy = ...) for manual linkage.
+  # Perform a merge using the ML approach, exporting name representations only
+  # Returns list(embedx = ..., embedy = ...) for manual linkage.
   rep_joint <- LinkOrgs( 
     x = x, y = y,
     by.x = "orgnames_x",
@@ -142,9 +177,25 @@ PerformanceMatrix <- AssessMatchPerformance(x  = x,
                                             y =  y, 
                                             by.x = "orgnames_x", 
                                             by.y = "orgnames_y", 
-                                            z = z_linked, 
+                                            z = z_linked_fuzzy, 
                                             z_true = z_true)
-``` 
+```
+
+<a href="https://doi.org/10.1017/psrm.2024.55#gh-light-mode-only">
+  <img src="https://i0.wp.com/connorjerzak.com/wp-content/uploads/2025/12/linkorgs1_light.webp#gh-light-mode-only" alt="Figure 1 – light" width="400" height="400">
+</a>
+
+<a href="https://doi.org/10.1017/psrm.2024.55#gh-dark-mode-only">
+  <img src="https://i0.wp.com/connorjerzak.com/wp-content/uploads/2025/12/linkorgs1_dark.webp#gh-dark-mode-only" alt="Figure 1 – dark" width="400" height="400">
+</a>
+
+<a href="https://doi.org/10.1017/psrm.2024.55#gh-light-mode-only">
+  <img src="https://i0.wp.com/connorjerzak.com/wp-content/uploads/2025/12/linkorgs2_light.webp#gh-light-mode-only" alt="Figure 2 – light" width="900" height="300">
+</a>
+
+<a href="https://doi.org/10.1017/psrm.2024.55#gh-dark-mode-only">
+  <img src="https://i0.wp.com/connorjerzak.com/wp-content/uploads/2025/12/linkorgs2_dark.webp#gh-dark-mode-only" alt="Figure 2 – dark" width="900" height="300">
+</a>
 
 ## Improvements & Future Development Plan
 We're always looking to improve the software in terms of ease-of-use and its capabilities. If you have any suggestions/feedback, or need further assistance in getting the package working for your analysis, please email <connor.jerzak@gmail.com>. 
@@ -156,7 +207,8 @@ We thank [Beniamino Green](https://beniamino.org/about/), [Kosuke Imai](https://
 [Gary King](https://garyking.org/), [Xiang Zhou](https://scholar.harvard.edu/xzhou/home),  members of the Imai Research Workshop for valuable feedback. We also would like to thank [Gil Tamir](https://www.linkedin.com/in/gil-tamir-4176161b7/) and [Xiaolong Yang](https://xiaolong-yang.com/) for excellent research assistance. 
 
 ## License
-MIT License.
+Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0).
+This package is for academic and non-commercial use only.
 
 ## References 
 
@@ -176,21 +228,5 @@ Brian Libgober, Connor T. Jerzak. "Linking Datasets on Organizations Using Half-
 
 ## Related work
 Green, Beniamino. "Zoomerjoin: Superlatively-Fast Fuzzy Joins." *Journal of Open Source Software* 8:89 5693-5698, 2023. [[PDF]](https://joss.theoj.org/papers/10.21105/joss.05693.pdf)
-
-<a href="https://doi.org/10.1017/psrm.2024.55#gh-light-mode-only">
-  <img src="https://i0.wp.com/connorjerzak.com/wp-content/uploads/2025/12/linkorgs1_light.webp#gh-light-mode-only" alt="Figure 1 – light" width="400" height="400">
-</a>
-
-<a href="https://doi.org/10.1017/psrm.2024.55#gh-dark-mode-only">
-  <img src="https://i0.wp.com/connorjerzak.com/wp-content/uploads/2025/12/linkorgs1_dark.webp#gh-dark-mode-only" alt="Figure 1 – dark" width="400" height="400">
-</a>
-
-<a href="https://doi.org/10.1017/psrm.2024.55#gh-light-mode-only">
-  <img src="https://i0.wp.com/connorjerzak.com/wp-content/uploads/2025/12/linkorgs2_light.webp#gh-light-mode-only" alt="Figure 2 – light" width="900" height="300">
-</a>
-
-<a href="https://doi.org/10.1017/psrm.2024.55#gh-dark-mode-only">
-  <img src="https://i0.wp.com/connorjerzak.com/wp-content/uploads/2025/12/linkorgs2_dark.webp#gh-dark-mode-only" alt="Figure 2 – dark" width="900" height="300">
-</a>
 
 
