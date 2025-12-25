@@ -22,7 +22,7 @@ Dataset](https://img.shields.io/badge/Hugging%20Face-View%20Dataset-orange?style
 
 LinkOrgs is an R package for organizational record linkage that leverages half-a-billion open-collaborated records from LinkedIn. It provides multiple matching algorithms optimized for different use cases:
 
-| Algorithm | Internet Required | TensorFlow Required | Speed | Best For |
+| Algorithm | Internet Required | ML-backend Required | Speed | Best For |
 |-----------|------------------|---------------------|-------|----------|
 | `fuzzy` | No | No | Fast | Simple name matching |
 | `bipartite` | Yes | No | Medium | Network-informed matching best for organizations having LinkedIn presence, ~2017 |
