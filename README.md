@@ -28,6 +28,7 @@ LinkOrgs is an R package for organizational record linkage that leverages half-a
 | `bipartite` | Yes | No | Medium | Network-informed matching best for organizations having LinkedIn presence, ~2017 |
 | `markov` | Yes | No | Medium | Network-informed matching best for organizations having LinkedIn presence, ~2017 |
 | `ml` | Yes | Yes | Slower | High-accuracy semantic matching |
+| `transfer` | Yes | Yes | Slower | Combined network + ML approach |
 
 - **Fuzzy matching** (`algorithm="fuzzy"`): Fast parallelized string distance matching using Jaccard, Jaro-Winkler, or other string distances
 - **Network-based** (`algorithm="bipartite"` or `"markov"`): Uses LinkedIn's organizational network structure for improved accuracy
@@ -128,8 +129,9 @@ z_linked_ml <- LinkOrgs(x  = x,
                      by.y = "orgnames_y",
                      AveMatchNumberPerAlias = 10, 
                      algorithm = "ml", ml_version = "v1")
-# note: change "tensorflow" to name of conda environment where a version of tensorflow v2 lives
-                     
+# note: use conda_env parameter to specify a different environment if needed
+# note: ML versions v0-v4 are available with varying parameter counts (9M-31M). Default is v1.
+
 # perform merge using combined network + machine learning approach
 z_linked_combined <- LinkOrgs(x  = x, 
                      y =  y, 
