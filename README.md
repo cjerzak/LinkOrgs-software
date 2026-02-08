@@ -218,17 +218,17 @@ Brian Libgober, Connor T. Jerzak. "Linking Datasets on Organizations Using Half-
 [[PDF]](https://doi.org/10.1017/psrm.2024.55) [[Dataverse]](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/EHRQQL&faces-redirect=true)
 [[Hugging Face]](https://huggingface.co/datasets/cjerzak/LinkOrgs)
 ```
-@article{libgober2024linking,
-  title={Linking Datasets on Organizations Using Half a Billion Open-Collaborated Records},
-  author={Libgober, Brian and Connor T. Jerzak},
-  journal={Political Science Methods and Research},
-  year={2024},
-  pages={},
-  publisher={Cambridge University Press}
+@article{LibgoberJerzak2025,
+	title={Linking datasets on organizations using half a billion open-collaborated records},
+	volume={13},
+	DOI={10.1017/psrm.2024.55},
+	number={4},
+	journal={Political Science Research and Methods},
+	author={Libgober, Brian and Jerzak, Connor T.},
+	year={2025},
+	pages={923-942}
 }
-```
 
-## Related work
-Green, Beniamino. "Zoomerjoin: Superlatively-Fast Fuzzy Joins." *Journal of Open Source Software* 8:89 5693-5698, 2023. [[PDF]](https://joss.theoj.org/papers/10.21105/joss.05693.pdf)
+```
 
 
