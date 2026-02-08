@@ -183,6 +183,8 @@ PerformanceMatrix <- AssessMatchPerformance(x  = x,
                                             z_true = z_true)
 ```
 
+## Performance
+
 <a href="https://doi.org/10.1017/psrm.2024.55#gh-light-mode-only">
   <img src="https://i0.wp.com/connorjerzak.com/wp-content/uploads/2025/12/linkorgs1_light.webp#gh-light-mode-only" alt="Figure 1 – light" width="400" height="400">
 </a>
