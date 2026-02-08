@@ -214,7 +214,7 @@ This package is for academic and non-commercial use only.
 
 ## References 
 
-Brian Libgober, Connor T. Jerzak. "Linking Datasets on Organizations Using Half-a-billion Open-collaborated Records." *Political Science Methods and Research*, 2024.
+Brian Libgober, Connor T. Jerzak. "Linking Datasets on Organizations Using Half-a-billion Open-collaborated Records." *Political Science Methods and Research*, 2025.
 [[PDF]](https://doi.org/10.1017/psrm.2024.55) [[Dataverse]](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/EHRQQL&faces-redirect=true)
 [[Hugging Face]](https://huggingface.co/datasets/cjerzak/LinkOrgs)
 ```
