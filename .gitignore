@@ -1,0 +1,29 @@
+# OS / archive noise
+.DS_Store
+__MACOSX/
+
+# Local environment / assistant state
+.env
+.Renviron
+.claude/
+CLAUDE.md
+AGENTS.md
+
+# Local R / RStudio state
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+
+# Generated reports / temp files
+/reports/
+/temp/
+/tmp/
+
+# R package build/check artifacts
+/*.Rcheck/
+/*_*.tar.gz
+
+# Generated package docs/metadata
+/LinkOrgs/doc/
+/LinkOrgs/Meta/
