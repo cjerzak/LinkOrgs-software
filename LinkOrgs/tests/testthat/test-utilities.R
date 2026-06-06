@@ -86,3 +86,27 @@ test_that("bundled bipartite network data is resolved before download", {
     "LinkIt_directory_bipartite.Rdata"
   )))
 })
+
+test_that("DeconflictNames drops identical duplicate columns and keeps conflicts", {
+  identical_cols <- data.frame(
+    name.x = c("apple", "microsoft"),
+    name.y = c("apple", "microsoft")
+  )
+  conflicting_cols <- data.frame(
+    name.x = c("apple", "microsoft"),
+    name.y = c("apple", "msft")
+  )
+
+  identical_result <- LinkOrgs:::DeconflictNames(identical_cols)
+  conflicting_result <- LinkOrgs:::DeconflictNames(conflicting_cols)
+
+  expect_named(identical_result, "name")
+  expect_named(conflicting_result, c("name.x", "name.y"))
+})
+
+test_that("NA2ColMean replaces missing values using column means", {
+  result <- LinkOrgs:::NA2ColMean(matrix(c(1, NA, 3, 5), nrow = 2))
+
+  expect_false(any(is.na(result)))
+  expect_equal(result[2, 1], 1)
+})

@@ -87,6 +87,56 @@ test_that("LinkOrgs can match with precomputed embeddings", {
   expect_true(all(c("id", "code", "stringdist") %in% names(result)))
 })
 
+test_that("LinkOrgs by shorthand restores original names and minDist for one match", {
+  result <- LinkOrgs(
+    x = data.frame(id = 1, org = "Apple, Inc."),
+    y = data.frame(code = "a", org = "apple inc"),
+    by = "org",
+    algorithm = "fuzzy",
+    MaxDist = 0,
+    AveMatchNumberPerAlias = NULL,
+    ReturnProgress = FALSE,
+    nCores = 1
+  )
+
+  expect_equal(nrow(result), 1)
+  expect_equal(result$org, "Apple, Inc.")
+  expect_equal(result$stringdist, 0)
+  expect_equal(result$minDist, 0)
+  expect_true(all(c("id", "code", "org", "stringdist", "minDist") %in% names(result)))
+})
+
+test_that("ReturnDiagnostics includes internal identifiers while default output hides them", {
+  x <- data.frame(id = 1, org = "apple")
+  y <- data.frame(code = "a", org = "apple")
+
+  default_result <- LinkOrgs(
+    x = x,
+    y = y,
+    by = "org",
+    algorithm = "fuzzy",
+    MaxDist = 0,
+    AveMatchNumberPerAlias = NULL,
+    ReturnProgress = FALSE,
+    nCores = 1
+  )
+  diagnostic_result <- LinkOrgs(
+    x = x,
+    y = y,
+    by = "org",
+    algorithm = "fuzzy",
+    MaxDist = 0,
+    AveMatchNumberPerAlias = NULL,
+    ReturnDiagnostics = TRUE,
+    ReturnProgress = FALSE,
+    nCores = 1
+  )
+
+  expect_false("UniversalMatchCol" %in% names(default_result))
+  expect_false("XYref__ID" %in% names(default_result))
+  expect_true(all(c("UniversalMatchCol", "XYref__ID") %in% names(diagnostic_result)))
+})
+
 test_that("ReturnDecomposition includes raw and network slots for fuzzy matching", {
   result <- LinkOrgs(
     x = data.frame(org = c("apple", "microsoft")),

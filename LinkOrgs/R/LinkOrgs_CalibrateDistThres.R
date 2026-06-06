@@ -41,6 +41,9 @@ GetCalibratedDistThres <- function(x = NULL, y = NULL,
                                    embedDistMetric = NULL,
                                    ReturnProgress = T,
                                    mode = "euclidean"){
+  if(!mode %in% c("euclidean", "discrete")){
+    stop("mode must be either 'euclidean' or 'discrete'")
+  }
   print2("Calibrating via AveMatchNumberPerAlias...", quiet = !isTRUE(ReturnProgress))
   
   if(is.null(x) || is.null(y) || nrow(x) == 0 || nrow(y) == 0){

@@ -236,7 +236,7 @@ DeconflictNames <- function(z){
 
   # drop flags if colliding with same output
   colnames(z)[colnames(z) %in% names_raw[names_clean %in% DropOneCopy] ] <- names_clean[names_clean %in% DropOneCopy]
-  z <- z[,!duplicated(colnames(z))]
+  z <- z[,!duplicated(colnames(z)), drop = FALSE]
   return( z )
 }
 

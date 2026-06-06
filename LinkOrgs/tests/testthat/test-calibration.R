@@ -103,3 +103,26 @@ test_that("One-row euclidean calibration returns valid threshold", {
   expect_true(is.numeric(result))
   expect_false(is.na(result))
 })
+
+test_that("Empty calibration inputs return Inf threshold", {
+  result <- GetCalibratedDistThres(
+    x = matrix(numeric(0), nrow = 0, ncol = 2),
+    y = matrix(c(1, 2), nrow = 1),
+    mode = "euclidean",
+    ReturnProgress = FALSE
+  )
+
+  expect_equal(result, Inf)
+})
+
+test_that("Invalid calibration mode fails with clear error", {
+  expect_error(
+    GetCalibratedDistThres(
+      x = matrix(1, nrow = 1),
+      y = matrix(1, nrow = 1),
+      mode = "unknown",
+      ReturnProgress = FALSE
+    ),
+    "mode must be either"
+  )
+})

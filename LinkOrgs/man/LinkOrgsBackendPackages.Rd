@@ -2,7 +2,7 @@
 % Please edit documentation in R/LinkOrgs_BuildBackend.R
 \name{LinkOrgsBackendPackages}
 \alias{LinkOrgsBackendPackages}
-\title{Build Backend for LinkOrgs Machine Learning Models}
+\title{Backend Python Package Pins}
 \usage{
 LinkOrgsBackendPackages(tryMetal = T, sys_info = Sys.info())
 }
@@ -10,51 +10,11 @@ LinkOrgsBackendPackages(tryMetal = T, sys_info = Sys.info())
 \item{tryMetal}{Logical; if \code{TRUE} and running on Apple Silicon (arm64 macOS),
 attempts to install \code{jax-metal} for GPU acceleration. Default is \code{TRUE}.}
 
-\item{conda_env}{Character string; name of the conda environment to create.
-Default is \code{"LinkOrgs_env"}.}
-
-\item{conda}{Character string; path to a conda executable, or \code{"auto"} to let
-reticulate automatically find an appropriate conda binary. Default is \code{"auto"}.}
+\item{sys_info}{Named character vector in the shape returned by \code{\link[=Sys.info]{Sys.info()}}.}
 }
 \value{
-Invisibly returns \code{NULL}. Called for its side effect of creating and
-configuring the conda environment. Prints "Done building LinkOrgs backend!"
-upon successful completion.
+Character vector of pinned Python package specifications.
 }
 \description{
-Creates and configures a conda environment with all necessary Python packages
-(JAX, TensorFlow, Optax, Equinox, JMP) for running the machine learning
-components of LinkOrgs.
-}
-\details{
-This function requires an Internet connection to download packages.
-The conda environment will include:
-\itemize{
-\item TensorFlow 2.15
-\item TensorFlow Probability 0.23
-\item JAX 0.4.26 and JAXlib 0.4.26
-\item Optax 0.2.2
-\item Equinox 0.11.4
-\item JMP 0.0.4
-\item NumPy 1.26.4
-\item jax-metal 0.1.0 (Apple Silicon only, if \code{tryMetal = TRUE})
-}
-
-You can find available conda Python paths via: \code{system("which python")}
-}
-\examples{
-\dontrun{
-# Build with default settings
-BuildBackend()
-
-# Build with a specific conda path
-BuildBackend(conda = "/opt/miniconda3/bin/conda")
-
-# Build without attempting Metal support on macOS
-BuildBackend(tryMetal = FALSE)
-}
-
-}
-\seealso{
-\code{\link[=LinkOrgs]{LinkOrgs()}} for using the ML backend after setup.
+Returns the pinned Python packages used by \code{BuildBackend()}.
 }

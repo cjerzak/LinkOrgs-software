@@ -59,3 +59,8 @@ test_that("BuildBackendInternal creates conda env and installs packages via inje
   expect_equal(calls$py_install$envname, "test_env")
   expect_true(calls$py_install$pip)
 })
+
+test_that("BuildBackend is exported for documented backend setup", {
+  expect_true("BuildBackend" %in% getNamespaceExports("LinkOrgs"))
+  expect_true(is.function(LinkOrgs::BuildBackend))
+})

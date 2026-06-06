@@ -49,3 +49,17 @@ test_that("LinkOrgs rejects invalid algorithm", {
     regexp = "algorithm"
   )
 })
+
+test_that("Legacy internal algorithms are not accepted by public validation", {
+  df_x <- data.frame(name = "Apple")
+  df_y <- data.frame(org = "Apple")
+
+  expect_error(
+    LinkOrgs(x = df_x, y = df_y, by.x = "name", by.y = "org", algorithm = "lookup"),
+    regexp = "Invalid algorithm"
+  )
+  expect_error(
+    LinkOrgs(x = df_x, y = df_y, by.x = "name", by.y = "org", algorithm = "deezymatch"),
+    regexp = "Invalid algorithm"
+  )
+})

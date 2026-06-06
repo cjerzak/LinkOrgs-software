@@ -713,28 +713,34 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
     }
   }
     
-  print2("Dropping duplicates..."); if( nrow(z)>1 ){
-    if(is.null(z_Network)){ z$minDist <- z$stringdist }
-    if(!is.null(z_Network)){
-      for(dist_col in c("stringdist", "stringdist.y2network", "stringdist.x2network")){
-        if(!dist_col %in% colnames(z)){
-          z[[dist_col]] <- NA_real_
-        }
+  print2("Dropping duplicates...")
+  if(is.null(z_Network)){
+    z$minDist <- z$stringdist
+  }
+  if(!is.null(z_Network)){
+    for(dist_col in c("stringdist", "stringdist.y2network", "stringdist.x2network")){
+      if(!dist_col %in% colnames(z)){
+        z[[dist_col]] <- NA_real_
       }
-      z$stringdist <- f2n( z$stringdist )
-      z$stringdist.y2network <- RelThresNetwork * f2n( z$stringdist.y2network )
-      z$stringdist.x2network <- RelThresNetwork * f2n( z$stringdist.x2network )
+    }
+    z$stringdist <- f2n( z$stringdist )
+    z$stringdist.y2network <- RelThresNetwork * f2n( z$stringdist.y2network )
+    z$stringdist.x2network <- RelThresNetwork * f2n( z$stringdist.x2network )
 
-      # x bigger - set maxDist2Network to x
-      z$maxDist2Network <- apply(z[,c("stringdist.y2network","stringdist.x2network")], 1, max)
+    # x bigger - set maxDist2Network to x
+    z$maxDist2Network <- apply(z[,c("stringdist.y2network","stringdist.x2network")], 1, max)
 
-      # NAs cast to 0, add to get full profile of min distances
-      z$minDist <- na20(z$maxDist2Network) + na20(z$stringdist)
+    # NAs cast to 0, add to get full profile of min distances
+    z$minDist <- na20(z$maxDist2Network) + na20(z$stringdist)
 
-      # take min{  max{network}, string } and save this as the min distance
+    # take min{  max{network}, string } and save this as the min distance
+    if(nrow(z)>1){
       minDist_vec <- tapply(z$minDist, z$XYref__ID, min)
       z$minDist <- minDist_vec[z$XYref__ID];
     }
+  }
+
+  if( nrow(z)>1 ){
 
     if(T == F){ # checks
       View(z[order(f2n(z_RawNames$stringdist)),c(by.x,by.y,"stringdist")])
@@ -760,6 +766,9 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
   if(!(algorithm %in% c("markov", "bipartite"))){
     z <- z[,!colnames(z) %in% c("stringdist2network",
                                 "stringdist.y2network", "stringdist.x2network")]
+  }
+  for(dist_col in grep("^(stringdist|minDist|maxDist)", colnames(z), value = TRUE)){
+    z[[dist_col]] <- f2n(z[[dist_col]])
   }
   }
 
