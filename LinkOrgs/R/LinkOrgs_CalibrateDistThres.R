@@ -21,6 +21,9 @@
 #'   `?stringdist::stringdist` for all options. Default is "jaccard".
 #' @param nCores Number of CPU cores for parallel computation. Only used when
 #'   `mode = "discrete"`. Default is NULL (auto-detect).
+#' @param embedDistMetric Optional custom distance metric for `mode = "euclidean"`.
+#' @param ReturnProgress Logical; if `TRUE`, allows progress output from lower-level
+#'   matching helpers. Default is `TRUE`.
 #' @param mode Character string specifying the distance computation mode.
 #'   Must be either "euclidean" (for embedding-based matching) or "discrete"
 #'   (for string-based matching). Default is "euclidean".
@@ -35,16 +38,25 @@ GetCalibratedDistThres <- function(x = NULL, y = NULL,
                                    by.x = NULL, by.y = NULL,
                                    AveMatchNumberPerAlias = 5L,
                                    qgram = 2L, DistanceMeasure = "jaccard", nCores = NULL, 
+                                   embedDistMetric = NULL,
+                                   ReturnProgress = T,
                                    mode = "euclidean"){
-  print2("Calibrating via AveMatchNumberPerAlias...")
+  print2("Calibrating via AveMatchNumberPerAlias...", quiet = !isTRUE(ReturnProgress))
   
+  if(is.null(x) || is.null(y) || nrow(x) == 0 || nrow(y) == 0){
+    print2("Calibrated accept match dist threshold: Inf", quiet = !isTRUE(ReturnProgress))
+    return(Inf)
+  }
+
   # first, calculate all pairwise distances between x and y for a random subsample
-  cal_x_indices <- sample(1:nrow(x), min(nrow(x),1000), replace = F)
-  cal_y_indices <- sample(1:nrow(y), min(nrow(y),1000), replace = F)
+  cal_x_indices <- sample(seq_len(nrow(x)), min(nrow(x),1000), replace = F)
+  cal_y_indices <- sample(seq_len(nrow(y)), min(nrow(y),1000), replace = F)
 
   if(mode == "euclidean"){
-    DistMat <- pDistMatch_euclidean(embedx = x[cal_x_indices,],
-                                    embedy = y[cal_y_indices,])
+    DistMat <- pDistMatch_euclidean(embedx = x[cal_x_indices,, drop = FALSE],
+                                    embedy = y[cal_y_indices,, drop = FALSE],
+                                    embedDistMetric = embedDistMetric,
+                                    ReturnProgress = ReturnProgress)
   }
 
   if(mode == "discrete"){
@@ -52,6 +64,7 @@ GetCalibratedDistThres <- function(x = NULL, y = NULL,
                                    y = y[cal_y_indices, , drop = FALSE], by.y = by.y,
                                    qgram = qgram, DistanceMeasure = DistanceMeasure,
                                    MaxDist = Inf,
+                                   ReturnProgress = ReturnProgress,
                                    nCores = 1L)
   }
 
@@ -71,10 +84,18 @@ GetCalibratedDistThres <- function(x = NULL, y = NULL,
     ImpliedQuantile <- exp(log_AveMatchesPerObs_times_NObs - log_NPossibleMatches)
 
     #get implied distance thres from random sample of distances
-    IMPLIED_MATCH_DIST_THRES <- mean(abs(quantile(DistMat[,"stringdist"], probs = min(1,ImpliedQuantile) )))
-    if(IMPLIED_MATCH_DIST_THRES < 1e-6){IMPLIED_MATCH_DIST_THRES <- 1e-6}
+    dist_values <- DistMat[,"stringdist"]
+    dist_values <- dist_values[is.finite(dist_values)]
+    if(length(dist_values) > 0){
+      IMPLIED_MATCH_DIST_THRES <- mean(abs(quantile(dist_values, probs = min(1,ImpliedQuantile), na.rm = TRUE)))
+      if(is.na(IMPLIED_MATCH_DIST_THRES)){
+        IMPLIED_MATCH_DIST_THRES <- Inf
+      }
+      if(IMPLIED_MATCH_DIST_THRES < 1e-6){IMPLIED_MATCH_DIST_THRES <- 1e-6}
+    }
   }
-  print2( sprintf("Calibrated accept match dist threshold: %.6f", IMPLIED_MATCH_DIST_THRES) )
+  print2( sprintf("Calibrated accept match dist threshold: %.6f", IMPLIED_MATCH_DIST_THRES),
+          quiet = !isTRUE(ReturnProgress) )
 
   return( IMPLIED_MATCH_DIST_THRES )
 }

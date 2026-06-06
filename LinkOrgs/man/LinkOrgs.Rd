@@ -32,7 +32,7 @@ LinkOrgs(
   openBrowser = F,
   ExportEmbeddingsOnly = FALSE,
   ReturnDecomposition = FALSE,
-  python_executable,
+  python_executable = NULL,
   nCores = NULL,
   deezyLoc = NULL
 )
@@ -48,11 +48,13 @@ See \code{?base::merge} for more details regarding syntax.}
 be used instead of computing embeddings from names. Rows correspond to observations
 and columns to embedding dimensions.}
 
-\item{embedDistMetric}{Optional custom distance metric function for embedding-based matching.}
+\item{embedDistMetric}{Optional custom distance metric function for embedding-based
+matching. It receives one embedding as a column-shaped object and the transposed
+candidate embedding matrix, and returns one numeric distance per candidate.}
 
 \item{algorithm}{Character; specifies which algorithm should be used. Options are
 \code{"fuzzy"}, \code{"ml"}, \code{"bipartite"}, \code{"markov"}, and \code{"transfer"}. Default is \code{"ml"},
-which uses a machine-learning approach with Transformer networks and up to 11 million
+which uses a machine-learning approach with Transformer networks and about 30 million
 parameters to predict match probabilities using half a billion open-collaborated
 records as training data.}
 
@@ -101,7 +103,8 @@ See \code{?stringdist::stringdist} for all string distance options. Default is \
 Default is \code{1.5}.}
 
 \item{ml_version}{Character; specifies which version of the ML algorithm to use.
-Options are \code{"v0"} (9M parameters) through \code{"v4"}. Default is \code{"v1"} (11M parameters).}
+Options are \code{"v0"} (9M parameters), \code{"v1"} (30M parameters), \code{"v2"} (23M
+parameters), \code{"v3"} (31M parameters), and \code{"v4"} (17M parameters). Default is \code{"v1"}.}
 
 \item{openBrowser}{Logical; if \code{TRUE}, opens browser for debugging. Default is \code{FALSE}.}
 
@@ -112,8 +115,8 @@ matching, for offline linkage. Default is \code{FALSE}.}
 \item{ReturnDecomposition}{Logical; if \code{TRUE}, returns a list containing the merged
 data frame along with intermediate results. Default is \code{FALSE}.}
 
-\item{python_executable}{Path to Python executable. Usually not needed if
-\code{conda_env} is specified.}
+\item{python_executable}{Path to Python executable. If specified, this takes
+precedence over \code{conda_env} for ML/JAX methods.}
 
 \item{nCores}{Integer; number of CPU cores to use for parallel processing.
 Default is \code{NULL} (auto-detect based on data size).}
@@ -142,6 +145,9 @@ using half-a-billion open-collaborated records.
 
 To use combined machine learning and network methods, set \code{algorithm} to
 \code{"bipartite"} or \code{"markov"}, and \code{DistanceMeasure} to \code{"ml"}.
+
+ML and network artifacts are cached in a user-writable directory. Set the
+\code{LINKORGS_CACHE_DIR} environment variable to override the default cache path.
 }
 \examples{
 # Create synthetic data

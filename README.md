@@ -28,12 +28,13 @@ LinkOrgs is an R package for organizational record linkage that leverages half-a
 | `bipartite` | Yes | No | Medium | Network-informed matching best for organizations having LinkedIn presence, ~2017 |
 | `markov` | Yes | No | Medium | Network-informed matching best for organizations having LinkedIn presence, ~2017 |
 | `ml` | Yes | Yes | Slower | High-accuracy semantic matching |
-| `transfer` | Yes | Yes | Slower | Combined network + ML approach |
+| `transfer` | Yes | No, but requires the `text` package | Slower | Text-model transfer representation approach |
 
 - **Fuzzy matching** (`algorithm="fuzzy"`): Fast parallelized string distance matching using Jaccard, Jaro-Winkler, or other string distances
 - **Network-based** (`algorithm="bipartite"` or `"markov"`): Uses LinkedIn's organizational network structure for improved accuracy
 - **Machine learning** (`algorithm="ml"`): Transformer-based embeddings (requires JAX backend setup via `BuildBackend()`)
 - **Combined** (`algorithm="markov"` + `DistanceMeasure="ml"`): Network + ML hybrid approach
+- **Transfer** (`algorithm="transfer"`): Uses transfer-learning text representations without the LinkedIn network stage
 
 ## Installation
 The most recent version of `LinkOrgs` can be installed directly from the repository using the `devtools` package
@@ -50,7 +51,7 @@ The machine-learning based algorithm accessible via the `algorithm="ml"` option 
 LinkOrgs::BuildBackend(conda = "auto")
 ```
 
-Note that most package options require Internet access in order to download the saved machine learning model parameters and LinkedIn-based network information.
+Note that ML, transfer, and network options require Internet access on first use to download saved model parameters or LinkedIn-based network information. Downloaded artifacts are cached in a user-writable directory; set `LINKORGS_CACHE_DIR` to override the cache location.
 
 ## Quick Start
 
@@ -130,7 +131,8 @@ z_linked_ml <- LinkOrgs(x  = x,
                      AveMatchNumberPerAlias = 10, 
                      algorithm = "ml", ml_version = "v1")
 # note: use conda_env parameter to specify a different environment if needed
-# note: ML versions v0-v4 are available with varying parameter counts (9M-31M). Default is v1.
+# note: ML versions v0-v4 are available with varying parameter counts:
+# v0 ~9M, v1 ~30M, v2 ~23M, v3 ~31M, v4 ~17M. Default is v1.
 
 # perform merge using combined network + machine learning approach
 z_linked_combined <- LinkOrgs(x  = x, 
@@ -216,7 +218,7 @@ This package is for academic and non-commercial use only.
 
 ## References 
 
-Brian Libgober, Connor T. Jerzak. "Linking Datasets on Organizations Using Half-a-billion Open-collaborated Records." *Political Science Methods and Research*, 2025.
+Brian Libgober, Connor T. Jerzak. "Linking Datasets on Organizations Using Half-a-billion Open-collaborated Records." *Political Science Research and Methods*, 2025.
 [[PDF]](https://doi.org/10.1017/psrm.2024.55) [[Dataverse]](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/EHRQQL&faces-redirect=true)
 [[Hugging Face]](https://huggingface.co/datasets/cjerzak/LinkOrgs)
 ```
@@ -232,5 +234,4 @@ Brian Libgober, Connor T. Jerzak. "Linking Datasets on Organizations Using Half-
 }
 
 ```
-
 

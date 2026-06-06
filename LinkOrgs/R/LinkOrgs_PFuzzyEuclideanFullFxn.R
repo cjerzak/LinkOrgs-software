@@ -18,6 +18,8 @@
 #'   `AveMatchNumberPerAlias` is specified, it takes priority.
 #' @param AveMatchNumberPerAlias Numeric; target average number of matches per alias.
 #'   If specified, automatically calibrates `MaxDist` using [GetCalibratedDistThres()].
+#' @param ReturnProgress Logical; if `TRUE`, allows progress output from lower-level
+#'   matching helpers. Default is `TRUE`.
 #' @param ... Additional arguments (currently unused).
 #'
 #' @return A data frame containing matched records from `x` and `y`, with columns from
@@ -60,17 +62,22 @@ pFuzzyMatch_euclidean <- function(
     embedDistMetric = NULL, 
     MaxDist = NULL,
     AveMatchNumberPerAlias = NULL,
+    ReturnProgress = T,
     ...
 ){
   if(!is.null(AveMatchNumberPerAlias)){
     MaxDist <- GetCalibratedDistThres(x = embedy,
                                       y = embedx,
                                       AveMatchNumberPerAlias = AveMatchNumberPerAlias,
+                                      embedDistMetric = embedDistMetric,
+                                      ReturnProgress = ReturnProgress,
                                       mode = "euclidean")
   }
 
   z_indices <- pDistMatch_euclidean(embedx, embedy,
-                                    MaxDist = MaxDist)
+                                    MaxDist = MaxDist,
+                                    embedDistMetric = embedDistMetric,
+                                    ReturnProgress = ReturnProgress)
   colnames(y) <- paste(colnames(y), '.y', sep = "")
   colnames(x) <- paste(colnames(x), '.x', sep = "")
   z <- as.data.frame( cbind( x[z_indices[,"ix"],], y[z_indices[,"iy"],] ) )

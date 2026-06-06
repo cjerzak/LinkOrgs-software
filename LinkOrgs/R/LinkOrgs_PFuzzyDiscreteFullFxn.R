@@ -22,6 +22,8 @@
 #'   If specified, automatically calibrates `MaxDist` using [GetCalibratedDistThres()].
 #' @param nCores Integer; number of CPU cores for parallel processing. Default is `NULL`
 #'   (uses single core).
+#' @param ReturnProgress Logical; if `TRUE`, allows progress output from lower-level
+#'   matching helpers. Default is `TRUE`.
 #' @param ... Additional arguments (currently unused).
 #'
 #' @return A data frame containing matched records from `x` and `y`, with columns from
@@ -59,6 +61,7 @@ pFuzzyMatch_discrete <- function(
     qgram = 2, DistanceMeasure = "jaccard",
     AveMatchNumberPerAlias = NULL,
     nCores = NULL,
+    ReturnProgress = T,
     ...
 ){
   if(!is.null(AveMatchNumberPerAlias)){
@@ -68,6 +71,7 @@ pFuzzyMatch_discrete <- function(
                                       qgram = qgram,
                                       DistanceMeasure = DistanceMeasure,
                                       nCores = nCores,
+                                      ReturnProgress = ReturnProgress,
                                       mode = "discrete" )
   }
   z_indices <- pDistMatch_discrete(x, by.x = by.x,
@@ -75,6 +79,7 @@ pFuzzyMatch_discrete <- function(
                                    qgram = qgram,
                                    DistanceMeasure = DistanceMeasure,
                                    MaxDist = MaxDist, 
+                                   ReturnProgress = ReturnProgress,
                                    nCores = nCores)
   colnames(y) <- paste(colnames(y), '.y', sep = "")
   colnames(x) <- paste(colnames(x), '.x', sep = "")

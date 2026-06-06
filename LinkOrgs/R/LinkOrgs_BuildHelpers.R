@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 #' Download CSV from URL to data.table
 #'
-#' Downloads a zipped CSV file from a URL and loads it into memory as a data.table.
+#' Downloads a zipped or gzipped CSV file from a URL and loads it into memory as a data.table.
 #' Automatically handles Dropbox URLs by converting them to direct download links.
 #'
 #' @param url Character string; the URL pointing to a `.csv.zip` or `.csv.gz` file.
@@ -24,7 +24,7 @@
 #'
 #' @seealso [dropboxURL2downloadURL()] for URL conversion, [data.table::fread()]
 #'   for the underlying CSV reader.
-#' @importFrom utils download.file unzip
+#' @importFrom utils download.file read.csv unzip
 #' @export
 #' @md
 
@@ -32,30 +32,37 @@ url2dt <- function(url){
   # clean URL if from dropbox
   url <- dropboxURL2downloadURL(url)
 
-  # setup temporary folder, download .zip into it, unzip
+  # setup temporary folder, download archive into it, and read the CSV
   temp_folder <- tempdir()
 
-  # download
-  theExtension <- ifelse(grepl(url,pattern = "\\.csv\\.gz"),
+  theExtension <- ifelse(grepl(pattern = "\\.csv\\.gz($|[?])", x = url),
                          yes = "gz", no = "zip")
-  download.file( url, destfile =  (destfile_zip <- sprintf("%s/%s.%s",
-                                                           temp_folder,
-                                                           digest::digest(url),
-                                                           theExtension)))
+  destfile_archive <- sprintf("%s/%s.%s",
+                              temp_folder,
+                              digest::digest(url),
+                              theExtension)
+  if(file.exists(url)){
+    file.copy(url, destfile_archive, overwrite = TRUE)
+  } else {
+    download.file(url, destfile = destfile_archive)
+  }
 
-  # unzip into folder
-  destfolder_unzip <- gsub(pattern = sprintf("\\.%s", theExtension),
-                           replacement = "",
-                           x = destfile_zip)
-  unzip(destfile_zip, junkpaths = T, exdir = destfolder_unzip)
-
-  # load unzipped file into memory as a data.table
-  file_in_zip <- list.files( destfolder_unzip )
-  file_in_zip <- grep(file_in_zip, pattern="\\.csv",value = T)
-  returned_dt <- data.table::fread( sprintf("%s/%s", destfolder_unzip, file_in_zip) )
+  if(theExtension == "gz"){
+    con <- gzfile(destfile_archive, open = "rt")
+    on.exit(try(close(con), silent = TRUE), add = TRUE)
+    returned_dt <- data.table::as.data.table(utils::read.csv(con, stringsAsFactors = FALSE))
+  } else {
+    destfolder_unzip <- gsub(pattern = sprintf("\\.%s", theExtension),
+                             replacement = "",
+                             x = destfile_archive)
+    unzip(destfile_archive, junkpaths = T, exdir = destfolder_unzip)
+    file_in_zip <- grep(list.files(destfolder_unzip), pattern = "\\.csv$", value = TRUE)
+    returned_dt <- data.table::fread(sprintf("%s/%s", destfolder_unzip, file_in_zip[1]))
+    unlink(destfolder_unzip, recursive = TRUE, force = TRUE)
+  }
 
   # cleanup
-  file.remove( destfile_zip )
+  file.remove( destfile_archive )
 
   # return
   return( returned_dt )
@@ -120,8 +127,62 @@ dropboxURL2downloadURL <- function( url ){
 #'
 #' @export
 #' @md
-print2 <- function(text, quiet = F){
+print2 <- function(text, quiet = getOption("LinkOrgs.quiet", FALSE)){
   if(!quiet){ print( sprintf("[%s] %s" ,format(Sys.time(), "%Y-%m-%d %H:%M:%S"),text) ) }
+}
+
+LinkOrgsCacheDir <- function(create = TRUE){
+  cache_dir <- Sys.getenv("LINKORGS_CACHE_DIR", unset = "")
+  if(!nzchar(cache_dir)){
+    if(Sys.info()[["sysname"]] == "Darwin"){
+      cache_dir <- file.path(path.expand("~"), "Library", "Caches", "LinkOrgs")
+    } else if(.Platform$OS.type == "windows" && nzchar(Sys.getenv("LOCALAPPDATA", unset = ""))){
+      cache_dir <- file.path(Sys.getenv("LOCALAPPDATA"), "LinkOrgs", "Cache")
+    } else {
+      cache_root <- Sys.getenv("XDG_CACHE_HOME", unset = file.path(path.expand("~"), ".cache"))
+      cache_dir <- file.path(cache_root, "LinkOrgs")
+    }
+  }
+  if(create && !dir.exists(cache_dir)){
+    dir.create(cache_dir, recursive = TRUE, showWarnings = FALSE)
+  }
+  normalizePath(cache_dir, winslash = "/", mustWork = FALSE)
+}
+
+LinkOrgsDownload <- function(url, destfile, quiet = FALSE){
+  dir.create(dirname(destfile), recursive = TRUE, showWarnings = FALSE)
+  download.file(url, destfile = destfile, quiet = quiet)
+  destfile
+}
+
+LinkOrgsNetworkSubdir <- function(algorithm){
+  ifelse(algorithm == "bipartite",
+         yes = "directory_data_bipartite_thresh40",
+         no = "directory_data_markov")
+}
+
+LinkOrgsNetworkDirectory <- function(algorithm, url, cache_dir = LinkOrgsCacheDir(), quiet = FALSE){
+  subdir <- LinkOrgsNetworkSubdir(algorithm)
+  has_network_files <- function(base_dir){
+    file.exists(file.path(base_dir, subdir, sprintf("LinkIt_directory_%s_trigrams.Rdata", algorithm))) &&
+      file.exists(file.path(base_dir, subdir, sprintf("LinkIt_directory_%s.Rdata", algorithm)))
+  }
+
+  bundled_dir <- system.file("extdata", sprintf("Directory_%s", algorithm), package = "LinkOrgs")
+  if(nzchar(bundled_dir) && has_network_files(bundled_dir)){
+    return(bundled_dir)
+  }
+
+  directory_loc <- file.path(cache_dir, sprintf("Directory_%s", algorithm))
+  if(!has_network_files(directory_loc)){
+    directory_zip_loc <- file.path(cache_dir, sprintf("Directory_%s.zip", algorithm))
+    LinkOrgsDownload(url, directory_zip_loc, quiet = quiet)
+    unzip(directory_zip_loc, exdir = directory_loc)
+  }
+  if(!has_network_files(directory_loc)){
+    stop(sprintf("Could not find LinkOrgs %s network data in bundled files or cache.", algorithm))
+  }
+  directory_loc
 }
 
 f2n <- function(.){as.numeric(as.character(.))}

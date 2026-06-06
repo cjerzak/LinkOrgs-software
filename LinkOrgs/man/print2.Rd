@@ -4,7 +4,7 @@
 \alias{print2}
 \title{print2}
 \usage{
-print2(text, quiet = F)
+print2(text, quiet = getOption("LinkOrgs.quiet", FALSE))
 }
 \arguments{
 \item{text}{Character string to print.}

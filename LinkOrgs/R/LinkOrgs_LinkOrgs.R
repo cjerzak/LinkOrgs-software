@@ -11,10 +11,12 @@
 #' @param embedx,embedy Optional pre-computed embedding matrices. If provided, these will
 #'   be used instead of computing embeddings from names. Rows correspond to observations
 #'   and columns to embedding dimensions.
-#' @param embedDistMetric Optional custom distance metric function for embedding-based matching.
+#' @param embedDistMetric Optional custom distance metric function for embedding-based
+#'   matching. It receives one embedding as a column-shaped object and the transposed
+#'   candidate embedding matrix, and returns one numeric distance per candidate.
 #' @param algorithm Character; specifies which algorithm should be used. Options are
 #'   `"fuzzy"`, `"ml"`, `"bipartite"`, `"markov"`, and `"transfer"`. Default is `"ml"`,
-#'   which uses a machine-learning approach with Transformer networks and up to 11 million
+#'   which uses a machine-learning approach with Transformer networks and about 30 million
 #'   parameters to predict match probabilities using half a billion open-collaborated
 #'   records as training data.
 #' @param conda_env Character string; specifies a conda environment where JAX and related
@@ -48,15 +50,16 @@
 #' @param RelThresNetwork Numeric; relative threshold multiplier for network distances.
 #'   Default is `1.5`.
 #' @param ml_version Character; specifies which version of the ML algorithm to use.
-#'   Options are `"v0"` (9M parameters) through `"v4"`. Default is `"v1"` (11M parameters).
+#'   Options are `"v0"` (9M parameters), `"v1"` (30M parameters), `"v2"` (23M
+#'   parameters), `"v3"` (31M parameters), and `"v4"` (17M parameters). Default is `"v1"`.
 #' @param openBrowser Logical; if `TRUE`, opens browser for debugging. Default is `FALSE`.
 #' @param ExportEmbeddingsOnly Logical; if `TRUE` with `algorithm='ml'` (or
 #'   `DistanceMeasure='ml'`), returns only ML embeddings for x and/or y without
 #'   matching, for offline linkage. Default is `FALSE`.
 #' @param ReturnDecomposition Logical; if `TRUE`, returns a list containing the merged
 #'   data frame along with intermediate results. Default is `FALSE`.
-#' @param python_executable Path to Python executable. Usually not needed if
-#'   `conda_env` is specified.
+#' @param python_executable Path to Python executable. If specified, this takes
+#'   precedence over `conda_env` for ML/JAX methods.
 #' @param nCores Integer; number of CPU cores to use for parallel processing.
 #'   Default is `NULL` (auto-detect based on data size).
 #' @param deezyLoc Path to DeezyMatch installation (for `algorithm = "deezymatch"`).
@@ -76,6 +79,9 @@
 #'
 #' To use combined machine learning and network methods, set `algorithm` to
 #' `"bipartite"` or `"markov"`, and `DistanceMeasure` to `"ml"`.
+#'
+#' ML and network artifacts are cached in a user-writable directory. Set the
+#' `LINKORGS_CACHE_DIR` environment variable to override the default cache path.
 #'
 #' @examples
 #' # Create synthetic data
@@ -123,10 +129,18 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
                     openBrowser = F,
                     ExportEmbeddingsOnly = FALSE,
                     ReturnDecomposition = FALSE,
-                    python_executable, 
+                    python_executable = NULL, 
                     nCores = NULL, 
                     deezyLoc = NULL){
   # Packages loaded via NAMESPACE imports
+  algorithm <- tolower( as.character( algorithm ) )
+  DistanceMeasure <- tolower( as.character( DistanceMeasure ) )
+  if(algorithm == "ml"){ DistanceMeasure <- "ml" }
+  if(algorithm == "transfer"){ DistanceMeasure <- "transfer" }
+  old_quiet <- getOption("LinkOrgs.quiet", FALSE)
+  options(LinkOrgs.quiet = !isTRUE(ReturnProgress))
+  on.exit(options(LinkOrgs.quiet = old_quiet), add = TRUE)
+
   # Allow users to pass only `by`
   if (!is.null(by)) {
     if (is.null(by.x)){ by.x <- by };  if (is.null(by.y)){ by.y <- by }
@@ -148,7 +162,7 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
                  by.y, paste(colnames(y), collapse = ", ")))
   }
   valid_algorithms <- c("ml", "fuzzy", "bipartite", "markov", "transfer")
-  if (!tolower(algorithm) %in% valid_algorithms) {
+  if (!algorithm %in% valid_algorithms) {
     stop(sprintf("Invalid algorithm '%s'. Must be one of: %s",
                  algorithm, paste(valid_algorithms, collapse = ", ")))
   }
@@ -159,7 +173,7 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
   # Initialize cluster variable for cleanup tracking
   cl <- NULL
 
-  if(DistanceMeasure != "ml"){
+  if(!(DistanceMeasure %in% c("ml", "transfer")) && !is.null(x) && !is.null(y)){
     if(is.null(nCores)){
       nCores <- ifelse(nrow(x)*nrow(y) > 500,
                        yes = max(c(1L,parallel::detectCores() - 2L)),
@@ -188,9 +202,14 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
     z_Network <- linkedIn_embeddings <- embedx <- embedy <- NULL
     DistanceMeasure <- tolower( as.character( DistanceMeasure ) )
     algorithm <- tolower( as.character( algorithm ) )
-    DownloadFolder <- paste0(find.package("LinkOrgs"),"/data")
+    DownloadFolder <- LinkOrgsCacheDir()
     if(algorithm == "ml"){ DistanceMeasure <- "ml" }
     if(algorithm == "ml" | DistanceMeasure == "ml"){
+        if(!is.null(python_executable)){
+          reticulate::use_python(python_executable, required = conda_env_required)
+        } else if(!is.null(conda_env) && nzchar(conda_env)){
+          reticulate::use_condaenv(conda_env, required = conda_env_required)
+        }
         if(is.null(ml_version)){ ml_version <- "v4" }
         ModelLoc <- gsub(pattern = "\\.zip",
                          replacement = "",
@@ -200,7 +219,7 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
         WeightsLoc <- sprintf('%s/ModelWeights_%s.eqx', DownloadFolder, ml_version)
         CharIndicatorsLoc <- sprintf('%s/CharIndicatorsLoc.csv', DownloadFolder)
   
-        if( !file.exists( ModelZipLoc ) | !file.exists( WeightsLoc) ){
+        if( !file.exists( ModelZipLoc ) | !file.exists( WeightsLoc) | !file.exists(CharIndicatorsLoc) | !dir.exists(ModelLoc) ){
           if(ml_version == "v0"){
             #ModelURL <- "https://www.dropbox.com/scl/fi/1uz9pmw466kfnwwdrinpz/Archive.zip?rlkey=ia7d0nu8syixav8qlnug8gwpt&dl=0"
             #WeightsURL <- "https://www.dropbox.com/scl/fi/7w0fc4vdw372a4jkkwpfp/ModelWeights_v0.eqx?rlkey=5rjppey7i4ymllne5gitxt80x&dl=0"
@@ -236,16 +255,24 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
           #ModelURL <- dropboxURL2downloadURL(ModelURL);WeightsURL <- dropboxURL2downloadURL(WeightsURL)
   
           # download weights
-          download.file( WeightsURL, destfile = WeightsLoc )
+          if(!file.exists(WeightsLoc)){
+            LinkOrgsDownload(WeightsURL, destfile = WeightsLoc, quiet = !isTRUE(ReturnProgress))
+          }
   
           # download and unzip model
-          download.file( ModelURL, destfile = ModelZipLoc )
-          unzip(ModelZipLoc, exdir = ModelLoc)
+          if(!file.exists(ModelZipLoc)){
+            LinkOrgsDownload(ModelURL, destfile = ModelZipLoc, quiet = !isTRUE(ReturnProgress))
+          }
+          if(!dir.exists(ModelLoc)){
+            unzip(ModelZipLoc, exdir = ModelLoc)
+          }
   
           # download characters & save
           #charIndicators <- LinkOrgs::url2dt("https://www.dropbox.com/scl/fi/1jh8nrwsucfzj2gy9rydy/charIndicators.csv.zip?rlkey=wkhqk9x3550l364xbvnvnkoem&dl=0")
-          charIndicators <- LinkOrgs::url2dt("https://huggingface.co/datasets/cjerzak/LinkOrgs_PackageSupport/resolve/main/charIndicators.csv.zip")
-          data.table::fwrite(charIndicators, file = CharIndicatorsLoc)
+          if(!file.exists(CharIndicatorsLoc)){
+            charIndicators <- LinkOrgs::url2dt("https://huggingface.co/datasets/cjerzak/LinkOrgs_PackageSupport/resolve/main/charIndicators.csv.zip")
+            data.table::fwrite(charIndicators, file = CharIndicatorsLoc)
+          }
         }
   
         # build model
@@ -264,7 +291,7 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
         
         print2("Loading JaxTransformer_TrainDefine.R...")
         source( sprintf('%s/Analysis/JaxTransformer_TrainDefine.R', ModelLoc), local = T )
-        print(sprintf( "Default device backend: %s", jax$default_backend())) 
+        if(isTRUE(ReturnProgress)){ print(sprintf( "Default device backend: %s", jax$default_backend())) }
         
         # obtain trained weights
         print2("Applying trained weights...")
@@ -375,9 +402,11 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
         #lookupURL <- dropboxURL2downloadURL("https://www.dropbox.com/scl/fi/ct2qvgrr8jjh6959olrcg/linkedIn_rawData.Rdata?rlkey=v58cqpcccuksie8utobis4eov&dl=0")
         lookupURL <- "https://huggingface.co/datasets/cjerzak/LinkOrgs_PackageSupport/resolve/main/linkedIn_rawData.Rdata"
         
-        # download & unzip 
-        download.file( lookupURL, destfile = (lookupDest <- sprintf("%s/linkedIn_rawData.Rdata",
-                                                     paste0(find.package("LinkOrgs"),"/data") ) ))
+        # download
+        lookupDest <- sprintf("%s/linkedIn_rawData.Rdata", DownloadFolder)
+        if(!file.exists(lookupDest)){
+          LinkOrgsDownload(lookupURL, destfile = lookupDest, quiet = !isTRUE(ReturnProgress))
+        }
         load( lookupDest )
       }
       
@@ -428,15 +457,10 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
           #NetworkURL <- "https://dl.dropboxusercontent.com/s/ftt6ts6zrlnjqxp/directory_data_markov.zip?dl=0" 
           NetworkURL <- "https://huggingface.co/datasets/cjerzak/LinkOrgs_PackageSupport/resolve/main/directory_data_markov.zip"
         }
-        DirectoryLoc <- gsub(pattern = "\\.zip",
-                              replacement = "",
-                              x = (DirectoryZipLoc <- sprintf('%s/Directory_%s.zip',
-                                                            DownloadFolder,
-                                                            algorithm )))
-        if(!dir.exists(sprintf("%s/Directory_%s/", DownloadFolder, algorithm) ) ){
-            download.file( NetworkURL, destfile = DirectoryZipLoc )
-            unzip(DirectoryZipLoc, exdir = DirectoryLoc)
-        }
+        DirectoryLoc <- LinkOrgsNetworkDirectory(algorithm = algorithm,
+                                                 url = NetworkURL,
+                                                 cache_dir = DownloadFolder,
+                                                 quiet = !isTRUE(ReturnProgress))
         load(sprintf("%s/%s/LinkIt_directory_%s_trigrams.Rdata",
                      DirectoryLoc,
                      ifelse(algorithm == "bipartite", yes = "directory_data_bipartite_thresh40", no = "directory_data_markov"),
@@ -486,9 +510,9 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
           EmbedddingsLoc <- sprintf("%s/Directory_LinkIt_%s_Embeddings_%s.csv.gz",
                                     DownloadFolder, algorithm, ml_version)
           if(!file.exists(EmbedddingsLoc)){
-            download.file(EmbeddingsURL, destfile = EmbedddingsLoc)
+            LinkOrgsDownload(EmbeddingsURL, destfile = EmbedddingsLoc, quiet = !isTRUE(ReturnProgress))
           }
-          linkedIn_embeddings <- NA2ColMean(as.matrix(data.table::fread(EmbedddingsLoc, showProgress = T))[,-1]); gc()
+          linkedIn_embeddings <- NA2ColMean(as.matrix(data.table::fread(EmbedddingsLoc, showProgress = isTRUE(ReturnProgress)))[,-1]); gc()
           # print(  sort( sapply(ls(),function(x){object.size(get(x))}))  )
         }
     }
@@ -564,7 +588,9 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
   z_RawNames <- as.data.frame( pFuzzyMatchFxn_touse(
                                   x = x, by.x = by.x, embedx = embedx,
                                   y = y, by.y = by.y, embedy = embedy,
+                                  embedDistMetric = embedDistMetric,
                                   DistanceMeasure = DistanceMeasure, q = qgram, nCores = nCores, 
+                                  ReturnProgress = ReturnProgress,
                                   MaxDist = MaxDist, AveMatchNumberPerAlias = AveMatchNumberPerAlias))
   # View(z_RawNames[order(z_RawNames$stringdist),c(by.x,by.y,"stringdist")])
 
@@ -579,7 +605,9 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
         MatchedIntoNetwork <- pFuzzyMatchFxn_touse(
                     x = xory_by_ref, by.x = key_by_ref, embedx = ifelse(key_ == 'x', yes = list(embedx), no = list(embedy))[[1]],
                     y = directory_red, by.y = "alias_name", embedy = linkedIn_embeddings,
-                    DistanceMeasure = DistanceMeasure, q = qgram, nCores = nCores, 
+                    embedDistMetric = embedDistMetric,
+                    DistanceMeasure = DistanceMeasure, q = qgram, nCores = nCores,
+                    ReturnProgress = ReturnProgress,
                     MaxDist = MaxDist_network, AveMatchNumberPerAlias = AveMatchNumberPerAlias_network)
         MatchedIntoNetwork <- DeconflictNames(MatchedIntoNetwork)
       }
@@ -672,6 +700,11 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
   print2("Dropping duplicates..."); if( nrow(z)>1 ){
     if(is.null(z_Network)){ z$minDist <- z$stringdist }
     if(!is.null(z_Network)){
+      for(dist_col in c("stringdist", "stringdist.y2network", "stringdist.x2network")){
+        if(!dist_col %in% colnames(z)){
+          z[[dist_col]] <- NA_real_
+        }
+      }
       z$stringdist <- f2n( z$stringdist )
       z$stringdist.y2network <- RelThresNetwork * f2n( z$stringdist.y2network )
       z$stringdist.x2network <- RelThresNetwork * f2n( z$stringdist.x2network )

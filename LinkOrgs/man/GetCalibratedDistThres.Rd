@@ -13,6 +13,8 @@ GetCalibratedDistThres(
   qgram = 2L,
   DistanceMeasure = "jaccard",
   nCores = NULL,
+  embedDistMetric = NULL,
+  ReturnProgress = T,
   mode = "euclidean"
 )
 }
@@ -41,6 +43,11 @@ Used to calibrate the distance threshold. Default is 5.}
 
 \item{nCores}{Number of CPU cores for parallel computation. Only used when
 \code{mode = "discrete"}. Default is NULL (auto-detect).}
+
+\item{embedDistMetric}{Optional custom distance metric for \code{mode = "euclidean"}.}
+
+\item{ReturnProgress}{Logical; if \code{TRUE}, allows progress output from lower-level
+matching helpers. Default is \code{TRUE}.}
 
 \item{mode}{Character string specifying the distance computation mode.
 Must be either "euclidean" (for embedding-based matching) or "discrete"

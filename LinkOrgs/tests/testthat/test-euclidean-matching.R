@@ -68,3 +68,61 @@ test_that("Large dataset (100 rows) returns matches", {
 
   expect_gt(nrow(result), 0)
 })
+
+test_that("Custom Euclidean distance metric is honored", {
+  custom_metric <- function(an_x, candidate_y) {
+    rep(0, ncol(candidate_y))
+  }
+  embed_x <- matrix(0, nrow = 1, ncol = 2)
+  embed_y <- matrix(100, nrow = 1, ncol = 2)
+
+  result <- pDistMatch_euclidean(
+    embedx = embed_x,
+    embedy = embed_y,
+    MaxDist = 1,
+    embedDistMetric = custom_metric,
+    ReturnProgress = FALSE
+  )
+
+  expect_equal(nrow(result), 1)
+  expect_equal(result$stringdist, 0)
+})
+
+test_that("pFuzzyMatch_euclidean passes custom distance metric through", {
+  custom_metric <- function(an_x, candidate_y) {
+    rep(0, ncol(candidate_y))
+  }
+  x <- data.frame(name = "left")
+  y <- data.frame(name = "right")
+  embed_x <- matrix(0, nrow = 1, ncol = 2)
+  embed_y <- matrix(100, nrow = 1, ncol = 2)
+
+  result <- pFuzzyMatch_euclidean(
+    x = x,
+    y = y,
+    by.x = "name",
+    by.y = "name",
+    embedx = embed_x,
+    embedy = embed_y,
+    MaxDist = 1,
+    embedDistMetric = custom_metric,
+    ReturnProgress = FALSE
+  )
+
+  expect_equal(nrow(result), 1)
+  expect_equal(result$stringdist, 0)
+})
+
+test_that("Euclidean matching supports fewer than ten embedding dimensions", {
+  embed_x <- matrix(c(0, 0), nrow = 1)
+  embed_y <- matrix(c(0, 0), nrow = 1)
+
+  result <- pDistMatch_euclidean(
+    embedx = embed_x,
+    embedy = embed_y,
+    MaxDist = 1,
+    ReturnProgress = FALSE
+  )
+
+  expect_equal(nrow(result), 1)
+})

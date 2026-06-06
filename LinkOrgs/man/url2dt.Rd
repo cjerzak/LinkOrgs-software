@@ -14,7 +14,7 @@ Dropbox share links are automatically converted to direct download URLs.}
 A data.table containing the downloaded data.
 }
 \description{
-Downloads a zipped CSV file from a URL and loads it into memory as a data.table.
+Downloads a zipped or gzipped CSV file from a URL and loads it into memory as a data.table.
 Automatically handles Dropbox URLs by converting them to direct download links.
 }
 \details{

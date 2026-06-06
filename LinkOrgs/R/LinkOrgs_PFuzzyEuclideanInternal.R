@@ -11,8 +11,9 @@
 #' @param MaxDist Numeric; maximum allowed Euclidean distance. Pairs with distances
 #'   greater than this threshold are excluded. If `NULL`, all pairs are returned.
 #' @param embedDistMetric Optional function; custom distance metric. If `NULL`,
-#'   Euclidean distance is computed. The function should take two arguments
-#'   (expanded x vector and transposed y matrix) and return a distance vector.
+#'   Euclidean distance is computed. The function should take two arguments:
+#'   one embedding as a column-shaped object and the transposed candidate
+#'   embedding matrix. It must return one numeric distance per candidate.
 #' @param ReturnProgress Logical; if `TRUE`, progress information is available
 #'   (currently disabled). Default is `TRUE`.
 #'
@@ -66,7 +67,7 @@ pDistMatch_euclidean <- function(embedx, embedy, MaxDist = NULL, embedDistMetric
 
   # broadcast across larger matrix for fast vectorization
   if(swappedXY <- (nrow(embedy) < nrow(embedx))){
-    print2("Swapping for efficient use of vectorization...")
+    print2("Swapping for efficient use of vectorization...", quiet = !isTRUE(ReturnProgress))
     # reason for condition: y should be larger than x for efficient vectorization potential
     embedy_old <- embedy
     embedx_old <- embedx
@@ -76,7 +77,7 @@ pDistMatch_euclidean <- function(embedx, embedy, MaxDist = NULL, embedDistMetric
   }
 
   # cast to matrix
-  print2("Casting to matrix")
+  print2("Casting to matrix", quiet = !isTRUE(ReturnProgress))
   embedx <- as.matrix(embedx); embedy <- t(as.matrix(embedy))
 
   # parallelized dist calc
@@ -102,23 +103,28 @@ pDistMatch_euclidean <- function(embedx, embedy, MaxDist = NULL, embedDistMetric
     return( median(xx) )
   }
 
-  UseDigits <- c(median(CountDecimalPlaces(embedx[1:min(c(10,nrow(embedx))), 1:10])),
-                  median(CountDecimalPlaces(embedy[1:10,1:min(c(10,ncol(embedy)))])))
-  if(which.min(UseDigits) == 1){ embedy <- round(embedy, min(UseDigits)) }
-  if(which.min(UseDigits) == 2){ embedx <- round(embedx, min(UseDigits)) }
+  UseDigits <- c(median(CountDecimalPlaces(embedx[1:min(c(10,nrow(embedx))), 1:min(c(10,ncol(embedx))), drop = FALSE])),
+                  median(CountDecimalPlaces(embedy[1:min(c(10,nrow(embedy))), 1:min(c(10,ncol(embedy))), drop = FALSE])))
+  if(is.null(embedDistMetric) && all(is.finite(UseDigits))){
+    if(which.min(UseDigits) == 1){ embedy <- round(embedy, min(UseDigits)) }
+    if(which.min(UseDigits) == 2){ embedx <- round(embedx, min(UseDigits)) }
+  }
 
   print2(sprintf("Starting parallel Euclidean distance calculations with dim(x) = [%s, %s] and dim(y) = [%s, %s]...",
-                dim(embedx)[1], dim(embedx)[2], dim(embedy)[2], dim(embedy)[1]))
+                dim(embedx)[1], dim(embedx)[2], dim(embedy)[2], dim(embedy)[1]),
+         quiet = !isTRUE(ReturnProgress))
 
-  if("jax" %in% ls()){
-    embedy <- jnp$array(embedy, dtype = jnp$float16)
-    ColDists_jit <- jax$jit(function(an_x){
-      if(is.null(embedDistMetric)){  # return euclidean 
-        val_ <- jnp$sqrt( 0.0001 + jnp$mean( (jnp$expand_dims(an_x,1L) - embedy)^2, 0L) )
-      }   
-      if(!is.null(embedDistMetric)){  # compute custom value 
-        val_ <- embedDistMetric(jnp$expand_dims(an_x,1L), embedy)
-      }
+  use_jax <- is.null(embedDistMetric) &&
+    exists("jax", inherits = TRUE) &&
+    exists("jnp", inherits = TRUE) &&
+    exists("np", inherits = TRUE)
+  if(use_jax){
+    jax_ <- get("jax", inherits = TRUE)
+    jnp_ <- get("jnp", inherits = TRUE)
+    np_ <- get("np", inherits = TRUE)
+    embedy <- jnp_$array(embedy, dtype = jnp_$float16)
+    ColDists_jit <- jax_$jit(function(an_x){
+      val_ <- jnp_$sqrt( 0.0001 + jnp_$mean( (jnp_$expand_dims(an_x,1L) - embedy)^2, 0L) )
       return( val_ )
     })
   }
@@ -131,12 +137,17 @@ pDistMatch_euclidean <- function(embedx, embedy, MaxDist = NULL, embedDistMetric
     #                                             file = './PROGRESS_pDistMatch_euclidean.csv')}
 
     # calculate distances
-    if(!"jax" %in% ls()){
-       dist_vec <- colSums( (embedx[ix,] - embedy)^2 )^0.5  # embed2 is already transposed for row broadcasting
+    if(!use_jax){
+       if(is.null(embedDistMetric)){
+         dist_vec <- colSums( (embedx[ix,] - embedy)^2 )^0.5  # embed2 is already transposed for row broadcasting
+       } else {
+         dist_vec <- embedDistMetric(matrix(embedx[ix,], ncol = 1), embedy)
+       }
     }
-    if("jax" %in% ls()){
-      dist_vec <- np$array( ColDists_jit( jnp$array(embedx[ix,], jnp$float16) ) )
+    if(use_jax){
+      dist_vec <- np_$array( ColDists_jit( jnp_$array(embedx[ix,], jnp_$float16) ) )
     }
+    dist_vec <- as.numeric(dist_vec)
 
     # select iy matches to ix
     iy <- ifelse(is.null(MaxDist),
@@ -150,7 +161,7 @@ pDistMatch_euclidean <- function(embedx, embedy, MaxDist = NULL, embedDistMetric
     }
     return( list( match_ ))
   })
-  print2("Done with Euclidean distance calculations...")
+  print2("Done with Euclidean distance calculations...", quiet = !isTRUE(ReturnProgress))
   gc(); distMat <- do.call(rbind, unlist(distMat, recursive=F))
 
   # Handle empty results
@@ -161,7 +172,7 @@ pDistMatch_euclidean <- function(embedx, embedy, MaxDist = NULL, embedDistMetric
   distMat <- as.data.frame(distMat)
   colnames(distMat) <- c("ix","iy","stringdist")
 
-  print2("Wrapping up call to pDistMatch_euclidean()...")
+  print2("Wrapping up call to pDistMatch_euclidean()...", quiet = !isTRUE(ReturnProgress))
   if(swappedXY){
     distMat <- data.frame("ix" = distMat[,"iy"],
                           "iy" = distMat[,"ix"],

@@ -87,3 +87,19 @@ test_that("Small sample returns valid threshold", {
 
   expect_true(is.numeric(result))
 })
+
+test_that("One-row euclidean calibration returns valid threshold", {
+  embed_x <- matrix(0, nrow = 1, ncol = 2)
+  embed_y <- matrix(0, nrow = 1, ncol = 2)
+
+  result <- GetCalibratedDistThres(
+    x = embed_x,
+    y = embed_y,
+    AveMatchNumberPerAlias = 1,
+    ReturnProgress = FALSE,
+    mode = "euclidean"
+  )
+
+  expect_true(is.numeric(result))
+  expect_false(is.na(result))
+})

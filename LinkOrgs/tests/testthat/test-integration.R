@@ -26,6 +26,24 @@ test_that("LinkOrgs with algorithm='fuzzy' returns data frame with matches", {
   expect_gt(nrow(result), 0)
 })
 
+test_that("LinkOrgs ReturnProgress=FALSE suppresses progress messages", {
+  x <- data.frame(org = "Apple")
+  y <- data.frame(org = "Apple")
+
+  expect_output(
+    LinkOrgs(
+      x = x,
+      y = y,
+      by = "org",
+      algorithm = "fuzzy",
+      AveMatchNumberPerAlias = 1,
+      ReturnProgress = FALSE,
+      nCores = 1
+    ),
+    NA
+  )
+})
+
 test_that("LinkOrgs with ReturnDiagnostics returns additional columns", {
   df_x <- data.frame(
     id = 1:10,

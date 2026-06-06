@@ -14,6 +14,7 @@ pFuzzyMatch_euclidean(
   embedDistMetric = NULL,
   MaxDist = NULL,
   AveMatchNumberPerAlias = NULL,
+  ReturnProgress = T,
   ...
 )
 }
@@ -37,6 +38,9 @@ Pairs with distances greater than this threshold are excluded. If
 
 \item{AveMatchNumberPerAlias}{Numeric; target average number of matches per alias.
 If specified, automatically calibrates \code{MaxDist} using \code{\link[=GetCalibratedDistThres]{GetCalibratedDistThres()}}.}
+
+\item{ReturnProgress}{Logical; if \code{TRUE}, allows progress output from lower-level
+matching helpers. Default is \code{TRUE}.}
 
 \item{...}{Additional arguments (currently unused).}
 }

@@ -13,7 +13,7 @@
   # LinkOrgs::BuildBackend()
 
   # See package documentation for help
-  # ?LinkOrgs::FastFuzzyMatch
+  # ?LinkOrgs::pFuzzyMatch_discrete
   # ?LinkOrgs::AssessMatchPerformance
   # ?LinkOrgs::LinkOrgs
 

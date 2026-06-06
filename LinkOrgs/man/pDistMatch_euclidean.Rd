@@ -23,8 +23,9 @@ correspond to observations and columns to embedding dimensions.}
 greater than this threshold are excluded. If \code{NULL}, all pairs are returned.}
 
 \item{embedDistMetric}{Optional function; custom distance metric. If \code{NULL},
-Euclidean distance is computed. The function should take two arguments
-(expanded x vector and transposed y matrix) and return a distance vector.}
+Euclidean distance is computed. The function should take two arguments:
+one embedding as a column-shaped object and the transposed candidate
+embedding matrix. It must return one numeric distance per candidate.}
 
 \item{ReturnProgress}{Logical; if \code{TRUE}, progress information is available
 (currently disabled). Default is \code{TRUE}.}

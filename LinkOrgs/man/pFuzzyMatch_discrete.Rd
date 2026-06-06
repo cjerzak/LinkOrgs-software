@@ -17,6 +17,7 @@ pFuzzyMatch_discrete(
   DistanceMeasure = "jaccard",
   AveMatchNumberPerAlias = NULL,
   nCores = NULL,
+  ReturnProgress = T,
   ...
 )
 }
@@ -47,6 +48,9 @@ If specified, automatically calibrates \code{MaxDist} using \code{\link[=GetCali
 
 \item{nCores}{Integer; number of CPU cores for parallel processing. Default is \code{NULL}
 (uses single core).}
+
+\item{ReturnProgress}{Logical; if \code{TRUE}, allows progress output from lower-level
+matching helpers. Default is \code{TRUE}.}
 
 \item{...}{Additional arguments (currently unused).}
 }

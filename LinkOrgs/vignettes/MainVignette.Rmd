@@ -22,7 +22,7 @@ Organizations can appear in different datasets under slightly different names, o
 In this tutorial, we will show you how to:
 
 - **Install and set up the necessary environment for advanced ML-based matching** (using the `BuildBackend()` function).
-- **Use various matching techniques** (fuzzy string distance, transfer learning, network-based matching, etc.) with the main `LinkOrgs()` function.
+- **Use various matching techniques** (fuzzy string distance, ML embeddings, transfer learning, network-based matching, etc.) with the main `LinkOrgs()` function.
 - **Assess your match quality** with `AssessMatchPerformance()`.
 - **Download and load remote data** using convenience functions like `url2dt()`.
 
@@ -65,8 +65,9 @@ The main workhorse function for linking two datasets by organization names is `L
 
 - **Fuzzy String Distance:** For example, Jaccard or other stringdist measures.
 - **ML:** A neural model that transforms each organization name into an embedding, then uses Euclidean distances to find matches.
-- **Network-based:** Markov or Bipartite-based matching using a directory of tens of millions of aliases from LinkedIn.
-- **Ensemble:** A combination of ML and network-based approaches for best performance, albeit with heavier computation.
+- **Network-based:** Markov or Bipartite-based matching using a LinkedIn-derived directory of aliases.
+- **Network + ML:** A combination of ML embeddings and network-based approaches, accessed with `algorithm = "bipartite"` or `"markov"` and `DistanceMeasure = "ml"`.
+- **Transfer:** A text-model transfer representation approach using the `text` package.
 
 ### Minimal Example (Fuzzy Matching)
 
@@ -119,9 +120,9 @@ linkedOrgs_ml
 - `algorithm = "ml"` instructs `LinkOrgs()` to use ML-based distance computations.
 - `MaxDist = 2.0` is an approximate threshold in the learned embedding space. You can experiment with different values or rely on the built-in calibration `AveMatchNumberPerAlias` to set a more automatic threshold.
 
-### Network + ML (Ensemble)
+### Network + ML
 
-The “ensemble” approach merges the strengths of ML embeddings and the LinkedIn network. You can access it by setting:
+The network + ML approach merges the strengths of ML embeddings and the LinkedIn network. You can access it by setting:
 
 ```{r, eval = FALSE}
 linkedOrgs_ensemble <- LinkOrgs(x = x,
@@ -141,7 +142,7 @@ This can be more computationally heavy because:
 - We find the best canonical “community” or “alias ID.”
 - We also rely on the ML embeddings to refine link quality.
 
-In small tasks, the difference might be minor, but in larger tasks with trickier alias issues, the ensemble often yields higher recall at the same precision.
+In small tasks, the difference might be minor, but in larger tasks with trickier alias issues, the combined approach can improve recall at the same precision.
 
 ## Checking Match Performance via AssessMatchPerformance()
 
@@ -186,7 +187,7 @@ These statistics are especially helpful when systematically adjusting match thre
 
 ## Downloading and Loading Remote Data: url2dt() and dropboxURL2downloadURL()
 
-If you store large CSVs or ZIP files of data (possibly for replication) on Dropbox, the LinkOrgs package provides convenience functions for automatic downloading and importing into R:
+If you store large CSVs, ZIP files, or gzipped CSV files of data (possibly for replication) on Dropbox or another URL, the LinkOrgs package provides convenience functions for automatic downloading and importing into R:
 
 ```{r, eval = FALSE}
 # Download a zipped CSV from a Dropbox link and read it as a data.table
@@ -203,14 +204,13 @@ my_dt <- url2dt(url = "https://www.dropbox.com/s/iqf9ids77dckopf/Directory_LinkI
 A few additional utility functions included in LinkOrgs:
 
 - `print2()`: A simple wrapper to print messages with timestamps. Handy for monitoring batch matching progress.
-- `f2n()`: Convert factors to numeric (commonly used internally).
-- `NA2ColMean()`: Impute missing numeric columns with column means.
+- Internal helpers such as factor conversion and missing-value imputation are used by the package but are not exported as user-facing functions.
 
 ## Tips for Large-Scale Matching
 
 - **Parallelization:** Some matching routines within `LinkOrgs()` (e.g., discrete fuzzy matching) automatically attempt to parallelize using `doParallel` if your dataset is large. You can override the number of cores with `nCores = <number>` in `LinkOrgs()` or inside the distance functions.
 - **Threshold Tuning:** If you do not specify `MaxDist` but do provide `AveMatchNumberPerAlias`, the package attempts to calibrate an appropriate threshold on a random sample of names from your data. This often speeds up the development workflow.
-- **Network-based Approach:** Linking to the massive LinkedIn directory can take time. If you have thousands of organizations, be prepared for a multi-hour process. Consider saving partial results or focusing on subsets of your data first.
+- **Network-based Approach:** Linking to the LinkedIn-derived directory can take time. If you have thousands of organizations, be prepared for a long-running process. Downloaded artifacts are cached; set `LINKORGS_CACHE_DIR` to choose the cache location.
 
 ## Example: Bringing Everything Together
 
@@ -302,5 +302,4 @@ You’ve seen how to install the LinkOrgs package, build a conda environment for
 - Use `AssessMatchPerformance()` to systematically analyze your match quality if you have a hand-coded or otherwise “ground truth” dataset.
 
 For more information, check out the package [documentation](https://github.com/cjerzak/LinkOrgs-software/blob/master/LinkOrgs.pdf?raw=true). 
-
 
