@@ -208,6 +208,9 @@ inf20 <- function(ze){ if(is.infinite(ze)){ze<-0};ze}
 na20 <- function(ze){ ze[is.na(ze)] <- 0;ze}
 
 DeconflictNames <- function(z){
+  if(is.null(z) || ncol(z) == 0){
+    return(z)
+  }
   names_raw <- colnames(z)
   names_clean <- gsub(pattern = "\\.y",
                       replacement = "",
@@ -235,6 +238,16 @@ DeconflictNames <- function(z){
   colnames(z)[colnames(z) %in% names_raw[names_clean %in% DropOneCopy] ] <- names_clean[names_clean %in% DropOneCopy]
   z <- z[,!duplicated(colnames(z))]
   return( z )
+}
+
+LinkOrgsEmptyDataFrame <- function(cols = character(0)){
+  cols <- unique(cols[!is.na(cols) & nzchar(cols)])
+  if(length(cols) == 0){
+    return(data.frame())
+  }
+  as.data.frame(stats::setNames(rep(list(character(0)), length(cols)), cols),
+                stringsAsFactors = FALSE,
+                check.names = FALSE)
 }
 
 

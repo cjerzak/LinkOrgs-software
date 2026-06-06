@@ -47,13 +47,7 @@
 #' @export
 #' @md
 
-BuildBackend <- function(conda_env = "LinkOrgs_env", conda = "auto", tryMetal = T){
-  # Create a new conda environment
-  reticulate::conda_create(envname = conda_env,
-                           conda = conda,
-                           python_version = "3.11")
-
-  # Install Python packages within the environment
+LinkOrgsBackendPackages <- function(tryMetal = T, sys_info = Sys.info()){
   Packages2Install <- c("tensorflow==2.15",
                         #"numpy==2.0",
                         "numpy==1.26.4",
@@ -64,37 +58,44 @@ BuildBackend <- function(conda_env = "LinkOrgs_env", conda = "auto", tryMetal = 
                         "optax==0.2.2",
                         "equinox==0.11.4",
                         "jmp==0.0.4")
-  if(tryMetal){ 
-    if(Sys.info()["sysname"] == "Darwin" & 
-       Sys.info()["machine"] == "arm64"){
-        Packages2Install <- c(Packages2Install,
-                              "jax-metal==0.1.0")
-    }
-        reticulate::py_install(Packages2Install, 
-                               conda = conda, 
-                               pip = TRUE, 
-                               envname = conda_env)
+  if(isTRUE(tryMetal) &&
+     identical(unname(sys_info[["sysname"]]), "Darwin") &&
+     identical(unname(sys_info[["machine"]]), "arm64")){
+    Packages2Install <- c(Packages2Install, "jax-metal==0.1.0")
   }
-  if(!tryMetal){ 
-    if(Sys.info()["sysname"] == "Darwin"){
-      reticulate::py_install(Packages2Install, 
-                             conda = conda, 
-                             pip = TRUE, 
-                             envname = conda_env)
-    }
-  }
-  if(Sys.info()["sysname"] == "Windows"){
-     reticulate::py_install(Packages2Install, 
-                             conda = conda, 
-                             pip = TRUE, 
-                             envname = conda_env)
-  }
-  if(Sys.info()["sysname"] == "Linux"){
-    reticulate::py_install(Packages2Install, 
-                           conda = conda, 
-                           pip = TRUE, 
-                           envname = conda_env)
-  }
-  print("Done building LinkOrgs backend!")
+  Packages2Install
 }
 
+LinkOrgsBackendShouldInstall <- function(tryMetal = T, sys_info = Sys.info()){
+  isTRUE(tryMetal) ||
+    unname(sys_info[["sysname"]]) %in% c("Darwin", "Windows", "Linux")
+}
+
+BuildBackendInternal <- function(conda_env = "LinkOrgs_env",
+                                 conda = "auto",
+                                 tryMetal = T,
+                                 conda_create = reticulate::conda_create,
+                                 py_install = reticulate::py_install,
+                                 sys_info = Sys.info()){
+  conda_create(envname = conda_env,
+               conda = conda,
+               python_version = "3.11")
+
+  Packages2Install <- LinkOrgsBackendPackages(tryMetal = tryMetal,
+                                              sys_info = sys_info)
+  if(LinkOrgsBackendShouldInstall(tryMetal = tryMetal, sys_info = sys_info)){
+    py_install(Packages2Install,
+               conda = conda,
+               pip = TRUE,
+               envname = conda_env)
+  }
+
+  print("Done building LinkOrgs backend!")
+  invisible(NULL)
+}
+
+BuildBackend <- function(conda_env = "LinkOrgs_env", conda = "auto", tryMetal = T){
+  BuildBackendInternal(conda_env = conda_env,
+                       conda = conda,
+                       tryMetal = tryMetal)
+}

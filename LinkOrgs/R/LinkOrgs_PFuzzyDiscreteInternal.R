@@ -188,10 +188,9 @@ pDistMatch_discrete <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, embed
     colnames(myMatched) <- c("ix","iy","stringdist")
   }
   if(swappedXY){
-    myMatched <- cbind("ix" = myMatched[,"iy"],
-                       "iy" = myMatched[,"ix"],
-                       "stringdist" = myMatched[,"stringdist"])
+    myMatched <- data.frame("ix" = myMatched[,"iy"],
+                            "iy" = myMatched[,"ix"],
+                            "stringdist" = myMatched[,"stringdist"])
   }
   return( myMatched )
   }
-

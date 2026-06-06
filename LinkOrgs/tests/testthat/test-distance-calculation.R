@@ -81,3 +81,57 @@ test_that("Distance threshold filtering works correctly", {
   # Verify all returned distances are at or below threshold
   expect_true(all(result$stringdist <= threshold))
 })
+
+test_that("pDistMatch_discrete supports by shorthand and restores swapped indices", {
+  x <- data.frame(name = c("alpha", "beta", "gamma"))
+  y <- data.frame(name = "beta")
+
+  result <- pDistMatch_discrete(
+    x = x,
+    y = y,
+    by = "name",
+    MaxDist = 0,
+    nCores = 1,
+    ReturnProgress = FALSE
+  )
+
+  expect_equal(nrow(result), 1)
+  expect_equal(result$ix, 2)
+  expect_equal(result$iy, 1)
+  expect_equal(result$stringdist, 0)
+})
+
+test_that("pDistMatch_discrete uses parallel split for larger inputs", {
+  x <- data.frame(name = paste("company", 1:60))
+  y <- data.frame(name = paste("company", 1:60))
+
+  result <- suppressWarnings(pDistMatch_discrete(
+    x = x,
+    y = y,
+    by = "name",
+    MaxDist = 0,
+    nCores = 2,
+    ReturnProgress = FALSE
+  ))
+
+  expect_s3_class(result, "data.frame")
+  expect_gte(nrow(result), 60)
+  expect_true(all(result$stringdist == 0))
+})
+
+test_that("pDistMatch_euclidean restores swapped indices", {
+  embedx <- matrix(c(0, 0, 10, 10, 20, 20), nrow = 3, byrow = TRUE)
+  embedy <- matrix(c(10, 10), nrow = 1)
+
+  result <- pDistMatch_euclidean(
+    embedx = embedx,
+    embedy = embedy,
+    MaxDist = 0,
+    ReturnProgress = FALSE
+  )
+
+  expect_equal(nrow(result), 1)
+  expect_equal(result$ix, 2)
+  expect_equal(result$iy, 1)
+  expect_equal(result$stringdist, 0)
+})

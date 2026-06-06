@@ -527,10 +527,15 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
   # process unique IDs
   if(!is.null(by)){ by.x <- by.y <- by }
 
-  x <- cbind(sapply(x[[by.x]], digest::digest), x); colnames(x)[1] <- 'Xref__ID'
-  y <- cbind(sapply(y[[by.y]], digest::digest), y); colnames(y)[1] <- 'Yref__ID'
+  x <- data.frame(Xref__ID = unname(vapply(x[[by.x]], digest::digest, character(1))),
+                  x,
+                  check.names = FALSE)
+  y <- data.frame(Yref__ID = unname(vapply(y[[by.y]], digest::digest, character(1))),
+                  y,
+                  check.names = FALSE)
   names(by_x_orig) <- x$Xref__ID;names(by_y_orig) <- y$Yref__ID
-  y$UniversalMatchCol <- x$UniversalMatchCol <- NA
+  x$UniversalMatchCol <- rep(NA_character_, nrow(x))
+  y$UniversalMatchCol <- rep(NA_character_, nrow(y))
   colnames_x_orig <- colnames(x); colnames_y_orig <- colnames(y)
 
   print2("Pre-processing strings...")
@@ -685,7 +690,18 @@ LinkOrgs <- function(x = NULL, y = NULL, by = NULL, by.x = NULL,by.y = NULL,
   if (!has_raw_matches && !has_network_matches) {
     # No matches found from either method - return empty data frame
     print2("Warning: No matches found")
-    z <- data.frame()
+    empty_cols <- c(setdiff(colnames_x_orig, c("Xref__ID", "UniversalMatchCol")),
+                    setdiff(colnames_y_orig, c("Yref__ID", "UniversalMatchCol")),
+                    "stringdist",
+                    "minDist")
+    z <- LinkOrgsEmptyDataFrame(empty_cols)
+    if(ReturnDecomposition == T){
+      return(list("z" = z,
+                  "z_RawNames" = z_RawNames,
+                  "z_Network" = z_Network))
+    }
+    print2("Returning matched dataset!")
+    return(z)
   } else if (!has_network_matches) {
     z <- as.data.frame( z_RawNames )
   } else {
